@@ -1,0 +1,46 @@
+{
+	"name": "md-x",
+	"version": "0.1.0",
+	"description": "Compile MDX components and source imports into plain Markdown.",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/jeremybanka/tonnage.git",
+		"directory": "packages/md-x"
+	},
+	"license": "MPL-2.0",
+	"author": "Jeremy Banka",
+	"type": "module",
+	"exports": {
+		".": { "types": "./dist/index.d.mts", "import": "./dist/index.mjs" },
+		"./jsx-runtime": {
+			"types": "./dist/jsx-runtime.d.mts",
+			"import": "./dist/jsx-runtime.mjs"
+		},
+		"./jsx-dev-runtime": {
+			"types": "./dist/jsx-runtime.d.mts",
+			"import": "./dist/jsx-runtime.mjs"
+		},
+		"./package.json": "./package.json"
+	},
+	"bin": { "md-x": "./dist/cli.mjs" },
+	"files": ["dist", "src", "README.md", "AGENTS.md", "LICENSE"],
+	"scripts": {
+		"build": "vp pack",
+		"test": "vp test",
+		"test:watch": "vp test watch"
+	},
+	"dependencies": {
+		"@mdx-js/mdx": "3.1.1",
+		"@types/mdast": "4.0.4",
+		"comline": "0.9.0",
+		"esbuild": "0.28.2",
+		"remark-gfm": "4.0.1",
+		"remark-mdx": "3.1.1",
+		"remark-parse": "11.0.0",
+		"remark-stringify": "11.0.0",
+		"unified": "11.0.5"
+	},
+	"devDependencies": { "@types/node": "26.6.4" },
+	"engines": { "node": ">=22.18.0" },
+	"publishConfig": { "access": "public" }
+}
