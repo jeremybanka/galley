@@ -4,7 +4,7 @@ import path from "node:path"
 import { compileMarkdown } from "./compile.ts"
 import type { RunOptions, RunResult } from "./types.ts"
 
-export async function runMdX(
+export async function runGalley(
 	input: string,
 	options: RunOptions,
 ): Promise<RunResult> {

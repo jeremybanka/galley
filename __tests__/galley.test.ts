@@ -7,7 +7,7 @@ import { promisify } from "node:util"
 
 import { afterEach, describe, expect, test } from "vite-plus/test"
 
-import { compileMarkdown, Markdown, runMdX } from "../src/index.ts"
+import { compileMarkdown, Markdown, runGalley } from "../src/index.ts"
 
 const execute = promisify(execFile)
 const directories: string[] = []
@@ -22,7 +22,7 @@ afterEach(async () => {
 })
 
 async function fixture(files: Record<string, string>) {
-	const directory = await fs.mkdtemp(path.join(os.tmpdir(), "md-x-"))
+	const directory = await fs.mkdtemp(path.join(os.tmpdir(), "galley-"))
 	directories.push(directory)
 	for (const [name, contents] of Object.entries(files)) {
 		await fs.mkdir(path.dirname(path.join(directory, name)), {
@@ -45,7 +45,7 @@ function withoutPositions(value: unknown): unknown {
 	)
 }
 
-describe("md-x documents", () => {
+describe("galley documents", () => {
 	test("keeps inline expression whitespace and treats Markdown imports as data", async () => {
 		const markdown =
 			"<details>\n\nA **plain** document with {braces}.\n\n</details>\n"
@@ -53,7 +53,7 @@ describe("md-x documents", () => {
 			"plain.md": markdown,
 			"README.mdx": `import Plain from './plain.md'
 import raw from './plain.md' with { type: 'text' }
-import { Code } from 'md-x'
+import { Code } from 'galley.mdx'
 
 a{'\\n'}b
 
@@ -245,22 +245,22 @@ import Again from 'virtual:example' with { label: 'one', type: 'custom' }
 	test("write and check handle missing and stale output without modifying the source", async () => {
 		const source = "# Generated\n"
 		const { input, output } = await fixture({ "README.mdx": source })
-		expect((await runMdX(input, { mode: "check" })).changed).toBe(true)
+		expect((await runGalley(input, { mode: "check" })).changed).toBe(true)
 		await expect(fs.stat(output)).rejects.toMatchObject({ code: "ENOENT" })
-		expect((await runMdX(input, { mode: "write" })).changed).toBe(true)
-		expect((await runMdX(input, { mode: "check" })).changed).toBe(false)
+		expect((await runGalley(input, { mode: "write" })).changed).toBe(true)
+		expect((await runGalley(input, { mode: "check" })).changed).toBe(false)
 		await fs.writeFile(output, "stale\n")
-		expect((await runMdX(input, { mode: "check" })).changed).toBe(true)
+		expect((await runGalley(input, { mode: "check" })).changed).toBe(true)
 		expect(await fs.readFile(output, "utf8")).toBe("stale\n")
-		await runMdX(input, { mode: "write" })
+		await runGalley(input, { mode: "write" })
 		expect(await fs.readFile(output, "utf8")).toBe(source)
 		expect(await fs.readFile(input, "utf8")).toBe(source)
 		await expect(
-			runMdX(input, { mode: "write", output: input }),
+			runGalley(input, { mode: "write", output: input }),
 		).rejects.toThrow("must differ")
 		await fs.unlink(output)
 		await fs.symlink(input, output)
-		await expect(runMdX(input, { mode: "write" })).rejects.toThrow(
+		await expect(runGalley(input, { mode: "write" })).rejects.toThrow(
 			"must differ",
 		)
 		expect(await fs.readFile(input, "utf8")).toBe(source)
@@ -290,7 +290,7 @@ import Again from 'virtual:example' with { label: 'one', type: 'custom' }
 			input,
 			'export const broken = (() => { throw new Error("must not evaluate") })()',
 		)
-		expect((await run("--help")).stdout).toContain("md-x")
+		expect((await run("--help")).stdout).toContain("galley")
 		await expect(run("unknown")).rejects.toMatchObject({ code: 1 })
 	})
 })

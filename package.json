@@ -1,17 +1,20 @@
 {
-	"name": "md-x",
+	"name": "galley.mdx",
 	"version": "0.1.0",
 	"description": "Compile MDX components and source imports into plain Markdown.",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/jeremybanka/tonnage.git",
-		"directory": "packages/md-x"
+		"directory": "packages/galley"
 	},
 	"license": "MPL-2.0",
 	"author": "Jeremy Banka",
 	"type": "module",
 	"exports": {
-		".": { "types": "./dist/index.d.mts", "import": "./dist/index.mjs" },
+		".": {
+			"types": "./dist/index.d.mts",
+			"import": "./dist/index.mjs"
+		},
 		"./jsx-runtime": {
 			"types": "./dist/jsx-runtime.d.mts",
 			"import": "./dist/jsx-runtime.mjs"
@@ -20,10 +23,24 @@
 			"types": "./dist/jsx-runtime.d.mts",
 			"import": "./dist/jsx-runtime.mjs"
 		},
-		"./package.json": "./package.json"
+		"./package.json": "./package.json",
+		"./content-mapper": {
+			"types": "./dist/mapper.d.mts",
+			"import": "./dist/mapper.mjs"
+		}
 	},
-	"bin": { "md-x": "./dist/cli.mjs" },
-	"files": ["dist", "src", "README.md", "AGENTS.md", "LICENSE"],
+	"bin": {
+		"galley": "./dist/cli.mjs",
+		"galley-content-mapper": "./dist/content-mapper.mjs",
+		"galley-lsp": "./dist/lsp.mjs"
+	},
+	"files": [
+		"dist",
+		"src",
+		"README.md",
+		"AGENTS.md",
+		"LICENSE"
+	],
 	"scripts": {
 		"build": "vp pack",
 		"test": "vp test",
@@ -32,15 +49,42 @@
 	"dependencies": {
 		"@mdx-js/mdx": "3.1.1",
 		"@types/mdast": "4.0.4",
+		"@vscode/vsce": "4.0.0",
 		"comline": "0.9.0",
 		"esbuild": "0.28.2",
+		"mdx-content-mapper": "0.0.2",
 		"remark-gfm": "4.0.1",
 		"remark-mdx": "3.1.1",
 		"remark-parse": "11.0.0",
 		"remark-stringify": "11.0.0",
-		"unified": "11.0.5"
+		"typescript": "7.1.0-dev.20261014.1",
+		"unified": "11.0.5",
+		"vscode-jsonrpc": "9.0.0",
+		"vscode-languageclient": "10.1.2",
+		"vscode-languageserver": "10.1.2",
+		"vscode-languageserver-textdocument": "1.0.15"
 	},
-	"devDependencies": { "@types/node": "26.6.4" },
-	"engines": { "node": ">=22.18.0" },
-	"publishConfig": { "access": "public" }
+	"devDependencies": {
+		"@types/node": "26.6.4",
+		"@types/vscode": "1.140.0"
+	},
+	"engines": {
+		"node": ">=22.18.0"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"typescript": {
+		"contentMapper": {
+			"exec": [
+				"node",
+				"dist/content-mapper.mjs"
+			],
+			"compilerOptions": [
+				"allowJs",
+				"jsxImportSource"
+			],
+			"dynamicConfig": false
+		}
+	}
 }

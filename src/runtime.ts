@@ -6,7 +6,15 @@ import remarkParse from "remark-parse"
 import remarkStringify from "remark-stringify"
 import { unified } from "unified"
 
-import type { Content, DocumentContext, Element } from "./types.ts"
+import type {
+	ComponentPreview,
+	Content,
+	DocumentContext,
+	Element,
+} from "./types.ts"
+
+const previewSink = Symbol("galley:previews")
+type RenderContext = DocumentContext & { [previewSink]?: ComponentPreview[] }
 
 const markdownProcessor = unified()
 	.use(remarkParse)
@@ -39,15 +47,19 @@ export function Code({
 export async function renderMarkdown(
 	content: Content,
 	context: DocumentContext,
+	previews?: ComponentPreview[],
 ): Promise<string> {
-	const nodes = await resolveContent(content, context)
+	const nodes = await resolveContent(content, {
+		...context,
+		...(previews ? { [previewSink]: previews } : {}),
+	})
 	const root: Root = { type: "root", children: blocks(nodes) }
 	return markdownProcessor.stringify(root)
 }
 
 async function resolveContent(
 	content: Content,
-	context: DocumentContext,
+	context: RenderContext,
 ): Promise<RootContent[]> {
 	const value = await content
 	if (value === null || value === undefined || typeof value === "boolean")
@@ -61,7 +73,7 @@ async function resolveContent(
 			result.push(...(await resolveContent(child, context)))
 		return result
 	}
-	if ("kind" in value && value.kind === "md-x:element") {
+	if ("kind" in value && value.kind === "galley:element") {
 		const element = value as Element
 		if (typeof element.type === "function") {
 			return resolveContent(
@@ -69,17 +81,37 @@ async function resolveContent(
 				context,
 			)
 		}
-		if (element.type === "md-x-fragment" || element.type === "md-x-expression")
+		if (element.type === "galley-preview") {
+			const children = await resolveContent(
+				element.props.children as Content,
+				context,
+			)
+			context[previewSink]?.push({
+				file: String(element.props.file),
+				start: Number(element.props.start),
+				end: Number(element.props.end),
+				markdown: markdownProcessor.stringify({
+					type: "root",
+					children: blocks(children),
+				}),
+			})
+			return children
+		}
+		if (
+			element.type === "galley-fragment" ||
+			element.type === "galley-expression"
+		)
 			return resolveContent(element.props.children as Content, context)
-		if (element.type === "md-x-flow")
+		if (element.type === "galley-flow")
 			return blocks(
 				await resolveContent(element.props.children as Content, context),
 			)
-		if (element.type === "md-x-node") {
+		if (element.type === "galley-node") {
 			const node = JSON.parse(String(element.props.node)) as Nodes
 			const document =
 				typeof element.props.file === "string"
 					? {
+							...context,
 							path: element.props.file,
 							directory: path.dirname(element.props.file),
 						}
@@ -146,7 +178,7 @@ function blocks(nodes: RootContent[]): RootContent[] {
 
 async function intrinsic(
 	element: Element,
-	context: DocumentContext,
+	context: RenderContext,
 ): Promise<RootContent[]> {
 	const children = await resolveContent(
 		element.props.children as Content,

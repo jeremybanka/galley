@@ -14,7 +14,7 @@ export type Component<Props = Record<string, unknown>> = (
 ) => Content
 
 export type Element = {
-	kind: "md-x:element"
+	kind: "galley:element"
 	type: string | Component<never>
 	props: Record<string, unknown>
 }
@@ -35,6 +35,24 @@ export type Content = SyncContent | Promise<SyncContent>
 export type CompileOptions = {
 	/** Plugins run before the built-in MDX and code import plugins. */
 	plugins?: readonly Plugin[]
+}
+
+export type ComponentPreview = {
+	file: string
+	start: number
+	end: number
+	markdown: string
+}
+
+export type PreviewOptions = CompileOptions & {
+	/** Unsaved document text. The source file is never modified. */
+	source?: string
+}
+
+export type DocumentPreview = {
+	markdown: string
+	components: ComponentPreview[]
+	dependencies: string[]
 }
 
 export type RunOptions = CompileOptions & {

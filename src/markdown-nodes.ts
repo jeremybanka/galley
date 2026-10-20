@@ -3,23 +3,48 @@ import type { Root, RootContent } from "mdast"
 type Node = {
 	type: string
 	children?: Node[]
-	position?: unknown
+	position?: { start: { offset: number }; end: { offset: number } }
 	[key: string]: unknown
 }
 
 /** Preserve Markdown structure before MDX's HTML-oriented transform runs. */
-export function markdownNodes() {
+export function markdownNodes(options: { previews?: boolean } = {}) {
 	return (tree: Root, file: { path: string }) => {
 		function wrap(node: Node): Node {
 			if (node.type.startsWith("mdx")) {
-				const element = {
+				let element: Node = {
 					...node,
 					...(node.children ? { children: node.children.map(wrap) } : {}),
+				}
+				if (
+					options.previews &&
+					node.position &&
+					((/^mdxJsx(?:Flow|Text)Element$/.test(node.type) &&
+						/^[A-Z]|\./.test(String(node.name))) ||
+						node.type === "mdxFlowExpression")
+				) {
+					element = {
+						type:
+							node.type === "mdxJsxTextElement"
+								? "mdxJsxTextElement"
+								: "mdxJsxFlowElement",
+						name: "galley-preview",
+						attributes: Object.entries({
+							file: file.path,
+							start: String(node.position.start.offset),
+							end: String(node.position.end.offset),
+						}).map(([name, value]) => ({
+							type: "mdxJsxAttribute",
+							name,
+							value,
+						})),
+						children: [element],
+					}
 				}
 				if (node.type === "mdxTextExpression") {
 					return {
 						type: "mdxJsxTextElement",
-						name: "md-x-expression",
+						name: "galley-expression",
 						attributes: [],
 						children: [element],
 					}
@@ -28,7 +53,7 @@ export function markdownNodes() {
 					node.type === "mdxFlowExpression"
 					? {
 							type: "mdxJsxFlowElement",
-							name: "md-x-flow",
+							name: "galley-flow",
 							attributes: [],
 							children: [element],
 						}
@@ -37,7 +62,7 @@ export function markdownNodes() {
 			const { children, position: _position, ...properties } = node
 			return {
 				type: "mdxJsxFlowElement",
-				name: "md-x-node",
+				name: "galley-node",
 				attributes: [
 					{
 						type: "mdxJsxAttribute",

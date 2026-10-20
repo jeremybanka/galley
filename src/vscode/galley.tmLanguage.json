@@ -1,0 +1,25 @@
+{
+	"scopeName": "source.galley",
+	"name": "galley.mdx",
+	"patterns": [
+		{
+			"begin": "^(?=(?:import|export)\\b)",
+			"end": "^\\s*$",
+			"contentName": "meta.embedded.block.javascript",
+			"patterns": [{ "include": "source.js.jsx" }]
+		},
+		{
+			"begin": "(?=<[A-Z])",
+			"end": "(?<=>)",
+			"contentName": "meta.embedded.block.javascript",
+			"patterns": [{ "include": "source.js.jsx" }]
+		},
+		{
+			"begin": "\\{",
+			"end": "\\}",
+			"contentName": "meta.embedded.block.javascript",
+			"patterns": [{ "include": "source.js.jsx" }]
+		},
+		{ "include": "text.html.markdown" }
+	]
+}
