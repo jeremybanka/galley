@@ -1,0 +1,27 @@
+{
+	"version": "0.2",
+	"useGitignore": true,
+	"ignorePaths": ["pnpm-lock.yaml"],
+	"words": [
+		"comline",
+		"esbuild",
+		"jeremybanka",
+		"malva",
+		"mdast",
+		"mdx",
+		"mdxjs",
+		"jsxs",
+		"jsxDEV",
+		"acorn",
+		"minified",
+		"subpaths",
+		"tonnage",
+		"tree-shake",
+		"tree-shaken",
+		"tsgolint",
+		"vite",
+		"viteplus",
+		"vitest",
+		"voidzero"
+	]
+}

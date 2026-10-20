@@ -12,3 +12,11 @@ Compile trusted MDX documents and executable components to checked-in Markdown.
 - Register `{ "package": "galley.mdx", "extensions": [".mdx"] }` in `tsconfig.json`'s `contentMappers` array for configured projects. CLI type checking requires TypeScript 7.1 and `--runExternalCode`.
 - Component output appears as ghost summaries, full Markdown hovers, and native inline peek views. Preview refresh evaluates on open/save or explicit refresh, clears stale output on edit, and only runs in trusted workspaces. Separate preview processes have a timeout and are not security sandboxes.
 - Describe plugin import types with the mapper's `options.importTypes`. Build hooks remain esbuild plugins; editor metadata never executes those hooks.
+
+## Contributing
+
+- Prefer `.ts` source files and Node scripts; do not add `.js`, `.cjs`, `.mjs`, or `.mts` source files.
+- Keep the user guide in `README.md` synchronized with the public API. Keep contributor commands in `docs/commands.md`.
+- Use `fmt` to write formatting, `check` to aggregate `check:*` validators, and `test` to run tests once.
+- Keep changeset bodies on a single line. Before 1.0.0, use patch releases for features and fixes, and minor releases for breaking changes.
+- Use the target release's official `vp migrate --no-interactive` for Vite Plus upgrades. Preserve the lockfile until migration runs, let the migrator align the toolchain, and review its manual findings before running formatting and checks.

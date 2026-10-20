@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+artifacts/
+.mise/
+.pnpm-home/
+.pnpm-store/
+.xdg-data/
+.mise.local.toml
+.env
+*.log
