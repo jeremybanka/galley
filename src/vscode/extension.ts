@@ -8,7 +8,7 @@ let client: LanguageClient | undefined
 
 export async function activate(context: vscode.ExtensionContext) {
 	if (!vscode.workspace.isTrusted) return
-	const output = vscode.window.createOutputChannel("galley.mdx", { log: true })
+	const output = vscode.window.createOutputChannel("galley.md", { log: true })
 	const snapshots = new Map<string, Snapshot>()
 	const pending = new Map<string, vscode.CancellationTokenSource>()
 	const refreshTimers = new Map<string, ReturnType<typeof setTimeout>>()
@@ -264,7 +264,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	)
 	client = new LanguageClient(
 		"galley",
-		"galley.mdx",
+		"galley.md",
 		{
 			module: context.asAbsolutePath("dist/lsp.mjs"),
 			transport: TransportKind.stdio,

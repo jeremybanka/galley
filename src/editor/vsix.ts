@@ -42,7 +42,7 @@ async function thirdPartyNotices(metafiles: Metafile[]): Promise<string> {
 			}
 			packages.set(
 				directory,
-				manifest.name === "galley.mdx"
+				manifest.name === "galley.md"
 					? ""
 					: `## ${manifest.name} ${manifest.version}\n\n${notices.join("\n\n")}`,
 			)

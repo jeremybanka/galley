@@ -22,7 +22,7 @@ const projects = new Map<string, ImportType[]>()
 export const builtinImportTypes: readonly ImportType[] = [
 	{
 		type: "code",
-		valueType: 'import("galley.mdx").Component<Record<string, never>>',
+		valueType: 'import("galley.md").Component<Record<string, never>>',
 		attributes: { lang: true },
 	},
 	{ type: "text", valueType: "string" },
@@ -47,7 +47,7 @@ export async function openProject(params: OpenProject) {
 		...params,
 		compilerOptions: {
 			...params.compilerOptions,
-			jsxImportSource: "galley.mdx",
+			jsxImportSource: "galley.md",
 		},
 		options: { checkMdx: true, ...options },
 	})

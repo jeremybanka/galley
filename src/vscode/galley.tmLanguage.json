@@ -1,6 +1,6 @@
 {
 	"scopeName": "source.galley",
-	"name": "galley.mdx",
+	"name": "galley.md",
 	"patterns": [
 		{
 			"begin": "^(?=(?:import|export)\\b)",

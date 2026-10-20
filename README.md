@@ -1,11 +1,11 @@
-# galley.mdx
+# galley.md
 
 Compose your Markdown.
 
 Compile MDX components and source imports into plain Markdown for GitHub, npm, and checked-in documentation.
 
 ```sh
-pnpm add -D galley.mdx
+pnpm add -D galley.md
 ```
 
 Create `README.mdx`:
@@ -29,11 +29,11 @@ galley write docs/guide.mdx docs/guide.md
 galley check docs/guide.mdx docs/guide.md
 ```
 
-Without an output argument, galley.mdx replaces the input extension with `.md`. CLI paths are relative to the working directory. The output must differ from the input. Use `--` before paths that begin with a dash.
+Without an output argument, galley.md replaces the input extension with `.md`. CLI paths are relative to the working directory. The output must differ from the input. Use `--` before paths that begin with a dash.
 
 ## Source imports
 
-`type: "code"` reads the original file and exports a component. It never executes the source, removes types, or reformats it. `lang` overrides the language inferred from the file extension. galley.mdx chooses fences that safely contain any backticks in the source.
+`type: "code"` reads the original file and exports a component. It never executes the source, removes types, or reformats it. `lang` overrides the language inferred from the file extension. galley.md chooses fences that safely contain any backticks in the source.
 
 The same file can be imported with different attributes to create distinct components. Identical attribute maps reuse the same component regardless of key order. The built-in code handler accepts `type` and `lang`; unknown attributes are errors. esbuild also supports `type: "text"` for importing a string you can use in an expression or pass as a prop.
 
@@ -42,7 +42,7 @@ The same file can be imported with different attributes to create distinct compo
 Components can be async and return Markdown nodes directly. For example, `components.ts`:
 
 ```ts
-import type { Component } from "galley.mdx"
+import type { Component } from "galley.md"
 
 export const Greeting: Component<{ name: string }> = async ({ name }) => {
 	await Promise.resolve()
@@ -65,7 +65,7 @@ Use `Markdown({ children: generatedMarkdown })` to include Markdown produced by 
 
 The second argument is a `DocumentContext` with absolute `path` and `directory` fields for the containing document. Use this directory to resolve local inputs. Imported `.mdx` documents get their own context; `.md` imports are parsed as ordinary Markdown.
 
-For TSX components, set `jsx` to `react-jsx` and `jsxImportSource` to `galley.mdx` in TypeScript configuration. React is not required. Supported intrinsic JSX elements are `p`, `h1` through `h6`, `strong`, `em`, `del`, `blockquote`, `a`, `br`, and `hr`. Other tags are errors; use Markdown syntax or return Markdown nodes for other structures.
+For TSX components, set `jsx` to `react-jsx` and `jsxImportSource` to `galley.md` in TypeScript configuration. React is not required. Supported intrinsic JSX elements are `p`, `h1` through `h6`, `strong`, `em`, `del`, `blockquote`, `a`, `br`, and `hr`. Other tags are errors; use Markdown syntax or return Markdown nodes for other structures.
 
 ## Tonnage
 
@@ -90,7 +90,7 @@ Tonnage resolves config paths relative to the containing document and returns th
 ## Programmatic API and plugins
 
 ```ts
-import { compileMarkdown, runGalley } from "galley.mdx"
+import { compileMarkdown, runGalley } from "galley.md"
 
 const markdown = await compileMarkdown("README.mdx")
 const result = await runGalley("README.mdx", { mode: "check" })
@@ -99,7 +99,7 @@ console.log(markdown, result.changed)
 
 Both functions accept a `plugins` array of esbuild plugins. Plugins run before the built-in handlers, so they can define their own import attributes. Access attributes through `args.with` in `onResolve` and `onLoad`. esbuild maintains separate modules for each distinct attribute combination.
 
-galley.mdx preserves Markdown syntax trees, including tables, task lists, references, and footnotes. It evaluates components and serializes those trees directly to Markdown; output formatting is normalized. Ordinary package imports remain external and resolve from the importing file. Local TypeScript and TSX dependencies are bundled. Documents, ordinary imports, and plugins execute with Node.js access, so compile trusted inputs.
+galley.md preserves Markdown syntax trees, including tables, task lists, references, and footnotes. It evaluates components and serializes those trees directly to Markdown; output formatting is normalized. Ordinary package imports remain external and resolve from the importing file. Local TypeScript and TSX dependencies are bundled. Documents, ordinary imports, and plugins execute with Node.js access, so compile trusted inputs.
 
 Requires Node.js 22.18 or newer.
 
@@ -114,11 +114,11 @@ galley vsix cursor
 
 The optional argument selects the editor's CLI executable; it defaults to `code`. To build a VSIX without installing it, run `galley vsix build [outputDirectory]`. The default output directory is `artifacts`. The VSIX includes the pinned TypeScript compiler and native dependencies for the platform where it was built, so it does not depend on a separate TypeScript extension or a Marketplace release.
 
-Choose **galley.mdx** as the file's language if another MDX extension owns `.mdx`. To make that association persistent, set `"files.associations": { "*.mdx": "galley" }` in workspace settings.
+Choose **galley.md** as the file's language if another MDX extension owns `.mdx`. To make that association persistent, set `"files.associations": { "*.mdx": "galley" }` in workspace settings.
 
 Components display faded summaries of their generated Markdown next to the source. Hover over a component to read its full output, or use its **Peek Generated Markdown** action to open a read-only view directly beneath it. VS Code's stable native editor does not support persistent multiline ghost blocks; summaries, hovers, and inline peek views keep the preview in the native editing experience.
 
-Previews refresh when a document opens, is saved, or a known source dependency changes. Editing immediately clears stale output. **galley.mdx: Refresh Component Output** evaluates the current unsaved MDX text without writing it to disk. Disable `galley.preview.enabled` to stop automatic evaluation. Preview errors appear in the **galley.mdx** output channel.
+Previews refresh when a document opens, is saved, or a known source dependency changes. Editing immediately clears stale output. **galley.md: Refresh Component Output** evaluates the current unsaved MDX text without writing it to disk. Disable `galley.preview.enabled` to stop automatic evaluation. Preview errors appear in the **galley.md** output channel.
 
 The extension runs only in trusted workspaces. Each preview evaluates the document in a separate process with a 15-second timeout. Components execute once per preview, and the captured output uses the same Markdown serializer as `galley write`. The process isolates crashes and console output; it is not a security sandbox. Previews can execute the same side effects as a build.
 
@@ -136,11 +136,11 @@ Register the mapper in your project's `tsconfig.json`:
 		"allowJs": true,
 		"checkJs": true,
 		"jsx": "react-jsx",
-		"jsxImportSource": "galley.mdx",
+		"jsxImportSource": "galley.md",
 		"module": "nodenext",
 		"noEmit": true
 	},
-	"contentMappers": [{ "package": "galley.mdx", "extensions": [".mdx"] }],
+	"contentMappers": [{ "package": "galley.md", "extensions": [".mdx"] }],
 	"include": ["**/*.ts", "**/*.tsx", "**/*.mdx"]
 }
 ```
@@ -154,7 +154,7 @@ Plugins can describe the static type and supported attributes of their attribute
 ```json
 {
 	"contentMappers": [{
-		"package": "galley.mdx",
+		"package": "galley.md",
 		"extensions": [".mdx"],
 		"options": {
 			"importTypes": [{

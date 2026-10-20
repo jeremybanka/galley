@@ -35,13 +35,13 @@ afterEach(async () => {
 async function fixture(source: string) {
 	const directory = await fs.mkdtemp(path.join(os.tmpdir(), "galley-editor-"))
 	directories.push(directory)
-	await fs.mkdir(path.join(directory, "node_modules/galley.mdx"), {
+	await fs.mkdir(path.join(directory, "node_modules/galley.md"), {
 		recursive: true,
 	})
 	await fs.writeFile(
-		path.join(directory, "node_modules/galley.mdx/package.json"),
+		path.join(directory, "node_modules/galley.md/package.json"),
 		JSON.stringify({
-			name: "galley.mdx",
+			name: "galley.md",
 			type: "module",
 			exports: { ".": "./index.ts", "./jsx-runtime": "./jsx-runtime.ts" },
 			typescript: {
@@ -54,7 +54,7 @@ async function fixture(source: string) {
 	)
 	for (const entry of ["index", "jsx-runtime"])
 		await fs.writeFile(
-			path.join(directory, `node_modules/galley.mdx/${entry}.ts`),
+			path.join(directory, `node_modules/galley.md/${entry}.ts`),
 			`export * from ${JSON.stringify(path.join(root, `src/${entry}.ts`))}`,
 		)
 	await fs.mkdir(path.join(directory, "node_modules/@types"), {
@@ -73,7 +73,7 @@ async function fixture(source: string) {
 				checkJs: true,
 				allowJs: true,
 				jsx: "react-jsx",
-				jsxImportSource: "galley.mdx",
+				jsxImportSource: "galley.md",
 				module: "nodenext",
 				noEmit: true,
 				skipLibCheck: true,
@@ -81,7 +81,7 @@ async function fixture(source: string) {
 				types: ["node"],
 				target: "esnext",
 			},
-			contentMappers: [{ package: "galley.mdx", extensions: [".mdx"] }],
+			contentMappers: [{ package: "galley.md", extensions: [".mdx"] }],
 			include: ["README.mdx"],
 		}),
 	)
@@ -111,7 +111,7 @@ test("composes UTF-16 source maps and keeps attributed imports distinct from ord
 		),
 	).toEqual([])
 	expect(result.text).toContain("import { value } from './example.ts'")
-	expect(result.text).toContain('import("galley.mdx").Component')
+	expect(result.text).toContain('import("galley.md").Component')
 	expect(result.text).toContain("@type {string}")
 	for (const [v, vl, o, ol, kind] of result.mappings ?? []) {
 		if (kind === 0)

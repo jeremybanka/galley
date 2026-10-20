@@ -111,7 +111,7 @@ async function compileDocument(
 							{
 								format: args.path.endsWith(".mdx") ? "mdx" : "md",
 								jsx: true,
-								jsxImportSource: "galley.mdx",
+								jsxImportSource: "galley.md",
 								remarkPlugins,
 							},
 						),
@@ -128,12 +128,12 @@ async function compileDocument(
 			build.onResolve({ filter: /.*/ }, async (args) => {
 				if (args.pluginData === skipResolution) return undefined
 				if (
-					args.path === "galley.mdx/jsx-runtime" ||
-					args.path === "galley.mdx/jsx-dev-runtime"
+					args.path === "galley.md/jsx-runtime" ||
+					args.path === "galley.md/jsx-dev-runtime"
 				) {
 					return { path: pathToFileURL(runtimePath).href, external: true }
 				}
-				if (args.path === "galley.mdx")
+				if (args.path === "galley.md")
 					return { path: pathToFileURL(indexPath).href, external: true }
 				if (Object.keys(args.with).length > 0) return undefined
 				if (
@@ -164,7 +164,7 @@ async function compileDocument(
 		platform: "node",
 		format: "esm",
 		jsx: "automatic",
-		jsxImportSource: "galley.mdx",
+		jsxImportSource: "galley.md",
 		write: false,
 		metafile: true,
 		logLevel: "silent",

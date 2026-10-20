@@ -53,7 +53,7 @@ describe("galley documents", () => {
 			"plain.md": markdown,
 			"README.mdx": `import Plain from './plain.md'
 import raw from './plain.md' with { type: 'text' }
-import { Code } from 'galley.mdx'
+import { Code } from 'galley.md'
 
 a{'\\n'}b
 
