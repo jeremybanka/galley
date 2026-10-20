@@ -174,6 +174,51 @@ overrides:
 importers:
 
   .:
+    devDependencies:
+      '@changesets/cli':
+        specifier: 3.0.3
+        version: 3.0.3
+      '@changesets/config':
+        specifier: 4.0.1
+        version: 4.0.1
+      '@dprint/json':
+        specifier: 0.25.2
+        version: 0.25.2
+      '@dprint/markdown':
+        specifier: 0.26.0
+        version: 0.26.0
+      '@dprint/oxc':
+        specifier: 0.44.0
+        version: 0.44.0
+      '@dprint/toml':
+        specifier: 0.9.0
+        version: 0.9.0
+      '@types/node':
+        specifier: 26.6.4
+        version: 26.6.4
+      cspell:
+        specifier: 10.3.6
+        version: 10.3.6
+      dprint:
+        specifier: 0.60.1
+        version: 0.60.1
+      dprint-plugin-malva:
+        specifier: 0.16.0
+        version: 0.16.0
+      dprint-plugin-markup:
+        specifier: 0.27.5
+        version: 0.27.5
+      dprint-plugin-yaml:
+        specifier: 0.6.0
+        version: 0.6.0
+      typescript:
+        specifier: 7.1.0-dev.20261014.1
+        version: 7.1.0-dev.20261014.1
+      vite-plus:
+        specifier: 'catalog:'
+        version: 1.0.0(@types/node@26.6.4)(@vitest/ui@5.0.1)(esbuild@0.28.2)(typescript@7.1.0-dev.20261014.1)(yaml@2.9.1)
+
+  packages/galley:
     dependencies:
       '@mdx-js/mdx':
         specifier: 3.1.1
@@ -224,48 +269,12 @@ importers:
         specifier: 1.0.15
         version: 1.0.15
     devDependencies:
-      '@changesets/cli':
-        specifier: 3.0.3
-        version: 3.0.3
-      '@changesets/config':
-        specifier: 4.0.1
-        version: 4.0.1
-      '@dprint/json':
-        specifier: 0.25.2
-        version: 0.25.2
-      '@dprint/markdown':
-        specifier: 0.26.0
-        version: 0.26.0
-      '@dprint/oxc':
-        specifier: 0.44.0
-        version: 0.44.0
-      '@dprint/toml':
-        specifier: 0.9.0
-        version: 0.9.0
       '@types/node':
         specifier: 26.6.4
         version: 26.6.4
       '@types/vscode':
         specifier: 1.140.0
         version: 1.140.0
-      cspell:
-        specifier: 10.3.6
-        version: 10.3.6
-      dprint:
-        specifier: 0.60.1
-        version: 0.60.1
-      dprint-plugin-malva:
-        specifier: 0.16.0
-        version: 0.16.0
-      dprint-plugin-markup:
-        specifier: 0.27.5
-        version: 0.27.5
-      dprint-plugin-yaml:
-        specifier: 0.6.0
-        version: 0.6.0
-      vite-plus:
-        specifier: 'catalog:'
-        version: 1.0.0(@types/node@26.6.4)(@vitest/ui@5.0.1)(esbuild@0.28.2)(typescript@7.1.0-dev.20261014.1)(yaml@2.9.1)
 
 packages:
 

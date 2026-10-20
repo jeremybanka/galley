@@ -1,6 +1,6 @@
 # Repository commands
 
-Run commands from the repository root. `mise.toml` selects the Node and pnpm versions.
+Run commands from the repository root. The publishable package lives in `packages/galley`; the root package is private. `mise.toml` selects the Node and pnpm versions.
 
 | Command            | Purpose                                                       |
 | ------------------ | ------------------------------------------------------------- |
@@ -18,6 +18,8 @@ Run commands from the repository root. `mise.toml` selects the Node and pnpm ver
 | `staged`           | Format and check staged files.                                |
 | `workflows:update` | Update pinned workflow tooling references.                    |
 
-`prepare` builds source installations, including pinned Git dependencies. Published npm packages include the built files.
+The package's `prepare` script builds source installations. Published npm packages include the built files.
 
-To build a VSIX after `pnpm build`, run `node dist/cli.mjs vsix build artifacts/editor`. To install it, run `node dist/cli.mjs vsix [editor]`.
+To build a VSIX after `pnpm build`, run `node packages/galley/dist/cli.mjs vsix build artifacts/editor`. To install it, run `node packages/galley/dist/cli.mjs vsix [editor]`.
+
+For the initial `0.0.0` npm publication, run `pnpm build`, then `pnpm --filter galley.md publish`. `release:version` applies pending changesets and advances the version.

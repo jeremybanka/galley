@@ -15,15 +15,13 @@
 		"rootDir": ".",
 		"skipLibCheck": true,
 		"strict": true,
-		"target": "ES2022",
+		"target": "ES2024",
 		"types": [
 			"node"
 		]
 	},
 	"include": [
-		"src",
-		"__tests__",
-		"scripts",
-		"*.config.ts"
+		"**/*.ts",
+		"*.d.ts"
 	]
 }
