@@ -2,14 +2,14 @@
 	"name": "galley.md",
 	"version": "0.0.0",
 	"description": "Compile MDX components and source imports into plain Markdown.",
-	"homepage": "https://github.com/jeremybanka/galley.md#readme",
+	"homepage": "https://github.com/jeremybanka/galley#readme",
 	"bugs": {
-		"url": "https://github.com/jeremybanka/galley.md/issues"
+		"url": "https://github.com/jeremybanka/galley/issues"
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/jeremybanka/galley.md.git",
-		"directory": "packages/galley"
+		"url": "git+https://github.com/jeremybanka/galley.git",
+		"directory": "packages/galley.md"
 	},
 	"license": "MPL-2.0",
 	"author": "Jeremy Banka",

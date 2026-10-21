@@ -1,6 +1,6 @@
-# galley.md workspace
+# galley workspace
 
-- Keep consumer guidance in `packages/galley/AGENTS.md` and the canonical user guide in `packages/galley/README.md`. Keep contributor, maintenance, release, and documentation-placement instructions here.
+- Keep consumer guidance in `packages/galley.md/AGENTS.md` and the canonical user guide in `packages/galley.md/README.md`. Keep contributor, maintenance, release, and documentation-placement instructions here.
 - Prefer `.ts` source files and Node scripts; do not add `.js`, `.cjs`, `.mjs`, or `.mts` source files.
 - Keep the user guide synchronized with the public API. Keep contributor commands in `docs/commands.md`.
 - Use `fmt` to write formatting, `check` to aggregate `check:*` validators, and `test` to run tests once.
