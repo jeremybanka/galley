@@ -65,7 +65,40 @@ Use `Markdown({ children: generatedMarkdown })` to include Markdown produced by 
 
 The second argument is a `DocumentContext` with absolute `path` and `directory` fields for the containing document. Use this directory to resolve local inputs. Imported `.mdx` documents get their own context; `.md` imports are parsed as ordinary Markdown.
 
-For TSX components, set `jsx` to `react-jsx` and `jsxImportSource` to `galley.md` in TypeScript configuration. React is not required. Supported intrinsic JSX elements are `p`, `h1` through `h6`, `strong`, `em`, `del`, `blockquote`, `a`, `br`, and `hr`. Other tags are errors; use Markdown syntax or return Markdown nodes for other structures.
+For TSX components, set `jsx` to `react-jsx` and `jsxImportSource` to `galley.md` in TypeScript configuration. React is not required. Supported intrinsic JSX elements are `p`, `h1` through `h6`, `strong`, `em`, `del`, `blockquote`, `a`, `br`, `hr`, `table`, `thead`, `tbody`, `tr`, `th`, and `td`. Other tags are errors; use Markdown syntax or return Markdown nodes for other structures.
+
+## Tables
+
+Use native table tags to generate a Markdown table. No imports are required. Set `align="left"`, `"center"`, or `"right"` on a header cell to align its entire column; omit it for default alignment.
+
+```mdx
+export const packages = [{ name: "galley.md", size: "12 kB" }]
+
+<table>
+  <thead>
+    <tr><th>Package</th><th align="right">Size</th></tr>
+  </thead>
+  <tbody>
+    {packages.map(pkg => (
+      <tr><td>{pkg.name}</td><td>{pkg.size}</td></tr>
+    ))}
+  </tbody>
+</table>
+```
+
+This produces:
+
+```md
+| Package   |  Size |
+| --------- | ----: |
+| galley.md | 12 kB |
+```
+
+The first row must contain only `th` cells, and every subsequent row must contain only `td` cells. Every row must have the same number of cells; use `<td />` for an empty cell. A table may contain just its header. The `thead` and `tbody` wrappers are optional: rows can be direct children of `table`. When present, `thead` must contain exactly one header row and `tbody` may contain only body rows.
+
+Arrays, fragments, and async components can generate sections, rows, cells, or inline cell content. Cells support text, numbers, links, emphasis, and other Markdown inline content. Strings are escaped automatically, including pipe characters. A single paragraph is accepted, and soft line breaks become spaces.
+
+Unsupported structures and attributes produce errors. Tables do not support merged cells (`colSpan` or `rowSpan`), captions, footers (`tfoot`), `col` or `colgroup`, CSS classes or styles, or attributes other than header `align` and JSX `key`. Put alignment on `th`, not `td` or `tr`. Lists, code blocks, multiple paragraphs, nested tables, raw HTML, and hard line breaks inside cells cannot be represented by this Markdown table API.
 
 ## Tonnage
 

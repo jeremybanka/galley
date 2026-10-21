@@ -185,6 +185,49 @@ test("TypeScript 7.1 checks real attributed imports and maps errors back to MDX"
 	}
 }, 20_000)
 
+test("TypeScript checks native table alignment and rejects unsupported attributes in MDX and TSX", async () => {
+	const { directory, input } = await fixture(
+		`<table><thead><tr><th align="right">Size</th></tr></thead><tbody><tr><td>{12}</td></tr></tbody></table>\n`,
+	)
+	const tsc = path.join(root, "node_modules/typescript/bin/tsc")
+	const check = () =>
+		execute(process.execPath, [
+			tsc,
+			"--runExternalCode",
+			"--pretty",
+			"false",
+			"-p",
+			directory,
+		])
+	await fs.writeFile(
+		path.join(directory, "table.tsx"),
+		`export function Table() { return <table><tr key="header"><th align="center">Name</th></tr><tr><td>galley</td></tr></table> }`,
+	)
+	await fs.appendFile(
+		input,
+		"\nimport { Table } from './table.tsx'\n\n<Table />\n",
+	)
+	await expect(check()).resolves.toMatchObject({ stdout: "" })
+	await fs.appendFile(
+		input,
+		'\n<table><tr><th align="justify">Size</th></tr></table>\n\n<table className="wide" />\n',
+	)
+	await fs.appendFile(
+		path.join(directory, "table.tsx"),
+		"\nexport const invalid = <td colSpan={2}>merged</td>\n",
+	)
+	await expect(check()).rejects.toMatchObject({
+		stdout: expect.stringContaining('"justify"'),
+	})
+	try {
+		await check()
+	} catch (error) {
+		const output = (error as { stdout: string }).stdout
+		expect(output).toContain("className")
+		expect(output).toContain("colSpan")
+	}
+}, 20_000)
+
 test("previews use unsaved source, evaluate each component once, and retain nested document context", async () => {
 	const { directory, input } = await fixture("# Saved\n")
 	await fs.mkdir(path.join(directory, "nested"))
