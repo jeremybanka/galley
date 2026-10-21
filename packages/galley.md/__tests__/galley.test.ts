@@ -7,7 +7,12 @@ import { promisify } from "node:util"
 
 import { afterEach, describe, expect, test } from "vite-plus/test"
 
-import { compileMarkdown, Markdown, runGalley } from "../src/index.ts"
+import {
+	compileMarkdown,
+	Markdown,
+	previewMarkdown,
+	runGalley,
+} from "../src/index.ts"
 
 const execute = promisify(execFile)
 const directories: string[] = []
@@ -102,6 +107,190 @@ const value = 1
 		expect(
 			withoutPositions(Markdown({ children: await compileMarkdown(input) })),
 		).toEqual(withoutPositions(Markdown({ children: source })))
+	})
+
+	test("compiles native tables with column alignment, inline Markdown, and escaped cells", async () => {
+		const { input } = await fixture({
+			"README.mdx": `<table>
+  <thead>
+    <tr><th align="left">Name</th><th align="center">Status</th><th align="right">Size</th><th>Note</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><a href="https://example.com">galley</a></td><td>**Ready**</td><td>{12}</td><td>{'a|b'}</td></tr>
+    <tr><td>Other</td><td><em>Pending</em></td><td>{0}</td><td /></tr>
+  </tbody>
+</table>`,
+		})
+		const output = await compileMarkdown(input)
+		expect(withoutPositions(Markdown({ children: output }))).toEqual(
+			withoutPositions(
+				Markdown({
+					children: `| Name | Status | Size | Note |
+| :--- | :---: | ---: | --- |
+| [galley](https://example.com) | **Ready** | 12 | a\\|b |
+| Other | *Pending* | 0 | |
+`,
+				}),
+			),
+		)
+		expect(output).not.toContain("<table>")
+	})
+
+	test("supports direct rows, header-only tables, and soft wrapping in cells", async () => {
+		const { input } = await fixture({
+			"README.mdx": `<table>
+  <tr><th>Name</th></tr>
+  <tr><td>soft
+wrap</td></tr>
+</table>
+
+<table><thead><tr><th align="right">Count</th></tr></thead><tbody /></table>`,
+		})
+		expect(
+			withoutPositions(Markdown({ children: await compileMarkdown(input) })),
+		).toEqual(
+			withoutPositions(
+				Markdown({
+					children: "| Name |\n| --- |\n| soft wrap |\n\n| Count |\n| ---: |\n",
+				}),
+			),
+		)
+	})
+
+	test("resolves async table components and fragments once and previews partial rows", async () => {
+		const { input } = await fixture({
+			"README.mdx": `import { Header, Rows } from './table.tsx'
+
+<table>
+  <Header />
+  <tbody>
+    <Rows />
+    {[3].map(value => <tr><td>{value}</td><td>expression</td></tr>)}
+  </tbody>
+</table>`,
+			"table.tsx": `let calls = 0
+export function Header() {
+  return <thead><tr><th align="right">Value</th><th>Label</th></tr></thead>
+}
+async function Cells({ value }: { value: number }) {
+  return <><td>{value}</td><td><strong>a|b</strong></td></>
+}
+export async function Rows() {
+  if (++calls > 1) throw new Error('evaluated twice')
+  return <>{[1, 2].map(value => <tr key={value}><Cells value={value} /></tr>)}</>
+}`,
+		})
+		const result = await previewMarkdown(input)
+		expect(result.markdown).toBe(await compileMarkdown(input))
+		expect(withoutPositions(Markdown({ children: result.markdown }))).toEqual(
+			withoutPositions(
+				Markdown({
+					children:
+						"| Value | Label |\n| ---: | --- |\n| 1 | **a\\|b** |\n| 2 | **a\\|b** |\n| 3 | expression |\n",
+				}),
+			),
+		)
+		expect(result.components).toHaveLength(3)
+		expect(result.components[1]?.markdown).toContain("a\\|b")
+	})
+
+	test.each([
+		["<table />", "exactly one header row"],
+		["<tr><th>Name</th></tr>", "<tr> must be inside"],
+		["<table><th>Name</th></table>", "<th> must be inside <tr>"],
+		["<table><thead><td>Name</td></thead></table>", "<td> must be inside <tr>"],
+		[
+			"<table><tbody><thead /></tbody></table>",
+			"<thead> must be inside <table>",
+		],
+		["<table><tr><td>Name</td></tr></table>", "exactly one header row"],
+		["<table><thead /></table>", "<thead> must contain exactly one"],
+		[
+			"<table><thead><tr><th>A</th></tr><tr><th>B</th></tr></thead></table>",
+			"<thead> must contain exactly one",
+		],
+		[
+			"<table><tr><th>A</th></tr><tr><th>B</th></tr></table>",
+			"exactly one header row",
+		],
+		[
+			"<table><tbody><tr><th>A</th></tr></tbody></table>",
+			"<tbody> must contain only body rows",
+		],
+		[
+			"<table><tr><th>A</th><td>B</td></tr></table>",
+			"cannot mix <th> and <td>",
+		],
+		[
+			"<table><tr><th>A</th><th>B</th></tr><tr><td>C</td></tr></table>",
+			"Table row 2 has 1 cells; expected 2",
+		],
+		[
+			"<table><tr><th>A</th></tr><tr><td>B</td><td>C</td></tr></table>",
+			"Table row 2 has 2 cells; expected 1",
+		],
+		["<table><tr /></table>", "<tr> must contain one or more"],
+		["<table><tr>text</tr></table>", "<tr> must contain one or more"],
+		["<table>text</table>", "<table> must contain table rows"],
+		["<table><p>text</p></table>", "Unsupported element <p> inside <table>"],
+		[
+			"<table><caption>Title</caption></table>",
+			"Unsupported table element <caption>",
+		],
+		["<table><tfoot /></table>", "Unsupported table element <tfoot>"],
+		["<table><colgroup /></table>", "Unsupported table element <colgroup>"],
+		["<table><col /></table>", "Unsupported table element <col>"],
+		[
+			"<table className='wide' />",
+			'Unsupported attribute "className" on <table>',
+		],
+		[
+			"<table style={{width: 100}} />",
+			'Unsupported attribute "style" on <table>',
+		],
+		[
+			"<table><tr><th colSpan={2}>A</th></tr></table>",
+			'Unsupported attribute "colSpan" on <th>',
+		],
+		[
+			"<table><tr><th rowSpan={2}>A</th></tr></table>",
+			'Unsupported attribute "rowSpan" on <th>',
+		],
+		[
+			"<table><tr align='right'><th>A</th></tr></table>",
+			'Unsupported attribute "align" on <tr>',
+		],
+		[
+			"<table><tr><th align='justify'>A</th></tr></table>",
+			"Invalid <th> alignment",
+		],
+		[
+			"<table><tr><th align={null}>A</th></tr></table>",
+			"Invalid <th> alignment",
+		],
+		[
+			"<table><tr><th>A</th></tr><tr><td align='right'>B</td></tr></table>",
+			'Unsupported attribute "align" on <td>',
+		],
+		[
+			"<table><tr><th><table /></th></tr></table>",
+			"Nested tables cannot be represented",
+		],
+		[
+			"<table><tr><th>A<br />B</th></tr></table>",
+			"Table cells support inline content only; found break",
+		],
+		[
+			"<table><tr><th><p>A</p><p>B</p></th></tr></table>",
+			"Table cells support inline content only; found paragraph",
+		],
+		[
+			"<table><tr><th>\n\n- item\n\n</th></tr></table>",
+			"Table cells support inline content only; found list",
+		],
+	])("rejects unsupported table markup: %s", async (source, error) => {
+		const { input } = await fixture({ "README.mdx": source })
+		await expect(compileMarkdown(input)).rejects.toThrow(error)
 	})
 
 	test("imports one source as distinct code components, reuses identical attributes, and never executes it", async () => {

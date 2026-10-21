@@ -6,6 +6,7 @@ import remarkParse from "remark-parse"
 import remarkStringify from "remark-stringify"
 import { unified } from "unified"
 
+import { renderTableElement, tablePreview } from "./tables.ts"
 import type {
 	ComponentPreview,
 	Content,
@@ -14,7 +15,10 @@ import type {
 } from "./types.ts"
 
 const previewSink = Symbol("galley:previews")
-type RenderContext = DocumentContext & { [previewSink]?: ComponentPreview[] }
+type RenderContext = DocumentContext & {
+	[previewSink]?: ComponentPreview[]
+	tableParent?: string | undefined
+}
 
 const markdownProcessor = unified()
 	.use(remarkParse)
@@ -92,7 +96,7 @@ async function resolveContent(
 				end: Number(element.props.end),
 				markdown: markdownProcessor.stringify({
 					type: "root",
-					children: blocks(children),
+					children: blocks(tablePreview(children, context.tableParent)),
 				}),
 			})
 			return children
@@ -180,6 +184,13 @@ async function intrinsic(
 	element: Element,
 	context: RenderContext,
 ): Promise<RootContent[]> {
+	const table = await renderTableElement(
+		element,
+		context.tableParent,
+		(children, tableParent) =>
+			resolveContent(children, { ...context, tableParent }),
+	)
+	if (table) return table
 	const children = await resolveContent(
 		element.props.children as Content,
 		context,
