@@ -257,8 +257,8 @@ importers:
         specifier: 11.0.5
         version: 11.0.5
       vscode-jsonrpc:
-        specifier: 9.0.0
-        version: 9.0.0
+        specifier: 9.0.3
+        version: 9.0.3
       vscode-languageclient:
         specifier: 10.1.2
         version: 10.1.2
