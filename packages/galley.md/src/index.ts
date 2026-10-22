@@ -1,6 +1,6 @@
 export { compileMarkdown, previewMarkdown } from "./compile.ts"
 export { runGalley } from "./run.ts"
-export { Code, Markdown, renderMarkdown } from "./runtime.ts"
+export { Code, Html, Markdown, renderMarkdown } from "./runtime.ts"
 export type {
 	CompileOptions,
 	ComponentPreview,

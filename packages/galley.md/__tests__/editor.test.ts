@@ -185,9 +185,9 @@ test("TypeScript 7.1 checks real attributed imports and maps errors back to MDX"
 	}
 }, 20_000)
 
-test("TypeScript checks native table alignment and rejects unsupported attributes in MDX and TSX", async () => {
+test("TypeScript checks native tables and HTML table attributes in MDX and TSX", async () => {
 	const { directory, input } = await fixture(
-		`<table><thead><tr><th align="right">Size</th></tr></thead><tbody><tr><td>{12}</td></tr></tbody></table>\n`,
+		`import { Html } from 'galley.md'\n\n<table><thead><tr><th align="right">Size</th></tr></thead><tbody><tr><td>{12}</td></tr></tbody></table>\n`,
 	)
 	const tsc = path.join(root, "node_modules/typescript/bin/tsc")
 	const check = () =>
@@ -201,7 +201,7 @@ test("TypeScript checks native table alignment and rejects unsupported attribute
 		])
 	await fs.writeFile(
 		path.join(directory, "table.tsx"),
-		`export function Table() { return <table><tr key="header"><th align="center">Name</th></tr><tr><td>galley</td></tr></table> }`,
+		`import { Html } from 'galley.md'\nexport function Table() { return <table><tr key="header"><th align="center">Name</th></tr><tr><td>galley</td></tr></table> }`,
 	)
 	await fs.appendFile(
 		input,
@@ -210,22 +210,34 @@ test("TypeScript checks native table alignment and rejects unsupported attribute
 	await expect(check()).resolves.toMatchObject({ stdout: "" })
 	await fs.appendFile(
 		input,
-		'\n<table><tr><th align="justify">Size</th></tr></table>\n\n<table className="wide" />\n',
+		'\n<Html><table className="wide"><tr><th align="justify">Size</th></tr></table></Html>\n',
 	)
 	await fs.appendFile(
 		path.join(directory, "table.tsx"),
-		"\nexport const invalid = <td colSpan={2}>merged</td>\n",
+		"\nexport const markup = <Html><table><tr><td colSpan={2}>merged</td></tr></table></Html>\n",
 	)
-	await expect(check()).rejects.toMatchObject({
-		stdout: expect.stringContaining('"justify"'),
-	})
-	try {
-		await check()
-	} catch (error) {
-		const output = (error as { stdout: string }).stdout
-		expect(output).toContain("className")
-		expect(output).toContain("colSpan")
-	}
+	await expect(check()).resolves.toMatchObject({ stdout: "" })
+}, 20_000)
+
+test("TypeScript checks Html boundaries with markup tables and custom elements", async () => {
+	const { directory } = await fixture(`import { Html } from 'galley.md'
+
+<Html>
+  <div align="center"><img src="logo.png" width={160} /><h1><code>Package</code></h1></div>
+  <table><tbody><tr><td colSpan={2}>Markup</td></tr></tbody></table>
+  <custom-badge data-label="example" />
+</Html>
+`)
+	await expect(
+		execute(process.execPath, [
+			path.join(root, "node_modules/typescript/bin/tsc"),
+			"--runExternalCode",
+			"--pretty",
+			"false",
+			"-p",
+			directory,
+		]),
+	).resolves.toMatchObject({ stdout: "" })
 }, 20_000)
 
 test("previews use unsaved source, evaluate each component once, and retain nested document context", async () => {
