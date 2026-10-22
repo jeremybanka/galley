@@ -2,7 +2,8 @@
 
 Compile trusted MDX documents and executable components to checked-in Markdown.
 
-- Use `galley write [input] [output]` to generate Markdown and `galley check [input] [output]` to detect drift. The default input is `README.mdx`; the default output replaces the input extension with `.md`.
+- Use `galley write [input] [output]` to generate Markdown and `galley check [input] [output]` to detect drift. The default input is `README.mdx`. Output precedence is explicit CLI/API output, YAML frontmatter `galley.output`, then the input extension replaced with `.md`.
+- Frontmatter output paths are relative to the source directory; a leading `/` resolves from the nearest ancestor with a `.git` directory or file. Explicit CLI/API paths keep working-directory and filesystem-absolute semantics. Only `write` creates missing destination directories. Galley settings are omitted from generated Markdown; other frontmatter is preserved. Imported documents never choose additional destinations.
 - Import source examples with `with { type: "code", lang: "ts" }`. The language defaults to the file extension. Code imports read the file without executing it.
 - Components return Markdown nodes, text, elements, or promises of those values. Use `Markdown` to parse generated Markdown and `Code` to create fenced source examples.
 - Use native `table`, `thead`, `tbody`, `tr`, `th`, and `td` tags for generated Markdown tables. Start with one `th` header row, use `td` body rows with matching cell counts, and set column alignment with `align="left"`, `"center"`, or `"right"` on `th`. Cells accept inline content; merged cells, styling, captions, footers, and block content are errors.

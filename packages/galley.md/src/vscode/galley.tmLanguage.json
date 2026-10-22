@@ -3,6 +3,12 @@
 	"name": "galley.md",
 	"patterns": [
 		{
+			"begin": "\\A---[ \\t]*$",
+			"end": "^---[ \\t]*$",
+			"contentName": "meta.embedded.block.yaml",
+			"patterns": [{ "include": "source.yaml" }]
+		},
+		{
 			"begin": "^(?=(?:import|export)\\b)",
 			"end": "^\\s*$",
 			"contentName": "meta.embedded.block.javascript",

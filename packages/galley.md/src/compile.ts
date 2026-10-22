@@ -5,11 +5,13 @@ import { fileURLToPath, pathToFileURL } from "node:url"
 
 import { compile } from "@mdx-js/mdx"
 import { build, type Plugin } from "esbuild"
+import remarkFrontmatter from "remark-frontmatter"
 import remarkGfm from "remark-gfm"
 import remarkMdx from "remark-mdx"
 import type { PluggableList } from "unified"
 
 import { markdownNodes } from "./markdown-nodes.ts"
+import { consumeFrontmatter } from "./frontmatter.ts"
 import { mdxParserOptions } from "./editor/document.ts"
 import { renderMarkdown } from "./runtime.ts"
 import type {
@@ -94,6 +96,8 @@ async function compileDocument(
 				dependencies.add(args.path)
 				const remarkPlugins: PluggableList = [
 					remarkGfm,
+					remarkFrontmatter,
+					consumeFrontmatter,
 					[markdownNodes, { previews: capture }],
 				]
 				if (args.path.endsWith(".mdx"))

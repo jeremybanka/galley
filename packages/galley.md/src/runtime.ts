@@ -3,6 +3,7 @@ import path from "node:path"
 import { toHtml } from "hast-util-to-html"
 import type { Nodes, Root, RootContent } from "mdast"
 import { toHast } from "mdast-util-to-hast"
+import remarkFrontmatter from "remark-frontmatter"
 import remarkGfm from "remark-gfm"
 import remarkParse from "remark-parse"
 import remarkStringify from "remark-stringify"
@@ -26,6 +27,7 @@ type RenderContext = DocumentContext & {
 
 const markdownProcessor = unified()
 	.use(remarkParse)
+	.use(remarkFrontmatter)
 	.use(remarkGfm)
 	.use(remarkStringify, { bullet: "-", fences: true, listItemIndent: "one" })
 
