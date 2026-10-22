@@ -20,6 +20,16 @@ Run commands from the repository root. The publishable package lives in `package
 
 The package's `prepare` script builds source installations. Published npm packages include the built files.
 
+Test examples live in `packages/galley.md/__tests__/fixtures/`. Import their source as text using import attributes:
+
+```ts
+import example from "#fixtures/compiler/html-branding.mdx" with { type: "text" }
+```
+
+The test-only Vite plugin uses esbuild's native import-attribute handling to read these files without compiling or executing them. TypeScript resolves `#fixtures/*` to a string declaration. Tests copy the strings into temporary projects so relative imports, source changes, and file-system checks still run against isolated files. Fixture dependencies use the same text imports.
+
+Fixtures preserve their exact bytes, including leading blank lines, missing final newlines, and intentionally invalid syntax. Formatting, linting, and direct type checking exclude the fixture directory; spelling checks still apply. Keep expected errors and focused output assertions in the test files. Larger expected Markdown documents can live alongside their input fixtures.
+
 To build a VSIX after `pnpm build`, run `node packages/galley.md/dist/cli.mjs vsix build artifacts/editor`. To install it, run `node packages/galley.md/dist/cli.mjs vsix [editor]`.
 
 For the initial `0.0.0` npm publication, run `pnpm build`, then `pnpm --filter galley.md publish`. `release:version` applies pending changesets and advances the version.

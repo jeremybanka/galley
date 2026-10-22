@@ -14,6 +14,75 @@ import {
 	runGalley,
 } from "../src/index.ts"
 
+import htmlBranding from "#fixtures/compiler/html-branding.mdx" with { type: "text" }
+import htmlTables from "#fixtures/compiler/html-tables.mdx" with { type: "text" }
+import htmlComponents from "#fixtures/compiler/html-components.mdx" with { type: "text" }
+import htmlBadge from "#fixtures/compiler/badge.tsx" with { type: "text" }
+import plainMarkdown from "#fixtures/compiler/plain.md" with { type: "text" }
+import markdownImports from "#fixtures/compiler/markdown-imports.mdx" with { type: "text" }
+import markdownStructure from "#fixtures/compiler/markdown-structure.mdx" with { type: "text" }
+import alignedTable from "#fixtures/compiler/aligned-table.mdx" with { type: "text" }
+import alignedTableExpected from "#fixtures/compiler/aligned-table.expected.md" with { type: "text" }
+import wrappedTables from "#fixtures/compiler/wrapped-tables.mdx" with { type: "text" }
+import wrappedTablesExpected from "#fixtures/compiler/wrapped-tables.expected.md" with { type: "text" }
+import asyncTable from "#fixtures/compiler/async-table.mdx" with { type: "text" }
+import tableComponents from "#fixtures/compiler/table.tsx" with { type: "text" }
+import asyncTableExpected from "#fixtures/compiler/async-table.expected.md" with { type: "text" }
+import emptyTable from "#fixtures/compiler/table-errors/empty-table.mdx" with { type: "text" }
+import orphanRow from "#fixtures/compiler/table-errors/orphan-row.mdx" with { type: "text" }
+import orphanHeaderCell from "#fixtures/compiler/table-errors/orphan-header-cell.mdx" with { type: "text" }
+import orphanBodyCell from "#fixtures/compiler/table-errors/orphan-body-cell.mdx" with { type: "text" }
+import nestedHeaderSection from "#fixtures/compiler/table-errors/nested-header-section.mdx" with { type: "text" }
+import missingHeader from "#fixtures/compiler/table-errors/missing-header.mdx" with { type: "text" }
+import emptyHeaderSection from "#fixtures/compiler/table-errors/empty-header-section.mdx" with { type: "text" }
+import multipleSectionHeaders from "#fixtures/compiler/table-errors/multiple-section-headers.mdx" with { type: "text" }
+import multipleHeaders from "#fixtures/compiler/table-errors/multiple-headers.mdx" with { type: "text" }
+import headerInBody from "#fixtures/compiler/table-errors/header-in-body.mdx" with { type: "text" }
+import mixedCells from "#fixtures/compiler/table-errors/mixed-cells.mdx" with { type: "text" }
+import missingCells from "#fixtures/compiler/table-errors/missing-cells.mdx" with { type: "text" }
+import extraCells from "#fixtures/compiler/table-errors/extra-cells.mdx" with { type: "text" }
+import emptyRow from "#fixtures/compiler/table-errors/empty-row.mdx" with { type: "text" }
+import textInRow from "#fixtures/compiler/table-errors/text-in-row.mdx" with { type: "text" }
+import textInTable from "#fixtures/compiler/table-errors/text-in-table.mdx" with { type: "text" }
+import paragraphInTable from "#fixtures/compiler/table-errors/paragraph-in-table.mdx" with { type: "text" }
+import tableCaption from "#fixtures/compiler/table-errors/caption.mdx" with { type: "text" }
+import tableFooter from "#fixtures/compiler/table-errors/footer.mdx" with { type: "text" }
+import tableColumnGroup from "#fixtures/compiler/table-errors/column-group.mdx" with { type: "text" }
+import tableColumn from "#fixtures/compiler/table-errors/column.mdx" with { type: "text" }
+import tableClass from "#fixtures/compiler/table-errors/class.mdx" with { type: "text" }
+import tableStyle from "#fixtures/compiler/table-errors/style.mdx" with { type: "text" }
+import tableColumnSpan from "#fixtures/compiler/table-errors/column-span.mdx" with { type: "text" }
+import tableRowSpan from "#fixtures/compiler/table-errors/row-span.mdx" with { type: "text" }
+import rowAlignment from "#fixtures/compiler/table-errors/row-alignment.mdx" with { type: "text" }
+import invalidAlignment from "#fixtures/compiler/table-errors/invalid-alignment.mdx" with { type: "text" }
+import nullAlignment from "#fixtures/compiler/table-errors/null-alignment.mdx" with { type: "text" }
+import bodyAlignment from "#fixtures/compiler/table-errors/body-alignment.mdx" with { type: "text" }
+import nestedTable from "#fixtures/compiler/table-errors/nested-table.mdx" with { type: "text" }
+import hardBreakInCell from "#fixtures/compiler/table-errors/hard-break.mdx" with { type: "text" }
+import paragraphsInCell from "#fixtures/compiler/table-errors/paragraphs.mdx" with { type: "text" }
+import listInCell from "#fixtures/compiler/table-errors/list.mdx" with { type: "text" }
+import codeSource from "#fixtures/compiler/code-source.ts" with { type: "text" }
+import codeImports from "#fixtures/compiler/code-imports.mdx" with { type: "text" }
+import runtimeSource from "#fixtures/compiler/runtime-source.ts" with { type: "text" }
+import rawNote from "#fixtures/compiler/note.txt" with { type: "text" }
+import mixedImports from "#fixtures/compiler/mixed-imports.mdx" with { type: "text" }
+import nestedDocument from "#fixtures/compiler/nested-document.mdx" with { type: "text" }
+import nestedSection from "#fixtures/compiler/nested-section.mdx" with { type: "text" }
+import greeting from "#fixtures/compiler/greeting.tsx" with { type: "text" }
+import pluginImports from "#fixtures/compiler/plugin-imports.mdx" with { type: "text" }
+import pluginComponent from "#fixtures/compiler/plugin-component.ts" with { type: "text" }
+import changingComponent from "#fixtures/compiler/changing-component.mdx" with { type: "text" }
+import beforeComponent from "#fixtures/compiler/before.ts" with { type: "text" }
+import afterComponent from "#fixtures/compiler/after.ts" with { type: "text" }
+import missingImport from "#fixtures/compiler/invalid/missing-import.mdx" with { type: "text" }
+import unknownAttribute from "#fixtures/compiler/invalid/unknown-attribute.mdx" with { type: "text" }
+import invalidLanguage from "#fixtures/compiler/invalid/language.mdx" with { type: "text" }
+import unsupportedElement from "#fixtures/compiler/invalid/element.mdx" with { type: "text" }
+import emptyModule from "#fixtures/compiler/empty-module.ts" with { type: "text" }
+import generatedDocument from "#fixtures/compiler/generated.mdx" with { type: "text" }
+import cliDocument from "#fixtures/compiler/cli.mdx" with { type: "text" }
+import brokenDocument from "#fixtures/compiler/invalid/broken.mdx" with { type: "text" }
+
 const execute = promisify(execFile)
 const directories: string[] = []
 const cli = fileURLToPath(new URL("../src/cli.ts", import.meta.url))
@@ -53,21 +122,7 @@ function withoutPositions(value: unknown): unknown {
 describe("galley documents", () => {
 	test("preserves README markup and attributes inside Html and escapes text", async () => {
 		const { input } = await fixture({
-			"README.mdx": `import { Html } from 'galley.md'
-
-<Html>
-  <div align="center">
-    <img src="logo.png" alt="Logo" width={160} height={160} />
-    <h1 align="center"><code>atom.io</code></h1>
-    <a href="https://example.com/?a=1&b=2" aria-label="Read docs" title={'Say "hello"'}>Read <i>the docs</i></a>
-    <p>{'<script>alert("hello")</script> & text'}</p>
-    <input disabled hidden={false} aria-hidden={false} data-label="example" />
-    <label htmlFor="name" className={['label', 'wide']} style="color: red" title={null}>Name</label>
-  </div>
-</Html>
-
-<p>Markdown <strong>still works</strong>.</p>
-`,
+			"README.mdx": htmlBranding,
 		})
 		const output = await compileMarkdown(input)
 		expect(output).toContain('<div align="center">')
@@ -94,20 +149,7 @@ describe("galley documents", () => {
 
 	test("distinguishes markup tables inside Html from native Markdown tables", async () => {
 		const { input } = await fixture({
-			"README.mdx": `import { Html } from 'galley.md'
-
-<table>
-  <thead><tr><th>Format</th><th>Value</th></tr></thead>
-  <tbody><tr><td>Markdown</td><td><strong>one</strong></td></tr></tbody>
-</table>
-
-<Html>
-  <table align="center">
-    <thead><tr><th colSpan={2}>Markup</th></tr></thead>
-    <tbody><tr><td>HTML</td><td><strong>two</strong></td></tr></tbody>
-  </table>
-</Html>
-`,
+			"README.mdx": htmlTables,
 		})
 		const output = await compileMarkdown(input)
 		const nodes = Markdown({ children: output }).children
@@ -119,19 +161,8 @@ describe("galley documents", () => {
 
 	test("composes Html with async components, Markdown nodes, and editor previews", async () => {
 		const { directory, input } = await fixture({
-			"README.mdx": `import { Html, Markdown } from 'galley.md'
-import { Badge } from './badge.tsx'
-
-<Html>
-  <div><Badge />{' '}{null}{false}{[1, ' & ', 2]}<Html><i>nested</i></Html></div>
-  <Markdown children={'| Name | Value |\\n| --- | --- |\\n| Example | **bold** |'} />
-</Html>
-`,
-			"badge.tsx": `let count = 0
-export async function Badge(_, context) {
-  await Promise.resolve()
-  return <span data-count={++count} title={context.directory}>A &amp; B</span>
-}`,
+			"README.mdx": htmlComponents,
+			"badge.tsx": htmlBadge,
 		})
 		const result = await previewMarkdown(input)
 		expect(result.markdown).toContain(
@@ -154,20 +185,10 @@ export async function Badge(_, context) {
 	})
 
 	test("keeps inline expression whitespace and treats Markdown imports as data", async () => {
-		const markdown =
-			"<details>\n\nA **plain** document with {braces}.\n\n</details>\n"
+		const markdown = plainMarkdown
 		const { input } = await fixture({
 			"plain.md": markdown,
-			"README.mdx": `import Plain from './plain.md'
-import raw from './plain.md' with { type: 'text' }
-import { Code } from 'galley.md'
-
-a{'\\n'}b
-
-<Plain />
-
-<Code source={raw} lang='md' />
-`,
+			"README.mdx": markdownImports,
 		})
 		const output = await compileMarkdown(input)
 		expect(output).toContain("a\nb\n")
@@ -178,33 +199,7 @@ a{'\\n'}b
 		expect(code?.value).toBe(markdown)
 	})
 	test("preserves Markdown structure including references, footnotes, tasks, and tables", async () => {
-		const source = `# Hello **world**
-
-*One*\n*two* and ~~three~~ with \`code\`, [a link](https://example.com), and ![an image](image.png).
-
-> A quotation.
-
-1. First
-2. Second
-
-- [x] Done
-- [ ] Later
-
-| Name | Size |
-| :--- | ---: |
-| example | 10 |
-
-A [reference][target] and a footnote[^note].
-
-[target]: https://example.com "Title"
-[^note]: Footnote content.
-
----
-
-\`\`\`ts
-const value = 1
-\`\`\`
-`
+		const source = markdownStructure
 		const { input } = await fixture({ "README.mdx": source })
 		expect(
 			withoutPositions(Markdown({ children: await compileMarkdown(input) })),
@@ -213,25 +208,13 @@ const value = 1
 
 	test("compiles native tables with column alignment, inline Markdown, and escaped cells", async () => {
 		const { input } = await fixture({
-			"README.mdx": `<table>
-  <thead>
-    <tr><th align="left">Name</th><th align="center">Status</th><th align="right">Size</th><th>Note</th></tr>
-  </thead>
-  <tbody>
-    <tr><td><a href="https://example.com">galley</a></td><td>**Ready**</td><td>{12}</td><td>{'a|b'}</td></tr>
-    <tr><td>Other</td><td><em>Pending</em></td><td>{0}</td><td /></tr>
-  </tbody>
-</table>`,
+			"README.mdx": alignedTable,
 		})
 		const output = await compileMarkdown(input)
 		expect(withoutPositions(Markdown({ children: output }))).toEqual(
 			withoutPositions(
 				Markdown({
-					children: `| Name | Status | Size | Note |
-| :--- | :---: | ---: | --- |
-| [galley](https://example.com) | **Ready** | 12 | a\\|b |
-| Other | *Pending* | 0 | |
-`,
+					children: alignedTableExpected,
 				}),
 			),
 		)
@@ -240,20 +223,14 @@ const value = 1
 
 	test("supports direct rows, header-only tables, and soft wrapping in cells", async () => {
 		const { input } = await fixture({
-			"README.mdx": `<table>
-  <tr><th>Name</th></tr>
-  <tr><td>soft
-wrap</td></tr>
-</table>
-
-<table><thead><tr><th align="right">Count</th></tr></thead><tbody /></table>`,
+			"README.mdx": wrappedTables,
 		})
 		expect(
 			withoutPositions(Markdown({ children: await compileMarkdown(input) })),
 		).toEqual(
 			withoutPositions(
 				Markdown({
-					children: "| Name |\n| --- |\n| soft wrap |\n\n| Count |\n| ---: |\n",
+					children: wrappedTablesExpected,
 				}),
 			),
 		)
@@ -261,34 +238,15 @@ wrap</td></tr>
 
 	test("resolves async table components and fragments once and previews partial rows", async () => {
 		const { input } = await fixture({
-			"README.mdx": `import { Header, Rows } from './table.tsx'
-
-<table>
-  <Header />
-  <tbody>
-    <Rows />
-    {[3].map(value => <tr><td>{value}</td><td>expression</td></tr>)}
-  </tbody>
-</table>`,
-			"table.tsx": `let calls = 0
-export function Header() {
-  return <thead><tr><th align="right">Value</th><th>Label</th></tr></thead>
-}
-async function Cells({ value }: { value: number }) {
-  return <><td>{value}</td><td><strong>a|b</strong></td></>
-}
-export async function Rows() {
-  if (++calls > 1) throw new Error('evaluated twice')
-  return <>{[1, 2].map(value => <tr key={value}><Cells value={value} /></tr>)}</>
-}`,
+			"README.mdx": asyncTable,
+			"table.tsx": tableComponents,
 		})
 		const result = await previewMarkdown(input)
 		expect(result.markdown).toBe(await compileMarkdown(input))
 		expect(withoutPositions(Markdown({ children: result.markdown }))).toEqual(
 			withoutPositions(
 				Markdown({
-					children:
-						"| Value | Label |\n| ---: | --- |\n| 1 | **a\\|b** |\n| 2 | **a\\|b** |\n| 3 | expression |\n",
+					children: asyncTableExpected,
 				}),
 			),
 		)
@@ -297,122 +255,52 @@ export async function Rows() {
 	})
 
 	test.each([
-		["<table />", "exactly one header row"],
-		["<tr><th>Name</th></tr>", "<tr> must be inside"],
-		["<table><th>Name</th></table>", "<th> must be inside <tr>"],
-		["<table><thead><td>Name</td></thead></table>", "<td> must be inside <tr>"],
+		[emptyTable, "exactly one header row"],
+		[orphanRow, "<tr> must be inside"],
+		[orphanHeaderCell, "<th> must be inside <tr>"],
+		[orphanBodyCell, "<td> must be inside <tr>"],
+		[nestedHeaderSection, "<thead> must be inside <table>"],
+		[missingHeader, "exactly one header row"],
+		[emptyHeaderSection, "<thead> must contain exactly one"],
+		[multipleSectionHeaders, "<thead> must contain exactly one"],
+		[multipleHeaders, "exactly one header row"],
+		[headerInBody, "<tbody> must contain only body rows"],
+		[mixedCells, "cannot mix <th> and <td>"],
+		[missingCells, "Table row 2 has 1 cells; expected 2"],
+		[extraCells, "Table row 2 has 2 cells; expected 1"],
+		[emptyRow, "<tr> must contain one or more"],
+		[textInRow, "<tr> must contain one or more"],
+		[textInTable, "<table> must contain table rows"],
+		[paragraphInTable, "Unsupported element <p> inside <table>"],
+		[tableCaption, "Unsupported table element <caption>"],
+		[tableFooter, "Unsupported table element <tfoot>"],
+		[tableColumnGroup, "Unsupported table element <colgroup>"],
+		[tableColumn, "Unsupported table element <col>"],
+		[tableClass, 'Unsupported attribute "className" on <table>'],
+		[tableStyle, 'Unsupported attribute "style" on <table>'],
+		[tableColumnSpan, 'Unsupported attribute "colSpan" on <th>'],
+		[tableRowSpan, 'Unsupported attribute "rowSpan" on <th>'],
+		[rowAlignment, 'Unsupported attribute "align" on <tr>'],
+		[invalidAlignment, "Invalid <th> alignment"],
+		[nullAlignment, "Invalid <th> alignment"],
+		[bodyAlignment, 'Unsupported attribute "align" on <td>'],
+		[nestedTable, "Nested tables cannot be represented"],
+		[hardBreakInCell, "Table cells support inline content only; found break"],
 		[
-			"<table><tbody><thead /></tbody></table>",
-			"<thead> must be inside <table>",
-		],
-		["<table><tr><td>Name</td></tr></table>", "exactly one header row"],
-		["<table><thead /></table>", "<thead> must contain exactly one"],
-		[
-			"<table><thead><tr><th>A</th></tr><tr><th>B</th></tr></thead></table>",
-			"<thead> must contain exactly one",
-		],
-		[
-			"<table><tr><th>A</th></tr><tr><th>B</th></tr></table>",
-			"exactly one header row",
-		],
-		[
-			"<table><tbody><tr><th>A</th></tr></tbody></table>",
-			"<tbody> must contain only body rows",
-		],
-		[
-			"<table><tr><th>A</th><td>B</td></tr></table>",
-			"cannot mix <th> and <td>",
-		],
-		[
-			"<table><tr><th>A</th><th>B</th></tr><tr><td>C</td></tr></table>",
-			"Table row 2 has 1 cells; expected 2",
-		],
-		[
-			"<table><tr><th>A</th></tr><tr><td>B</td><td>C</td></tr></table>",
-			"Table row 2 has 2 cells; expected 1",
-		],
-		["<table><tr /></table>", "<tr> must contain one or more"],
-		["<table><tr>text</tr></table>", "<tr> must contain one or more"],
-		["<table>text</table>", "<table> must contain table rows"],
-		["<table><p>text</p></table>", "Unsupported element <p> inside <table>"],
-		[
-			"<table><caption>Title</caption></table>",
-			"Unsupported table element <caption>",
-		],
-		["<table><tfoot /></table>", "Unsupported table element <tfoot>"],
-		["<table><colgroup /></table>", "Unsupported table element <colgroup>"],
-		["<table><col /></table>", "Unsupported table element <col>"],
-		[
-			"<table className='wide' />",
-			'Unsupported attribute "className" on <table>',
-		],
-		[
-			"<table style={{width: 100}} />",
-			'Unsupported attribute "style" on <table>',
-		],
-		[
-			"<table><tr><th colSpan={2}>A</th></tr></table>",
-			'Unsupported attribute "colSpan" on <th>',
-		],
-		[
-			"<table><tr><th rowSpan={2}>A</th></tr></table>",
-			'Unsupported attribute "rowSpan" on <th>',
-		],
-		[
-			"<table><tr align='right'><th>A</th></tr></table>",
-			'Unsupported attribute "align" on <tr>',
-		],
-		[
-			"<table><tr><th align='justify'>A</th></tr></table>",
-			"Invalid <th> alignment",
-		],
-		[
-			"<table><tr><th align={null}>A</th></tr></table>",
-			"Invalid <th> alignment",
-		],
-		[
-			"<table><tr><th>A</th></tr><tr><td align='right'>B</td></tr></table>",
-			'Unsupported attribute "align" on <td>',
-		],
-		[
-			"<table><tr><th><table /></th></tr></table>",
-			"Nested tables cannot be represented",
-		],
-		[
-			"<table><tr><th>A<br />B</th></tr></table>",
-			"Table cells support inline content only; found break",
-		],
-		[
-			"<table><tr><th><p>A</p><p>B</p></th></tr></table>",
+			paragraphsInCell,
 			"Table cells support inline content only; found paragraph",
 		],
-		[
-			"<table><tr><th>\n\n- item\n\n</th></tr></table>",
-			"Table cells support inline content only; found list",
-		],
+		[listInCell, "Table cells support inline content only; found list"],
 	])("rejects unsupported table markup: %s", async (source, error) => {
 		const { input } = await fixture({ "README.mdx": source })
 		await expect(compileMarkdown(input)).rejects.toThrow(error)
 	})
 
 	test("imports one source as distinct code components, reuses identical attributes, and never executes it", async () => {
-		const source =
-			'throw new Error("source must not execute")\nexport const fence: string = "```"\n'
+		const source = codeSource
 		const { input } = await fixture({
 			"example.ts": source,
-			"README.mdx": `import TypeScript from './example.ts' with { type: 'code', lang: 'ts' }
-import Plain from './example.ts' with { type: 'code', lang: 'text' }
-import Again from './example.ts' with { lang: 'ts', type: 'code' }
-import Inferred from './example.ts' with { type: 'code' }
-
-{TypeScript === Again && TypeScript !== Plain && TypeScript !== Inferred ? 'identity passed' : 'identity failed'}
-
-<TypeScript />
-
-<Plain />
-
-<Inferred />
-`,
+			"README.mdx": codeImports,
 		})
 		const output = await compileMarkdown(input)
 		expect(output).toContain("identity passed")
@@ -428,16 +316,9 @@ import Inferred from './example.ts' with { type: 'code' }
 
 	test("loads ordinary TypeScript and raw text imports alongside code imports", async () => {
 		const { input } = await fixture({
-			"example.ts": 'export const value: string = "runtime value"\n',
-			"note.txt": "a raw string",
-			"README.mdx": `import { value } from './example.ts'
-import Example from './example.ts' with { type: 'code' }
-import note from './note.txt' with { type: 'text' }
-
-{value} and {note}
-
-<Example />
-`,
+			"example.ts": runtimeSource,
+			"note.txt": rawNote,
+			"README.mdx": mixedImports,
 		})
 		const output = await compileMarkdown(input)
 		expect(output).toContain("runtime value and a raw string")
@@ -446,13 +327,9 @@ import note from './note.txt' with { type: 'text' }
 
 	test("supports async components, props, TSX, and nested document directories", async () => {
 		const { directory, input } = await fixture({
-			"README.mdx": "import Nested from './nested/section.mdx'\n\n<Nested />\n",
-			"nested/section.mdx":
-				"import { Greeting } from '../component.tsx'\n\n## Nested\n\n<Greeting name='Ada' />\n",
-			"component.tsx": `export async function Greeting({ name }: { name: string }, context: { directory: string }) {
-await Promise.resolve()
-return <p>Hello <strong>{name}</strong> from {context.directory}</p>
-}`,
+			"README.mdx": nestedDocument,
+			"nested/section.mdx": nestedSection,
+			"component.tsx": greeting,
 		})
 		expect(await compileMarkdown(input)).toBe(
 			`## Nested\n\nHello **Ada** from ${directory}/nested\n`,
@@ -461,16 +338,7 @@ return <p>Hello <strong>{name}</strong> from {context.directory}</p>
 
 	test("allows third-party plugins to consume arbitrary attributes with native module identity", async () => {
 		const { input } = await fixture({
-			"README.mdx": `import One from 'virtual:example' with { type: 'custom', label: 'one' }
-import Two from 'virtual:example' with { type: 'custom', label: 'two' }
-import Again from 'virtual:example' with { label: 'one', type: 'custom' }
-
-{One === Again && One !== Two ? 'identity passed' : 'identity failed'}
-
-<One />
-
-<Two />
-`,
+			"README.mdx": pluginImports,
 		})
 		const loads: string[] = []
 		const output = await compileMarkdown(input, {
@@ -485,7 +353,10 @@ import Again from 'virtual:example' with { label: 'one', type: 'custom' }
 						build.onLoad({ filter: /.*/, namespace: "example" }, (args) => {
 							loads.push(String(args.with.label))
 							return {
-								contents: `export default function Example() { return ${JSON.stringify(args.with.label)} }`,
+								contents: pluginComponent.replace(
+									"__LABEL__",
+									JSON.stringify(args.with.label),
+								),
 								loader: "js",
 							}
 						})
@@ -499,42 +370,29 @@ import Again from 'virtual:example' with { label: 'one', type: 'custom' }
 
 	test("compiles changed local dependencies on the next call", async () => {
 		const { directory, input } = await fixture({
-			"README.mdx":
-				"import { Greeting } from './component.ts'\n\n<Greeting />\n",
-			"component.ts": "export function Greeting() { return 'before' }",
+			"README.mdx": changingComponent,
+			"component.ts": beforeComponent,
 		})
 		expect(await compileMarkdown(input)).toBe("before\n")
-		await fs.writeFile(
-			path.join(directory, "component.ts"),
-			"export function Greeting() { return 'after' }",
-		)
+		await fs.writeFile(path.join(directory, "component.ts"), afterComponent)
 		expect(await compileMarkdown(input)).toBe("after\n")
 	})
 
 	test.each([
-		[
-			"import Missing from './missing.ts' with { type: 'code' }\n\n<Missing />",
-			"missing.ts",
-		],
-		[
-			"import Code from './example.ts' with { type: 'code', language: 'ts' }\n\n<Code />",
-			"Unknown code import attribute: language",
-		],
-		[
-			"import Code from './example.ts' with { type: 'code', lang: 'bad`language' }\n\n<Code />",
-			"Code languages",
-		],
-		["<div>Unsupported</div>", "Unsupported Markdown element <div>"],
+		[missingImport, "missing.ts"],
+		[unknownAttribute, "Unknown code import attribute: language"],
+		[invalidLanguage, "Code languages"],
+		[unsupportedElement, "Unsupported Markdown element <div>"],
 	])("reports invalid input: %s", async (document, error) => {
 		const { input } = await fixture({
 			"README.mdx": document,
-			"example.ts": "export {}",
+			"example.ts": emptyModule,
 		})
 		await expect(compileMarkdown(input)).rejects.toThrow(error)
 	})
 
 	test("write and check handle missing and stale output without modifying the source", async () => {
-		const source = "# Generated\n"
+		const source = generatedDocument
 		const { input, output } = await fixture({ "README.mdx": source })
 		expect((await runGalley(input, { mode: "check" })).changed).toBe(true)
 		await expect(fs.stat(output)).rejects.toMatchObject({ code: "ENOENT" })
@@ -559,7 +417,7 @@ import Again from 'virtual:example' with { label: 'one', type: 'custom' }
 
 	test("CLI writes, checks, reports drift, accepts explicit output, and shows help without evaluation", async () => {
 		const { directory, input, output } = await fixture({
-			"README.mdx": "# CLI\n",
+			"README.mdx": cliDocument,
 		})
 		const run = (...args: string[]) =>
 			execute(process.execPath, [cli, ...args], { cwd: directory })
@@ -577,10 +435,7 @@ import Again from 'virtual:example' with { label: 'one', type: 'custom' }
 		expect(await fs.readFile(path.join(directory, "custom.md"), "utf8")).toBe(
 			"# CLI\n",
 		)
-		await fs.writeFile(
-			input,
-			'export const broken = (() => { throw new Error("must not evaluate") })()',
-		)
+		await fs.writeFile(input, brokenDocument)
 		expect((await run("--help")).stdout).toContain("galley")
 		await expect(run("unknown")).rejects.toMatchObject({ code: 1 })
 	})

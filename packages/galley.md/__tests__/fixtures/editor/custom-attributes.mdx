@@ -1,0 +1,5 @@
+import One from 'virtual:x' with { type: 'custom', variant: 'one' }
+import Two from 'virtual:x' with { type: 'custom', variant: 'bad' }
+import Bad from './x.ts' with { type: 'code', language: 'ts' }
+
+{One + Two}
