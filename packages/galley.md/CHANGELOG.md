@@ -1,5 +1,11 @@
 # galley.md
 
+## 0.1.4
+
+### Patch Changes
+
+- 022aa08: Add a Comment component for emitting HTML comments from standard MDX, including inside Html boundaries.
+
 ## 0.1.3
 
 ### Patch Changes
