@@ -19,6 +19,32 @@ import {
 } from "../src/mapper/transform.ts"
 import { previewSummary } from "../src/vscode/preview-model.ts"
 
+import editorSource from "#fixtures/editor/example.ts" with { type: "text" }
+import mappedImports from "#fixtures/editor/mapped-imports.mdx" with { type: "text" }
+import customAttributes from "#fixtures/editor/custom-attributes.mdx" with { type: "text" }
+import checkedImports from "#fixtures/editor/checked-imports.mdx" with { type: "text" }
+import invalidUsages from "#fixtures/editor/invalid-usages.mdx" with { type: "text" }
+import checkedTable from "#fixtures/editor/checked-table.mdx" with { type: "text" }
+import checkedTableComponent from "#fixtures/editor/table.tsx" with { type: "text" }
+import tableUsage from "#fixtures/editor/table-usage.mdx" with { type: "text" }
+import htmlTableUsage from "#fixtures/editor/html-table-usage.mdx" with { type: "text" }
+import htmlTableComponent from "#fixtures/editor/table-html.tsx" with { type: "text" }
+import checkedHtml from "#fixtures/editor/checked-html.mdx" with { type: "text" }
+import savedDocument from "#fixtures/editor/saved.mdx" with { type: "text" }
+import countedSection from "#fixtures/editor/counted-section.mdx" with { type: "text" }
+import countedComponent from "#fixtures/editor/counted-component.ts" with { type: "text" }
+import previewDocument from "#fixtures/editor/preview-document.mdx" with { type: "text" }
+import codeImportDocument from "#fixtures/editor/code-import.mdx" with { type: "text" }
+import timedOutDocument from "#fixtures/editor/timed-out.mdx" with { type: "text" }
+import languageServerDocument from "#fixtures/editor/language-server.mdx" with { type: "text" }
+import loggingSource from "#fixtures/editor/logging-source.ts" with { type: "text" }
+import incompleteImport from "#fixtures/editor/incomplete-import.mdx" with { type: "text" }
+import readmeDocument from "#fixtures/editor/readme.mdx" with { type: "text" }
+import summaryCode from "#fixtures/editor/summary.md" with { type: "text" }
+import inlineComponent from "#fixtures/editor/inline.ts" with { type: "text" }
+import inlineDocument from "#fixtures/editor/inline.mdx" with { type: "text" }
+import markdownLinks from "#fixtures/editor/markdown-links.mdx" with { type: "text" }
+
 const execute = promisify(execFile)
 const root = fileURLToPath(new URL("../", import.meta.url))
 const directories: string[] = []
@@ -85,16 +111,13 @@ async function fixture(source: string) {
 			include: ["README.mdx"],
 		}),
 	)
-	await fs.writeFile(
-		path.join(directory, "example.ts"),
-		'throw new Error("must not execute")\nexport const value = 123\n',
-	)
+	await fs.writeFile(path.join(directory, "example.ts"), editorSource)
 	await fs.writeFile(path.join(directory, "README.mdx"), source)
 	return { directory, input: path.join(directory, "README.mdx") }
 }
 
 test("composes UTF-16 source maps and keeps attributed imports distinct from ordinary imports", async () => {
-	const source = `# 👻 Preview\n\nimport { value } from './example.ts'\nimport Code from './example.ts' with { type: 'code', lang: 'ts' }\nimport Text from './example.ts' with { type: 'text' }\n\n<Code />\n\n{Text.toUpperCase()} {value}\n`
+	const source = mappedImports
 	await openProject({
 		projectHandle: "unit",
 		configFileName: "",
@@ -135,7 +158,7 @@ test("reports unsupported attributes at their original spans and supports plugin
 			],
 		},
 	})
-	const content = `import One from 'virtual:x' with { type: 'custom', variant: 'one' }\nimport Two from 'virtual:x' with { type: 'custom', variant: 'bad' }\nimport Bad from './x.ts' with { type: 'code', language: 'ts' }\n\n{One + Two}\n`
+	const content = customAttributes
 	const result = transform({
 		projectHandle: "custom",
 		fileName: "/tmp/README.mdx",
@@ -154,9 +177,7 @@ test("reports unsupported attributes at their original spans and supports plugin
 })
 
 test("TypeScript 7.1 checks real attributed imports and maps errors back to MDX", async () => {
-	const { directory, input } = await fixture(
-		`import { value } from './example.ts'\nimport Code from './example.ts' with { type: 'code', lang: 'ts' }\nimport Text from './example.ts' with { type: 'text' }\n\n<Code />\n\n{Text.toUpperCase()} {value.toFixed(0)}\n`,
-	)
+	const { directory, input } = await fixture(checkedImports)
 	const tsc = path.join(root, "node_modules/typescript/bin/tsc")
 	const check = () =>
 		execute(process.execPath, [
@@ -168,10 +189,7 @@ test("TypeScript 7.1 checks real attributed imports and maps errors back to MDX"
 			directory,
 		])
 	await expect(check()).resolves.toMatchObject({ stdout: "" })
-	await fs.appendFile(
-		input,
-		"\n<Text />\n\n{Text.toFixed(2)}\n\n<Code invalid='prop' />\n",
-	)
+	await fs.appendFile(input, invalidUsages)
 	await expect(check()).rejects.toMatchObject({
 		stdout: expect.stringMatching(/README\.mdx\(9,/),
 	})
@@ -186,9 +204,7 @@ test("TypeScript 7.1 checks real attributed imports and maps errors back to MDX"
 }, 20_000)
 
 test("TypeScript checks native tables and HTML table attributes in MDX and TSX", async () => {
-	const { directory, input } = await fixture(
-		`import { Html } from 'galley.md'\n\n<table><thead><tr><th align="right">Size</th></tr></thead><tbody><tr><td>{12}</td></tr></tbody></table>\n`,
-	)
+	const { directory, input } = await fixture(checkedTable)
 	const tsc = path.join(root, "node_modules/typescript/bin/tsc")
 	const check = () =>
 		execute(process.execPath, [
@@ -199,35 +215,16 @@ test("TypeScript checks native tables and HTML table attributes in MDX and TSX",
 			"-p",
 			directory,
 		])
-	await fs.writeFile(
-		path.join(directory, "table.tsx"),
-		`import { Html } from 'galley.md'\nexport function Table() { return <table><tr key="header"><th align="center">Name</th></tr><tr><td>galley</td></tr></table> }`,
-	)
-	await fs.appendFile(
-		input,
-		"\nimport { Table } from './table.tsx'\n\n<Table />\n",
-	)
+	await fs.writeFile(path.join(directory, "table.tsx"), checkedTableComponent)
+	await fs.appendFile(input, tableUsage)
 	await expect(check()).resolves.toMatchObject({ stdout: "" })
-	await fs.appendFile(
-		input,
-		'\n<Html><table className="wide"><tr><th align="justify">Size</th></tr></table></Html>\n',
-	)
-	await fs.appendFile(
-		path.join(directory, "table.tsx"),
-		"\nexport const markup = <Html><table><tr><td colSpan={2}>merged</td></tr></table></Html>\n",
-	)
+	await fs.appendFile(input, htmlTableUsage)
+	await fs.appendFile(path.join(directory, "table.tsx"), htmlTableComponent)
 	await expect(check()).resolves.toMatchObject({ stdout: "" })
 }, 20_000)
 
 test("TypeScript checks Html boundaries with markup tables and custom elements", async () => {
-	const { directory } = await fixture(`import { Html } from 'galley.md'
-
-<Html>
-  <div align="center"><img src="logo.png" width={160} /><h1><code>Package</code></h1></div>
-  <table><tbody><tr><td colSpan={2}>Markup</td></tr></tbody></table>
-  <custom-badge data-label="example" />
-</Html>
-`)
+	const { directory } = await fixture(checkedHtml)
 	await expect(
 		execute(process.execPath, [
 			path.join(root, "node_modules/typescript/bin/tsc"),
@@ -241,18 +238,12 @@ test("TypeScript checks Html boundaries with markup tables and custom elements",
 }, 20_000)
 
 test("previews use unsaved source, evaluate each component once, and retain nested document context", async () => {
-	const { directory, input } = await fixture("# Saved\n")
+	const { directory, input } = await fixture(savedDocument)
 	await fs.mkdir(path.join(directory, "nested"))
-	await fs.writeFile(
-		path.join(directory, "nested/section.mdx"),
-		"import { Count } from '../component.ts'\n\n<Count />\n",
-	)
-	await fs.writeFile(
-		path.join(directory, "component.ts"),
-		`import fs from 'node:fs'; export function Count(_, context) { fs.appendFileSync(${JSON.stringify(path.join(directory, "count"))}, '1'); console.log('component stdout'); return 'From ' + context.directory }`,
-	)
+	await fs.writeFile(path.join(directory, "nested/section.mdx"), countedSection)
+	await fs.writeFile(path.join(directory, "component.ts"), countedComponent)
 	const result = await previewMarkdown(input, {
-		source: "import Section from './nested/section.mdx'\n\n<Section />\n",
+		source: previewDocument,
 	})
 	expect(await fs.readFile(path.join(directory, "count"), "utf8")).toBe("1")
 	expect(result.markdown).toBe(`From ${directory}/nested\n`)
@@ -261,19 +252,11 @@ test("previews use unsaved source, evaluate each component once, and retain nest
 		result.components.every(({ markdown }) => markdown === result.markdown),
 	).toBe(true)
 	expect(result.dependencies).toContain(path.join(directory, "component.ts"))
-	expect(await fs.readFile(input, "utf8")).toBe("# Saved\n")
-	const isolated = await evaluatePreview(
-		input,
-		"import Code from './example.ts' with { type: 'code' }\n\n<Code />\n",
-	)
+	expect(await fs.readFile(input, "utf8")).toBe(savedDocument)
+	const isolated = await evaluatePreview(input, codeImportDocument)
 	expect(isolated.components[0]!.markdown).toContain("must not execute")
 	await expect(
-		evaluatePreview(
-			input,
-			"export const wait = await new Promise(() => {})\n\n# Wait\n",
-			undefined,
-			100,
-		),
+		evaluatePreview(input, timedOutDocument, undefined, 100),
 	).rejects.toThrow("timed out")
 }, 20_000)
 
@@ -322,12 +305,9 @@ async function lsp(directory: string, preview = false) {
 }
 
 test("LSP serves attribute completion, definitions, real TypeScript hover, and isolated versioned previews", async () => {
-	const source = `import { value } from './example.ts'\nimport Code from './example.ts' with { type: 'code', lang: 'ts' }\n\n<Code />\n\n{value}\n`
+	const source = languageServerDocument
 	const { directory, input } = await fixture(source)
-	await fs.writeFile(
-		path.join(directory, "example.ts"),
-		'console.log("component stdout must not corrupt LSP")\nexport const value = 123\n',
-	)
+	await fs.writeFile(path.join(directory, "example.ts"), loggingSource)
 	const connection = await lsp(directory, true)
 	const uri = pathToFileURL(input).href
 	await connection.sendNotification("textDocument/didOpen", {
@@ -364,9 +344,7 @@ test("LSP serves attribute completion, definitions, real TypeScript hover, and i
 	expect(result.components[0]?.markdown).toContain("export const value = 123")
 	await connection.sendNotification("textDocument/didChange", {
 		textDocument: { uri, version: 2 },
-		contentChanges: [
-			{ text: `import Code from './example.ts' with { type: "co` },
-		],
+		contentChanges: [{ text: incompleteImport }],
 	})
 	const completion = await connection.sendRequest<{
 		items: { label: string }[]
@@ -380,11 +358,16 @@ test("LSP serves attribute completion, definitions, real TypeScript hover, and i
 }, 20_000)
 
 test("standalone LSP does not evaluate previews without explicit trust", async () => {
-	const { directory, input } = await fixture("# Readme\n")
+	const { directory, input } = await fixture(readmeDocument)
 	const connection = await lsp(directory)
 	const uri = pathToFileURL(input).href
 	await connection.sendNotification("textDocument/didOpen", {
-		textDocument: { uri, languageId: "galley", version: 1, text: "# Readme\n" },
+		textDocument: {
+			uri,
+			languageId: "galley",
+			version: 1,
+			text: readmeDocument,
+		},
 	})
 	await expect(
 		connection.sendRequest("galley/preview", { uri }),
@@ -392,15 +375,12 @@ test("standalone LSP does not evaluate previews without explicit trust", async (
 }, 20_000)
 
 test("native ghost summaries retain a line count and bound very long output", () => {
-	expect(previewSummary("```ts\nconst x = 1\n```\n")).toBe(
-		"  → const x = 1 · 3 lines",
-	)
+	expect(previewSummary(summaryCode)).toBe("  → const x = 1 · 3 lines")
 	expect(previewSummary("x".repeat(1000)).length).toBeLessThan(120)
 })
 
 test("inferred projects receive the TypeScript mapper without a tsconfig", async () => {
-	const source =
-		"import Code from './example.ts' with { type: 'code' }\n\n<Code />\n"
+	const source = codeImportDocument
 	const { directory, input } = await fixture(source)
 	await fs.unlink(path.join(directory, "tsconfig.json"))
 	const connection = await lsp(directory)
@@ -418,13 +398,9 @@ test("inferred projects receive the TypeScript mapper without a tsconfig", async
 }, 20_000)
 
 test("inline component previews preserve the exact document output and source offsets", async () => {
-	const { directory, input } = await fixture("# Saved\n")
-	await fs.writeFile(
-		path.join(directory, "inline.ts"),
-		"export function Name() { return { type: 'strong', children: [{ type: 'text', value: 'Ada' }] } }",
-	)
-	const source =
-		"import * as names from './inline.ts'\n\nHello <names.Name />, welcome.\n"
+	const { directory, input } = await fixture(savedDocument)
+	await fs.writeFile(path.join(directory, "inline.ts"), inlineComponent)
+	const source = inlineDocument
 	const result = await previewMarkdown(input, { source })
 	expect(result.markdown).toBe("Hello **Ada**, welcome.\n")
 	expect(result.components).toHaveLength(1)
@@ -434,25 +410,7 @@ test("inline component previews preserve the exact document output and source of
 })
 
 test("Markdown links retain embedded expressions and source maps without breaking TypeScript projection", async () => {
-	const source = `import Text from './example.ts' with { type: 'text' }
-
-# A **heading**
-
-[**{Text.toUpperCase()}**](./example.ts) and a [reference][target].
-
-![An image](./example.svg)
-
-> Quoted *text* with \`code\`.
-
-- First
-- Second
-
-\`\`\`ts
-const example: string = 'source'
-\`\`\`
-
-[target]: ./example.ts
-`
+	const source = markdownLinks
 	const { directory, input } = await fixture(source)
 	const tsc = path.join(root, "node_modules/typescript/bin/tsc")
 	await expect(

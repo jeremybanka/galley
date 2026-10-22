@@ -5,6 +5,7 @@
 		"__tests__",
 		"*.config.ts"
 	],
+	"exclude": ["__tests__/fixtures"],
 	"compilerOptions": {
 		"types": [
 			"node"

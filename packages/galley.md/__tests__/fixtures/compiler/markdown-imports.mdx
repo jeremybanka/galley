@@ -1,0 +1,9 @@
+import Plain from './plain.md'
+import raw from './plain.md' with { type: 'text' }
+import { Code } from 'galley.md'
+
+a{'\n'}b
+
+<Plain />
+
+<Code source={raw} lang='md' />

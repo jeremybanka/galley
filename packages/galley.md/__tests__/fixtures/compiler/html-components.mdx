@@ -1,0 +1,7 @@
+import { Html, Markdown } from 'galley.md'
+import { Badge } from './badge.tsx'
+
+<Html>
+  <div><Badge />{' '}{null}{false}{[1, ' & ', 2]}<Html><i>nested</i></Html></div>
+  <Markdown children={'| Name | Value |\n| --- | --- |\n| Example | **bold** |'} />
+</Html>

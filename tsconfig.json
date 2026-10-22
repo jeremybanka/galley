@@ -10,6 +10,9 @@
 		],
 		"module": "NodeNext",
 		"moduleResolution": "NodeNext",
+		"paths": {
+			"#fixtures/*": ["./packages/galley.md/__tests__/fixture-text.d.ts"]
+		},
 		"noEmit": true,
 		"noUncheckedIndexedAccess": true,
 		"rootDir": ".",
@@ -23,5 +26,6 @@
 	"include": [
 		"**/*.ts",
 		"*.d.ts"
-	]
+	],
+	"exclude": ["packages/*/__tests__/fixtures"]
 }

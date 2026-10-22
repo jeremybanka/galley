@@ -1,7 +1,9 @@
 import { fileURLToPath } from "node:url"
 import { defineConfig } from "vite-plus"
+import { textFixtures } from "./__tests__/text-fixtures.ts"
 
 export default defineConfig({
+	plugins: [textFixtures()],
 	pack: [
 		{
 			clean: true,
