@@ -91,6 +91,16 @@ import { Greeting } from "./components.ts"
 
 Use `Markdown({ children: generatedMarkdown })` to include Markdown produced by another tool. Use `Code({ source, lang })` to return a code node. Strings returned by components are text, escaped by the Markdown serializer. Components on their own line produce blocks; components within prose produce inline content.
 
+Use `Comment` for HTML comments that should remain in the generated Markdown:
+
+```mdx
+import { Comment } from "galley.md"
+
+<Comment>Generated from README.mdx. Run pnpm readme:write to update.</Comment>
+```
+
+This emits `<!-- Generated from README.mdx. Run pnpm readme:write to update. -->`. Children render as Markdown with surrounding whitespace trimmed; expressions and multiline content work too. `Comment` also works inside `Html`. Children cannot contain HTML comment delimiters (`<!--`, `-->`, or `--!>`). Use ordinary MDX comments, `{/* ... */}`, for notes that should stay out of the generated document.
+
 The second argument is a `DocumentContext` with absolute `path` and `directory` fields for the containing document. Use this directory to resolve local inputs. Imported `.mdx` documents get their own context; `.md` imports are parsed as ordinary Markdown.
 
 For TSX components, set `jsx` to `react-jsx` and `jsxImportSource` to `galley.md` in TypeScript configuration. React is not required. Outside an `Html` boundary, supported intrinsic JSX elements are `p`, `h1` through `h6`, `strong`, `em`, `del`, `blockquote`, `a`, `br`, `hr`, `table`, `thead`, `tbody`, `tr`, `th`, and `td`. They produce Markdown nodes. Wrap markup in `Html` to preserve HTML tags and attributes.

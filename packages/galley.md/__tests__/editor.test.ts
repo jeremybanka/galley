@@ -19,6 +19,7 @@ import {
 } from "../src/mapper/transform.ts"
 import { previewSummary } from "../src/vscode/preview-model.ts"
 
+import checkedComments from "#fixtures/editor/checked-comments.mdx" with { type: "text" }
 import editorSource from "#fixtures/editor/example.ts" with { type: "text" }
 import mappedImports from "#fixtures/editor/mapped-imports.mdx" with { type: "text" }
 import customAttributes from "#fixtures/editor/custom-attributes.mdx" with { type: "text" }
@@ -225,6 +226,20 @@ test("TypeScript checks native tables and HTML table attributes in MDX and TSX",
 
 test("TypeScript checks Html boundaries with markup tables and custom elements", async () => {
 	const { directory } = await fixture(checkedHtml)
+	await expect(
+		execute(process.execPath, [
+			path.join(root, "node_modules/typescript/bin/tsc"),
+			"--runExternalCode",
+			"--pretty",
+			"false",
+			"-p",
+			directory,
+		]),
+	).resolves.toMatchObject({ stdout: "" })
+}, 20_000)
+
+test("TypeScript checks Comment and Html with markup tables and custom elements", async () => {
+	const { directory } = await fixture(checkedComments)
 	await expect(
 		execute(process.execPath, [
 			path.join(root, "node_modules/typescript/bin/tsc"),
