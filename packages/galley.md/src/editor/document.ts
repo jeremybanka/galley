@@ -1,4 +1,5 @@
 import type { Root } from "mdast"
+import remarkFrontmatter from "remark-frontmatter"
 import remarkGfm from "remark-gfm"
 import remarkMdx from "remark-mdx"
 import remarkParse from "remark-parse"
@@ -8,6 +9,7 @@ export const mdxParserOptions = { acornOptions: { ecmaVersion: 2025 as const } }
 
 const parser = unified()
 	.use(remarkParse)
+	.use(remarkFrontmatter)
 	.use(remarkMdx, mdxParserOptions)
 	.use(remarkGfm)
 
@@ -71,6 +73,7 @@ export function documentImports(source: string): DocumentImport[] {
  * mdx-content-mapper 0.0.2 assumes every link label belongs to an image and
  * throws on ordinary Markdown links. Keep their children (including JSX and
  * expressions) and erase only the link framing, without changing any offsets.
+ * Erase frontmatter too so the upstream mapper never treats YAML as MDX.
  */
 export function projectMarkdownLinks(source: string): string {
 	let tree: Root
@@ -102,7 +105,11 @@ export function projectMarkdownLinks(source: string): string {
 				last?.end.offset ?? node.position?.start.offset,
 				node.position?.end.offset,
 			)
-		} else if (node.type === "imageReference" || node.type === "definition") {
+		} else if (
+			node.type === "imageReference" ||
+			node.type === "definition" ||
+			node.type === "yaml"
+		) {
 			erase(node.position?.start.offset, node.position?.end.offset)
 		}
 		for (const child of node.children ?? []) visit(child)

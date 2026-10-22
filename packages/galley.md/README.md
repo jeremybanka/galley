@@ -29,7 +29,35 @@ galley write docs/guide.mdx docs/guide.md
 galley check docs/guide.mdx docs/guide.md
 ```
 
-Without an output argument, galley.md replaces the input extension with `.md`. CLI paths are relative to the working directory. The output must differ from the input. Use `--` before paths that begin with a dash.
+Without an output argument or frontmatter setting, galley.md replaces the input extension with `.md`. Explicit CLI paths are relative to the working directory (or absolute filesystem paths). The output must differ from the input. Use `--` before paths that begin with a dash.
+
+## Output frontmatter
+
+Set `galley.output` in YAML frontmatter to keep a document's destination with its source:
+
+```mdx
+---
+title: My package
+galley:
+  output: /README.md
+---
+
+# My package
+```
+
+Run `galley write docs/README.mdx` to write this document to `README.md` at the Git repository root. Run `galley check docs/README.mdx` to check the same destination.
+
+| Output setting | Destination                                                        |
+| -------------- | ------------------------------------------------------------------ |
+| `guide.md`     | Beside the source document.                                        |
+| `../guide.md`  | Relative to the source document's directory.                       |
+| `/README.md`   | Relative to the nearest Git repository root containing the source. |
+
+A leading `/` in frontmatter means the repository root, not the filesystem root. Galley finds the nearest ancestor containing a `.git` directory or file, including worktrees and submodules. Repository-root paths must stay within that root and fail if no repository is found. Use forward slashes for portable paths.
+
+An explicit CLI output argument or `runGalley`'s `output` option overrides frontmatter. Without either override, Galley uses `galley.output`, then falls back to replacing the source extension with `.md`. `write` creates missing destination directories; `check` never creates files or directories.
+
+Frontmatter must be a YAML mapping, and `galley.output` must be a nonempty literal path string. Galley removes the `galley` mapping from generated Markdown and preserves other frontmatter, including `title` above. If only Galley settings remain, it omits the frontmatter block entirely. Imported documents have their Galley settings removed too, but their destinations never cause additional writes. `compileMarkdown` and editor previews render content without resolving or writing any destination.
 
 ## Source imports
 

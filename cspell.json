@@ -6,6 +6,8 @@
 		"eMudhra",
 		"comline",
 		"esbuild",
+		"frontmatter",
+		"gitdir",
 		"jeremybanka",
 		"malva",
 		"mdast",
@@ -23,6 +25,7 @@
 		"vite",
 		"viteplus",
 		"vitest",
-		"voidzero"
+		"voidzero",
+		"worktrees"
 	]
 }

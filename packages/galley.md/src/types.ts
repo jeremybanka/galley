@@ -57,7 +57,7 @@ export type DocumentPreview = {
 
 export type RunOptions = CompileOptions & {
 	mode: "write" | "check"
-	/** Defaults to the input path with its extension replaced by .md. */
+	/** Overrides galley.output frontmatter; relative paths use the working directory. */
 	output?: string
 }
 
