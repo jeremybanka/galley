@@ -36,6 +36,19 @@ export function Markdown({ children }: { children: string }): Root {
 	return markdownProcessor.parse(children)
 }
 
+/** Preserve children as an HTML comment in the generated Markdown. */
+export async function Comment(
+	{ children }: { children: Content },
+	context: DocumentContext,
+): Promise<Nodes> {
+	const commentContext: RenderContext = { ...context, [htmlMode]: false }
+	const value = (await renderMarkdown(children, commentContext)).trim()
+	if (/<!--|-->|--!>/.test(value)) {
+		throw new Error("Comment children cannot contain HTML comment delimiters.")
+	}
+	return { type: "html", value: `<!-- ${value} -->` }
+}
+
 /** Render children as HTML without adding a wrapper element. */
 export function Html({ children }: { children?: Content }): Element {
 	return { kind: "galley:element", type: "galley-html", props: { children } }

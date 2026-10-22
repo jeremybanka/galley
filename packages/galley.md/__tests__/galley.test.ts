@@ -14,6 +14,8 @@ import {
 	runGalley,
 } from "../src/index.ts"
 
+import comments from "#fixtures/compiler/comments.mdx" with { type: "text" }
+import commentDelimiters from "#fixtures/compiler/comment-delimiters.mdx" with { type: "text" }
 import htmlBranding from "#fixtures/compiler/html-branding.mdx" with { type: "text" }
 import htmlTables from "#fixtures/compiler/html-tables.mdx" with { type: "text" }
 import htmlComponents from "#fixtures/compiler/html-components.mdx" with { type: "text" }
@@ -120,6 +122,37 @@ function withoutPositions(value: unknown): unknown {
 }
 
 describe("galley documents", () => {
+	test("emits Comment children in blocks, prose, Html, and previews", async () => {
+		const { input } = await fixture({
+			"README.mdx": comments,
+		})
+		const result = await previewMarkdown(input)
+		expect(result.markdown).toBe(
+			"<!-- Generated from README.mdx. -->\n\nBefore <!-- inline note --> after.\n\n<!-- First line\nSecond line -->\n\n<div><!-- Inside **HTML** --></div>\n",
+		)
+		const comment = result.components.find(
+			(component) =>
+				component.markdown === "<!-- Generated from README.mdx. -->\n",
+		)
+		expect(comment).toBeDefined()
+		expect(await compileMarkdown(input)).toBe(result.markdown)
+	})
+
+	test.each(["<!-- nested", "early --> exit", "early --!> exit"])(
+		"rejects comment delimiters in children: %s",
+		async (children) => {
+			const { input } = await fixture({
+				"README.mdx": commentDelimiters.replace(
+					"COMMENT_TEXT",
+					JSON.stringify(children),
+				),
+			})
+			await expect(compileMarkdown(input)).rejects.toThrow(
+				"Comment children cannot contain HTML comment delimiters.",
+			)
+		},
+	)
+
 	test("preserves README markup and attributes inside Html and escapes text", async () => {
 		const { input } = await fixture({
 			"README.mdx": htmlBranding,
