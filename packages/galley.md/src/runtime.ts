@@ -1,6 +1,8 @@
 import path from "node:path"
 
+import { toHtml } from "hast-util-to-html"
 import type { Nodes, Root, RootContent } from "mdast"
+import { toHast } from "mdast-util-to-hast"
 import remarkGfm from "remark-gfm"
 import remarkParse from "remark-parse"
 import remarkStringify from "remark-stringify"
@@ -15,8 +17,10 @@ import type {
 } from "./types.ts"
 
 const previewSink = Symbol("galley:previews")
+const htmlMode = Symbol("galley:html")
 type RenderContext = DocumentContext & {
 	[previewSink]?: ComponentPreview[]
+	[htmlMode]?: boolean
 	tableParent?: string | undefined
 }
 
@@ -28,6 +32,11 @@ const markdownProcessor = unified()
 /** Include Markdown produced by another tool as Markdown nodes. */
 export function Markdown({ children }: { children: string }): Root {
 	return markdownProcessor.parse(children)
+}
+
+/** Render children as HTML without adding a wrapper element. */
+export function Html({ children }: { children?: Content }): Element {
+	return { kind: "galley:element", type: "galley-html", props: { children } }
 }
 
 /** A code component returns source text; the serializer owns safe fencing. */
@@ -85,6 +94,13 @@ async function resolveContent(
 				context,
 			)
 		}
+		if (element.type === "galley-html") {
+			const children = await resolveContent(element.props.children as Content, {
+				...context,
+				[htmlMode]: true,
+			})
+			return [{ type: "html", value: htmlContent(children) }]
+		}
 		if (element.type === "galley-preview") {
 			const children = await resolveContent(
 				element.props.children as Content,
@@ -94,10 +110,12 @@ async function resolveContent(
 				file: String(element.props.file),
 				start: Number(element.props.start),
 				end: Number(element.props.end),
-				markdown: markdownProcessor.stringify({
-					type: "root",
-					children: blocks(tablePreview(children, context.tableParent)),
-				}),
+				markdown: context[htmlMode]
+					? htmlContent(children)
+					: markdownProcessor.stringify({
+							type: "root",
+							children: blocks(tablePreview(children, context.tableParent)),
+						}),
 			})
 			return children
 		}
@@ -106,10 +124,13 @@ async function resolveContent(
 			element.type === "galley-expression"
 		)
 			return resolveContent(element.props.children as Content, context)
-		if (element.type === "galley-flow")
-			return blocks(
-				await resolveContent(element.props.children as Content, context),
+		if (element.type === "galley-flow") {
+			const children = await resolveContent(
+				element.props.children as Content,
+				context,
 			)
+			return context[htmlMode] ? children : blocks(children)
+		}
 		if (element.type === "galley-node") {
 			const node = JSON.parse(String(element.props.node)) as Nodes
 			const document =
@@ -184,17 +205,62 @@ async function intrinsic(
 	element: Element,
 	context: RenderContext,
 ): Promise<RootContent[]> {
-	const table = await renderTableElement(
-		element,
-		context.tableParent,
-		(children, tableParent) =>
-			resolveContent(children, { ...context, tableParent }),
-	)
-	if (table) return table
+	if (!context[htmlMode]) {
+		const table = await renderTableElement(
+			element,
+			context.tableParent,
+			(children, tableParent) =>
+				resolveContent(children, { ...context, tableParent }),
+		)
+		if (table) return table
+	}
 	const children = await resolveContent(
 		element.props.children as Content,
 		context,
 	)
+	if (context[htmlMode]) {
+		const properties: Record<
+			string,
+			string | number | boolean | null | undefined | (string | number)[]
+		> = {}
+		for (const [name, value] of Object.entries(element.props)) {
+			if (name === "children") continue
+			if (
+				value === null ||
+				value === undefined ||
+				typeof value === "string" ||
+				typeof value === "number" ||
+				typeof value === "boolean" ||
+				(Array.isArray(value) &&
+					value.every(
+						(item: unknown) =>
+							typeof item === "string" || typeof item === "number",
+					))
+			)
+				properties[name] =
+					typeof value === "boolean" && /^(aria|data)(-|[A-Z])/.test(name)
+						? String(value)
+						: value
+			else
+				throw new Error(
+					`HTML attribute ${name} must be a string, number, boolean, or array of strings or numbers.`,
+				)
+		}
+		return [
+			{
+				type: "html",
+				value: toHtml(
+					{
+						type: "element",
+						tagName: String(element.type),
+						properties,
+						children: [{ type: "raw", value: htmlContent(children) }],
+					},
+					{ allowDangerousHtml: true },
+				),
+			},
+		]
+	}
 	const tags: Record<string, string> = {
 		p: "paragraph",
 		strong: "strong",
@@ -229,6 +295,22 @@ async function intrinsic(
 	if (element.type === "br") return [{ type: "break" }]
 	if (element.type === "hr") return [{ type: "thematicBreak" }]
 	throw new Error(
-		`Unsupported Markdown element <${String(element.type)}>. Use Markdown syntax or return a Markdown node from a component.`,
+		`Unsupported Markdown element <${String(element.type)}>. Wrap markup in <Html>, use Markdown syntax, or return a Markdown node from a component.`,
+	)
+}
+
+function htmlContent(children: RootContent[]): string {
+	return toHtml(
+		toHast(
+			{ type: "root", children },
+			{
+				allowDangerousHtml: true,
+				// Preserve inline spacing instead of inserting root-level separators.
+				handlers: {
+					root: (state, node) => state.all(node),
+				},
+			},
+		),
+		{ allowDangerousHtml: true },
 	)
 }

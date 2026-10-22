@@ -20,6 +20,8 @@ export namespace JSX {
 		children: unknown
 	}
 	export interface IntrinsicElements {
+		// Html boundaries also support HTML tags and custom elements.
+		[tagName: Lowercase<string>]: Record<string, unknown>
 		p: Record<string, unknown>
 		h1: Record<string, unknown>
 		h2: Record<string, unknown>
@@ -34,16 +36,6 @@ export namespace JSX {
 		a: Record<string, unknown>
 		br: Record<string, unknown>
 		hr: Record<string, unknown>
-		table: { children?: Content; key?: string | number }
-		thead: { children?: Content; key?: string | number }
-		tbody: { children?: Content; key?: string | number }
-		tr: { children?: Content; key?: string | number }
-		th: {
-			children?: Content
-			key?: string | number
-			align?: "left" | "center" | "right"
-		}
-		td: { children?: Content; key?: string | number }
 		"galley-fragment": Record<string, unknown>
 		// Markdown syntax in the editor's virtual JSX projection.
 		code: Record<string, unknown>

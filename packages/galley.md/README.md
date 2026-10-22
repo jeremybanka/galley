@@ -65,7 +65,7 @@ Use `Markdown({ children: generatedMarkdown })` to include Markdown produced by 
 
 The second argument is a `DocumentContext` with absolute `path` and `directory` fields for the containing document. Use this directory to resolve local inputs. Imported `.mdx` documents get their own context; `.md` imports are parsed as ordinary Markdown.
 
-For TSX components, set `jsx` to `react-jsx` and `jsxImportSource` to `galley.md` in TypeScript configuration. React is not required. Supported intrinsic JSX elements are `p`, `h1` through `h6`, `strong`, `em`, `del`, `blockquote`, `a`, `br`, `hr`, `table`, `thead`, `tbody`, `tr`, `th`, and `td`. Other tags are errors; use Markdown syntax or return Markdown nodes for other structures.
+For TSX components, set `jsx` to `react-jsx` and `jsxImportSource` to `galley.md` in TypeScript configuration. React is not required. Outside an `Html` boundary, supported intrinsic JSX elements are `p`, `h1` through `h6`, `strong`, `em`, `del`, `blockquote`, `a`, `br`, `hr`, `table`, `thead`, `tbody`, `tr`, `th`, and `td`. They produce Markdown nodes. Wrap markup in `Html` to preserve HTML tags and attributes.
 
 ## Tables
 
@@ -98,7 +98,35 @@ The first row must contain only `th` cells, and every subsequent row must contai
 
 Arrays, fragments, and async components can generate sections, rows, cells, or inline cell content. Cells support text, numbers, links, emphasis, and other Markdown inline content. Strings are escaped automatically, including pipe characters. A single paragraph is accepted, and soft line breaks become spaces.
 
-Unsupported structures and attributes produce errors. Tables do not support merged cells (`colSpan` or `rowSpan`), captions, footers (`tfoot`), `col` or `colgroup`, CSS classes or styles, or attributes other than header `align` and JSX `key`. Put alignment on `th`, not `td` or `tr`. Lists, code blocks, multiple paragraphs, nested tables, raw HTML, and hard line breaks inside cells cannot be represented by this Markdown table API.
+Table attributes are checked during rendering because these JSX tags also support HTML attributes inside an `Html` boundary. Unsupported structures and attributes produce errors. Tables do not support merged cells (`colSpan` or `rowSpan`), captions, footers (`tfoot`), `col` or `colgroup`, CSS classes or styles, or attributes other than header `align` and JSX `key`. Put alignment on `th`, not `td` or `tr`. Lists, code blocks, multiple paragraphs, nested tables, raw HTML, and hard line breaks inside cells cannot be represented by this Markdown table API.
+
+## HTML
+
+Use `Html` for markup such as centered branding, badges, and layout tables:
+
+```mdx
+import { Html } from "galley.md"
+
+<Html>
+  <div align="center">
+    <img src="logo.png" alt="My package" width={160} height={160} />
+    <h1 align="center"><code>my-package</code></h1>
+  </div>
+  <table>
+    <tbody><tr><td>Markup table</td><td>Custom layout</td></tr></tbody>
+  </table>
+</Html>
+
+| Markdown table | Value |
+| --- | --- |
+| Bundle size | 500 B |
+```
+
+`Html` adds no wrapper tag. Its descendants render as HTML, including nested components, async results, and Markdown nodes. A `<table>` inside `Html` stays an HTML table; a Markdown table outside stays a Markdown table. Ordinary Markdown formatting inside the boundary converts to HTML too.
+
+Text and attribute values are HTML-escaped. Attributes accept strings, numbers, booleans, and arrays of strings or numbers; null and undefined omit the attribute. HTML names such as `class` and `colspan` work, as do JSX names such as `className`, `htmlFor`, and `colSpan`. Use a CSS string for `style`. HTML void elements such as `img` and `br` need no closing tag in the generated Markdown, but use self-closing JSX syntax in MDX. This produces static markup, so event-handler functions and style objects are unsupported.
+
+Use `Markdown` for strings containing generated Markdown. Strings passed to `Html` are text, so write markup as JSX children rather than an HTML string. Existing raw HTML in Markdown nodes is preserved; `Html` does not sanitize it.
 
 ## Tonnage
 

@@ -51,6 +51,108 @@ function withoutPositions(value: unknown): unknown {
 }
 
 describe("galley documents", () => {
+	test("preserves README markup and attributes inside Html and escapes text", async () => {
+		const { input } = await fixture({
+			"README.mdx": `import { Html } from 'galley.md'
+
+<Html>
+  <div align="center">
+    <img src="logo.png" alt="Logo" width={160} height={160} />
+    <h1 align="center"><code>atom.io</code></h1>
+    <a href="https://example.com/?a=1&b=2" aria-label="Read docs" title={'Say "hello"'}>Read <i>the docs</i></a>
+    <p>{'<script>alert("hello")</script> & text'}</p>
+    <input disabled hidden={false} aria-hidden={false} data-label="example" />
+    <label htmlFor="name" className={['label', 'wide']} style="color: red" title={null}>Name</label>
+  </div>
+</Html>
+
+<p>Markdown <strong>still works</strong>.</p>
+`,
+		})
+		const output = await compileMarkdown(input)
+		expect(output).toContain('<div align="center">')
+		expect(output).toContain(
+			'<img src="logo.png" alt="Logo" width="160" height="160">',
+		)
+		expect(output).toContain('<h1 align="center"><code>atom.io</code></h1>')
+		expect(output).toContain(
+			'aria-label="Read docs" title="Say &#x22;hello&#x22;">Read <i>the docs</i></a>',
+		)
+		expect(output).toContain('href="https://example.com/?a=1&#x26;b=2"')
+		expect(output).toContain(
+			'<p>&#x3C;script>alert("hello")&#x3C;/script> &#x26; text</p>',
+		)
+		expect(output).toContain(
+			'<input disabled aria-hidden="false" data-label="example">',
+		)
+		expect(output).toContain(
+			'<label for="name" class="label wide" style="color: red">Name</label>',
+		)
+		expect(output).toContain("\n\nMarkdown **still works**.\n")
+		expect(output).not.toContain("<Html>")
+	})
+
+	test("distinguishes markup tables inside Html from native Markdown tables", async () => {
+		const { input } = await fixture({
+			"README.mdx": `import { Html } from 'galley.md'
+
+<table>
+  <thead><tr><th>Format</th><th>Value</th></tr></thead>
+  <tbody><tr><td>Markdown</td><td><strong>one</strong></td></tr></tbody>
+</table>
+
+<Html>
+  <table align="center">
+    <thead><tr><th colSpan={2}>Markup</th></tr></thead>
+    <tbody><tr><td>HTML</td><td><strong>two</strong></td></tr></tbody>
+  </table>
+</Html>
+`,
+		})
+		const output = await compileMarkdown(input)
+		const nodes = Markdown({ children: output }).children
+		expect(nodes.map((node) => node.type)).toEqual(["table", "html"])
+		expect(output).toContain(
+			'<table align="center"><thead><tr><th colspan="2">Markup</th></tr></thead><tbody><tr><td>HTML</td><td><strong>two</strong></td></tr></tbody></table>',
+		)
+	})
+
+	test("composes Html with async components, Markdown nodes, and editor previews", async () => {
+		const { directory, input } = await fixture({
+			"README.mdx": `import { Html, Markdown } from 'galley.md'
+import { Badge } from './badge.tsx'
+
+<Html>
+  <div><Badge />{' '}{null}{false}{[1, ' & ', 2]}<Html><i>nested</i></Html></div>
+  <Markdown children={'| Name | Value |\\n| --- | --- |\\n| Example | **bold** |'} />
+</Html>
+`,
+			"badge.tsx": `let count = 0
+export async function Badge(_, context) {
+  await Promise.resolve()
+  return <span data-count={++count} title={context.directory}>A &amp; B</span>
+}`,
+		})
+		const result = await previewMarkdown(input)
+		expect(result.markdown).toContain(
+			`<div><span data-count="1" title="${directory}">A &#x26; B</span> 1 &#x26; 2<i>nested</i></div>`,
+		)
+		expect(result.markdown).toContain("<table>")
+		expect(result.markdown).toContain("<td><strong>bold</strong></td>")
+		const badge = result.components.find((component) =>
+			component.markdown.startsWith("<span"),
+		)
+		expect(badge?.markdown).toBe(
+			`<span data-count="1" title="${directory}">A &#x26; B</span>`,
+		)
+		expect(
+			result.components.some(
+				(component) => component.markdown.trim() === result.markdown.trim(),
+			),
+		).toBe(true)
+		expect(await compileMarkdown(input)).toBe(result.markdown)
+	})
+
 	test("keeps inline expression whitespace and treats Markdown imports as data", async () => {
 		const markdown =
 			"<details>\n\nA **plain** document with {braces}.\n\n</details>\n"
