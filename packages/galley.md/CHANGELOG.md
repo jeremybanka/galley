@@ -1,5 +1,11 @@
 # galley.md
 
+## 0.1.5
+
+### Patch Changes
+
+- e4c3b22: Improve VS Code language server startup, shutdown, document synchronization, and file watcher cleanup by updating the language client and server to v11.
+
 ## 0.1.4
 
 ### Patch Changes
