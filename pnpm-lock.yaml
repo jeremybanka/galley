@@ -233,8 +233,8 @@ importers:
         specifier: 4.0.0
         version: 4.0.0
       comline:
-        specifier: 0.9.0
-        version: 0.9.0
+        specifier: 0.9.1
+        version: 0.9.1
       esbuild:
         specifier: 0.28.2
         version: 0.28.2
@@ -1865,8 +1865,8 @@ packages:
   collapse-white-space@2.1.0:
     resolution: {integrity: sha512-loKTxY1zCOuG4j9f6EPnuyyYkf58RnhhWTvRoZEokgB+WbdXehfjFviyOVYkqzEWz1Q5kRiZdBYS5SwxbQYwzw==}
 
-  comline@0.9.0:
-    resolution: {integrity: sha512-PB6CjpeJqSzKL4XZ6kjlGE3G5bcBDZjRQcDoPwKsQT1VloTOQ9Q4EhkJFi0Ng39bFDB7I928qfOZ9LrDYaDc5A==}
+  comline@0.9.1:
+    resolution: {integrity: sha512-RbB0sJLMiTHe02VpHLK3RmXUk9Y/Jw5H35yx9X8rVWM7SQKDaSJ6AgIY1TbjhbduXhPrJEeiBbInvuYep5I9jw==}
     peerDependencies:
       arktype: ^2.1.28
       zod: ^4.2.0
@@ -2816,8 +2816,8 @@ packages:
     resolution: {integrity: sha512-sf4i37nQ2LBx4m3wB74y+ubopq6W/dIzXg0FDGjsYnZHVa1Da8FH853wlL2gtUhg+xJXjfk3kUZS3BRoQeoQBQ==}
     engines: {node: '>=6'}
 
-  treetrunks@0.1.12:
-    resolution: {integrity: sha512-x9XbZAus9Y4y7WRke6DwOrxmAxrwXNVv/wSmO9aNEfO92gu4Jau/4lmfXE1untxNle1WygPX2wriCtf+oYKMmg==}
+  treetrunks@0.1.13:
+    resolution: {integrity: sha512-mnGpuYAWH+EMci3E+4B9nd9K57mR4zSNmTrkzyJwTEmnN75TllJGgVb632unrp2AOfZ/ksgvombhwGH1bERhzw==}
 
   trim-lines@3.0.1:
     resolution: {integrity: sha512-kRj8B+YHZCc9kQYdWfJB2/oUl9rA99qbowYYBtr4ui4mZyAQ2JpvVBd/6U2YloATfqBhBTSMhTpgBHtU0Mf3Rg==}
@@ -4340,10 +4340,10 @@ snapshots:
 
   collapse-white-space@2.1.0: {}
 
-  comline@0.9.0:
+  comline@0.9.1:
     dependencies:
       '@standard-schema/spec': 1.1.0
-      treetrunks: 0.1.12
+      treetrunks: 0.1.13
 
   comma-separated-tokens@2.0.3: {}
 
@@ -5733,7 +5733,7 @@ snapshots:
 
   totalist@3.0.1: {}
 
-  treetrunks@0.1.12: {}
+  treetrunks@0.1.13: {}
 
   trim-lines@3.0.1: {}
 
