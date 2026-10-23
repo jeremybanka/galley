@@ -211,6 +211,9 @@ importers:
       dprint-plugin-yaml:
         specifier: 0.6.0
         version: 0.6.0
+      galley.md:
+        specifier: workspace:*
+        version: link:packages/galley.md
       typescript:
         specifier: 7.1.0-dev.20261021.1
         version: 7.1.0-dev.20261021.1
