@@ -17,8 +17,8 @@ peerDependencyRules:
     typescript: ^5.0.0 || ^6.0.0 || ^7.0.0
     vite: "*"
 catalog:
-  vite: npm:@voidzero-dev/vite-plus-core@1.3.0
-  vite-plus: 1.3.0
+  vite: npm:@voidzero-dev/vite-plus-core@1.4.0
+  vite-plus: 1.4.0
 overrides:
   vite@*: "catalog:"
 minimumReleaseAgeExclude:
@@ -26,3 +26,13 @@ minimumReleaseAgeExclude:
   # Keep aligned with the npm rule in renovate.json.
   - comline
   - treetrunks
+  - vite-plus
+  - "@voidzero-dev/*"
+  - oxlint
+  - "@oxlint/*"
+  - oxlint-tsgolint
+  - "@oxlint-tsgolint/*"
+  - oxfmt
+  - "@oxfmt/*"
+  - vitest
+  - "@vitest/*"
