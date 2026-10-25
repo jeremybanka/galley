@@ -19,8 +19,13 @@ if ("breakingChangesFound" in outcome) {
 		message =
 			"The release contains support files but no public test cases. Compatibility was not established."
 	} else {
-		exitCode = outcome.breakingChangesFound ? 1 : 0
-		if (outcome.breakingChangesFound) console.error(outcome.testResult)
+		exitCode =
+			outcome.breakingChangesFound && !outcome.breakingChangesCertified ? 1 : 0
+		if (outcome.breakingChangesFound) {
+			console.error(outcome.testResult)
+			process.stdout.write(outcome.certificationStdout)
+			process.stderr.write(outcome.certificationStderr)
+		}
 	}
 } else if (
 	outcome.gitWasClean &&
