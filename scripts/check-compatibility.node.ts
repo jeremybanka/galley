@@ -28,13 +28,13 @@ if ("breakingChangesFound" in outcome) {
 	!outcome.testsWereFound &&
 	outcome.summary ===
 		`No tests were found matching the pattern "${configuration.testPattern}".` &&
-	baseline.ref === "refs/tags/galley.md@0.1.4" &&
-	baseline.commit === "0c452e60712d811763bae7cae99f898e1455437b"
+	baseline.ref === "refs/tags/galley.md@0.1.5" &&
+	baseline.commit === "347090b27913997a9f032cc4aeb6184b1c4cbb98"
 ) {
 	// Remove after the first release containing these contracts. No other missing
 	// suite, moved tag, dirty checkout, or discovery error qualifies for bootstrap.
 	message =
-		"BOOTSTRAP ONLY: galley.md@0.1.4 predates the public contracts. Historical compatibility was NOT established. Publish the first contract-bearing release to enable comparison."
+		"BOOTSTRAP ONLY: galley.md@0.1.5 predates the public contracts. Historical compatibility was NOT established. Publish the first contract-bearing release to enable comparison."
 	console.log(`::notice title=Compatibility baseline bootstrap::${message}`)
 	exitCode = 0
 }
