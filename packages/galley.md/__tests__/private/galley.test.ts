@@ -1,18 +1,10 @@
-import { execFile } from "node:child_process"
 import fs from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
-import { fileURLToPath } from "node:url"
-import { promisify } from "node:util"
 
 import { afterEach, describe, expect, test } from "vite-plus/test"
 
-import {
-	compileMarkdown,
-	Markdown,
-	previewMarkdown,
-	runGalley,
-} from "../src/index.ts"
+import { compileMarkdown, Markdown, previewMarkdown } from "../../src/index.ts"
 
 import comments from "#fixtures/compiler/comments.mdx" with { type: "text" }
 import commentDelimiters from "#fixtures/compiler/comment-delimiters.mdx" with { type: "text" }
@@ -20,11 +12,6 @@ import htmlBranding from "#fixtures/compiler/html-branding.mdx" with { type: "te
 import htmlTables from "#fixtures/compiler/html-tables.mdx" with { type: "text" }
 import htmlComponents from "#fixtures/compiler/html-components.mdx" with { type: "text" }
 import htmlBadge from "#fixtures/compiler/badge.tsx" with { type: "text" }
-import plainMarkdown from "#fixtures/compiler/plain.md" with { type: "text" }
-import markdownImports from "#fixtures/compiler/markdown-imports.mdx" with { type: "text" }
-import markdownStructure from "#fixtures/compiler/markdown-structure.mdx" with { type: "text" }
-import alignedTable from "#fixtures/compiler/aligned-table.mdx" with { type: "text" }
-import alignedTableExpected from "#fixtures/compiler/aligned-table.expected.md" with { type: "text" }
 import wrappedTables from "#fixtures/compiler/wrapped-tables.mdx" with { type: "text" }
 import wrappedTablesExpected from "#fixtures/compiler/wrapped-tables.expected.md" with { type: "text" }
 import asyncTable from "#fixtures/compiler/async-table.mdx" with { type: "text" }
@@ -63,31 +50,13 @@ import nestedTable from "#fixtures/compiler/table-errors/nested-table.mdx" with 
 import hardBreakInCell from "#fixtures/compiler/table-errors/hard-break.mdx" with { type: "text" }
 import paragraphsInCell from "#fixtures/compiler/table-errors/paragraphs.mdx" with { type: "text" }
 import listInCell from "#fixtures/compiler/table-errors/list.mdx" with { type: "text" }
-import codeSource from "#fixtures/compiler/code-source.ts" with { type: "text" }
-import codeImports from "#fixtures/compiler/code-imports.mdx" with { type: "text" }
-import runtimeSource from "#fixtures/compiler/runtime-source.ts" with { type: "text" }
-import rawNote from "#fixtures/compiler/note.txt" with { type: "text" }
-import mixedImports from "#fixtures/compiler/mixed-imports.mdx" with { type: "text" }
-import nestedDocument from "#fixtures/compiler/nested-document.mdx" with { type: "text" }
-import nestedSection from "#fixtures/compiler/nested-section.mdx" with { type: "text" }
-import greeting from "#fixtures/compiler/greeting.tsx" with { type: "text" }
-import pluginImports from "#fixtures/compiler/plugin-imports.mdx" with { type: "text" }
-import pluginComponent from "#fixtures/compiler/plugin-component.ts" with { type: "text" }
-import changingComponent from "#fixtures/compiler/changing-component.mdx" with { type: "text" }
-import beforeComponent from "#fixtures/compiler/before.ts" with { type: "text" }
-import afterComponent from "#fixtures/compiler/after.ts" with { type: "text" }
 import missingImport from "#fixtures/compiler/invalid/missing-import.mdx" with { type: "text" }
 import unknownAttribute from "#fixtures/compiler/invalid/unknown-attribute.mdx" with { type: "text" }
 import invalidLanguage from "#fixtures/compiler/invalid/language.mdx" with { type: "text" }
 import unsupportedElement from "#fixtures/compiler/invalid/element.mdx" with { type: "text" }
 import emptyModule from "#fixtures/compiler/empty-module.ts" with { type: "text" }
-import generatedDocument from "#fixtures/compiler/generated.mdx" with { type: "text" }
-import cliDocument from "#fixtures/compiler/cli.mdx" with { type: "text" }
-import brokenDocument from "#fixtures/compiler/invalid/broken.mdx" with { type: "text" }
 
-const execute = promisify(execFile)
 const directories: string[] = []
-const cli = fileURLToPath(new URL("../src/cli.ts", import.meta.url))
 
 afterEach(async () => {
 	await Promise.all(
@@ -217,43 +186,6 @@ describe("galley documents", () => {
 		expect(await compileMarkdown(input)).toBe(result.markdown)
 	})
 
-	test("keeps inline expression whitespace and treats Markdown imports as data", async () => {
-		const markdown = plainMarkdown
-		const { input } = await fixture({
-			"plain.md": markdown,
-			"README.mdx": markdownImports,
-		})
-		const output = await compileMarkdown(input)
-		expect(output).toContain("a\nb\n")
-		expect(output).toContain("<details>\n\nA **plain** document with {braces}.")
-		const code = Markdown({ children: output }).children.find(
-			(node) => node.type === "code",
-		)
-		expect(code?.value).toBe(markdown)
-	})
-	test("preserves Markdown structure including references, footnotes, tasks, and tables", async () => {
-		const source = markdownStructure
-		const { input } = await fixture({ "README.mdx": source })
-		expect(
-			withoutPositions(Markdown({ children: await compileMarkdown(input) })),
-		).toEqual(withoutPositions(Markdown({ children: source })))
-	})
-
-	test("compiles native tables with column alignment, inline Markdown, and escaped cells", async () => {
-		const { input } = await fixture({
-			"README.mdx": alignedTable,
-		})
-		const output = await compileMarkdown(input)
-		expect(withoutPositions(Markdown({ children: output }))).toEqual(
-			withoutPositions(
-				Markdown({
-					children: alignedTableExpected,
-				}),
-			),
-		)
-		expect(output).not.toContain("<table>")
-	})
-
 	test("supports direct rows, header-only tables, and soft wrapping in cells", async () => {
 		const { input } = await fixture({
 			"README.mdx": wrappedTables,
@@ -329,88 +261,6 @@ describe("galley documents", () => {
 		await expect(compileMarkdown(input)).rejects.toThrow(error)
 	})
 
-	test("imports one source as distinct code components, reuses identical attributes, and never executes it", async () => {
-		const source = codeSource
-		const { input } = await fixture({
-			"example.ts": source,
-			"README.mdx": codeImports,
-		})
-		const output = await compileMarkdown(input)
-		expect(output).toContain("identity passed")
-		expect(output).not.toContain("identity failed")
-		expect(output).toContain(`\`\`\`\`ts\n${source}\n\`\`\`\``)
-		expect(output).toContain(`\`\`\`\`text\n${source}\n\`\`\`\``)
-		expect(
-			Markdown({ children: output })
-				.children.filter((node) => node.type === "code")
-				.map((node) => node.value),
-		).toEqual([source, source, source])
-	})
-
-	test("loads ordinary TypeScript and raw text imports alongside code imports", async () => {
-		const { input } = await fixture({
-			"example.ts": runtimeSource,
-			"note.txt": rawNote,
-			"README.mdx": mixedImports,
-		})
-		const output = await compileMarkdown(input)
-		expect(output).toContain("runtime value and a raw string")
-		expect(output).toContain('export const value: string = "runtime value"')
-	})
-
-	test("supports async components, props, TSX, and nested document directories", async () => {
-		const { directory, input } = await fixture({
-			"README.mdx": nestedDocument,
-			"nested/section.mdx": nestedSection,
-			"component.tsx": greeting,
-		})
-		expect(await compileMarkdown(input)).toBe(
-			`## Nested\n\nHello **Ada** from ${directory}/nested\n`,
-		)
-	})
-
-	test("allows third-party plugins to consume arbitrary attributes with native module identity", async () => {
-		const { input } = await fixture({
-			"README.mdx": pluginImports,
-		})
-		const loads: string[] = []
-		const output = await compileMarkdown(input, {
-			plugins: [
-				{
-					name: "custom-attributes",
-					setup(build) {
-						build.onResolve({ filter: /^virtual:/ }, (args) => ({
-							path: args.path,
-							namespace: "example",
-						}))
-						build.onLoad({ filter: /.*/, namespace: "example" }, (args) => {
-							loads.push(String(args.with.label))
-							return {
-								contents: pluginComponent.replace(
-									"__LABEL__",
-									JSON.stringify(args.with.label),
-								),
-								loader: "js",
-							}
-						})
-					},
-				},
-			],
-		})
-		expect(loads.sort()).toEqual(["one", "two"])
-		expect(output).toBe("identity passed\n\none\n\ntwo\n")
-	})
-
-	test("compiles changed local dependencies on the next call", async () => {
-		const { directory, input } = await fixture({
-			"README.mdx": changingComponent,
-			"component.ts": beforeComponent,
-		})
-		expect(await compileMarkdown(input)).toBe("before\n")
-		await fs.writeFile(path.join(directory, "component.ts"), afterComponent)
-		expect(await compileMarkdown(input)).toBe("after\n")
-	})
-
 	test.each([
 		[missingImport, "missing.ts"],
 		[unknownAttribute, "Unknown code import attribute: language"],
@@ -422,54 +272,5 @@ describe("galley documents", () => {
 			"example.ts": emptyModule,
 		})
 		await expect(compileMarkdown(input)).rejects.toThrow(error)
-	})
-
-	test("write and check handle missing and stale output without modifying the source", async () => {
-		const source = generatedDocument
-		const { input, output } = await fixture({ "README.mdx": source })
-		expect((await runGalley(input, { mode: "check" })).changed).toBe(true)
-		await expect(fs.stat(output)).rejects.toMatchObject({ code: "ENOENT" })
-		expect((await runGalley(input, { mode: "write" })).changed).toBe(true)
-		expect((await runGalley(input, { mode: "check" })).changed).toBe(false)
-		await fs.writeFile(output, "stale\n")
-		expect((await runGalley(input, { mode: "check" })).changed).toBe(true)
-		expect(await fs.readFile(output, "utf8")).toBe("stale\n")
-		await runGalley(input, { mode: "write" })
-		expect(await fs.readFile(output, "utf8")).toBe(source)
-		expect(await fs.readFile(input, "utf8")).toBe(source)
-		await expect(
-			runGalley(input, { mode: "write", output: input }),
-		).rejects.toThrow("must differ")
-		await fs.unlink(output)
-		await fs.symlink(input, output)
-		await expect(runGalley(input, { mode: "write" })).rejects.toThrow(
-			"must differ",
-		)
-		expect(await fs.readFile(input, "utf8")).toBe(source)
-	})
-
-	test("CLI writes, checks, reports drift, accepts explicit output, and shows help without evaluation", async () => {
-		const { directory, input, output } = await fixture({
-			"README.mdx": cliDocument,
-		})
-		const run = (...args: string[]) =>
-			execute(process.execPath, [cli, ...args], { cwd: directory })
-		expect(await run("write")).toMatchObject({
-			stdout: expect.stringContaining("Updated README.md"),
-		})
-		await run("check")
-		await fs.writeFile(output, "stale\n")
-		await expect(run("check")).rejects.toMatchObject({
-			code: 1,
-			stderr: expect.stringContaining("out of date"),
-		})
-		expect(await fs.readFile(output, "utf8")).toBe("stale\n")
-		await run("write", input, "custom.md")
-		expect(await fs.readFile(path.join(directory, "custom.md"), "utf8")).toBe(
-			"# CLI\n",
-		)
-		await fs.writeFile(input, brokenDocument)
-		expect((await run("--help")).stdout).toContain("galley")
-		await expect(run("unknown")).rejects.toMatchObject({ code: 1 })
 	})
 })

@@ -16,7 +16,10 @@
 		"staged": "vp staged",
 		"test": "vp run -r test",
 		"test:watch": "vp run -r --parallel --no-cache test:watch",
-		"workflows:update": "./scripts/update-workflows.node.ts"
+		"workflows:update": "./scripts/update-workflows.node.ts",
+		"test:public": "pnpm --filter galley.md run test:public",
+		"test:private": "pnpm --filter galley.md run test:private",
+		"test:breakage": "node scripts/check-compatibility.node.ts"
 	},
 	"devDependencies": {
 		"@changesets/cli": "3.0.3",
@@ -26,6 +29,7 @@
 		"@dprint/oxc": "0.47.0",
 		"@dprint/toml": "0.9.0",
 		"@types/node": "26.6.5",
+		"breakage": "0.8.5",
 		"cspell": "10.4.0",
 		"dprint": "0.64.3",
 		"dprint-plugin-malva": "0.16.0",

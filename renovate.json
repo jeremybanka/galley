@@ -24,6 +24,11 @@
 	],
 	"packageRules": [
 		{
+			"description": "Review compatibility supervisor upgrades separately",
+			"matchPackageNames": ["breakage"],
+			"automerge": false
+		},
+		{
 			"matchPackageNames": ["jdx/mise"],
 			"matchDatasources": ["github-releases"],
 			"ignoreUnstable": true
