@@ -1,9 +1,12 @@
-import type { BreakageOptions } from "breakage"
+import { defineConfig, semverPolicy } from "breakage"
+import { changesetsReleaseDelta } from "breakage/changesets"
 
-// The workspace runner executes these commands and restore paths from the Git root.
-export default {
+export default defineConfig({
 	tagPattern: "refs/tags/galley\\.md@",
-	testPattern: "packages/galley.md/__tests__/{public,fixtures/public}/**/*",
-	testCommand: "pnpm run test:public",
-	certifyCommand: "node scripts/certify-release.node.ts",
-} satisfies BreakageOptions
+	testPattern: "__tests__/{public,fixtures/public}/**/*",
+	test: "pnpm run test:public",
+	release: {
+		resolveDelta: changesetsReleaseDelta(),
+		policy: semverPolicy({ beforeV1: "minor" }),
+	},
+})

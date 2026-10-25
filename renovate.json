@@ -86,7 +86,10 @@
 			"matchPackageNames": [
 				"@changesets/cli",
 				"@changesets/config",
-				"@changesets/get-release-plan",
+				"@changesets/assemble-release-plan",
+				"@changesets/pre",
+				"@changesets/read",
+				"@manypkg/get-packages",
 				"changesets/action"
 			]
 		},
@@ -100,6 +103,7 @@
 				"npm"
 			],
 			"matchPackageNames": [
+				"breakage",
 				"comline",
 				"treetrunks"
 			],

@@ -1,9 +1,13 @@
 import { appendFile } from "node:fs/promises"
 import { fileURLToPath } from "node:url"
-import { breakage, breakagePrelude } from "breakage"
-import configuration from "../packages/galley.md/breakage.config.ts"
+import { breakage, breakagePrelude, loadConfig } from "breakage"
 
-const baseDirname = fileURLToPath(new URL("../", import.meta.url))
+const configuration = await loadConfig(
+	fileURLToPath(new URL("../breakage.config.ts", import.meta.url)),
+)
+const { baseDirname, testPattern } = configuration
+if (!baseDirname || !testPattern)
+	throw new Error("Breakage requires a base directory and test pattern.")
 const baselineFile = ".breakage/baseline.json"
 const baseline = await breakagePrelude({
 	tagPattern: configuration.tagPattern,
@@ -11,24 +15,27 @@ const baseline = await breakagePrelude({
 	out: baselineFile,
 })
 console.log(`Release baseline: ${baseline.ref} (${baseline.commit})`)
-const outcome = await breakage({ ...configuration, baseDirname, baselineFile })
+const outcome = await breakage({
+	...configuration,
+	baseDirname,
+	testPattern,
+	baselineFile,
+})
 let message = outcome.summary
 let exitCode = 2
+if ("setupError" in outcome) console.error(outcome.setupError)
 if ("breakingChangesFound" in outcome) {
 	if (!outcome.testsFound.some((file) => file.endsWith(".test.ts"))) {
 		message =
 			"The release contains support files but no public test cases. Compatibility was not established."
 	} else {
 		exitCode =
-			outcome.breakingChangesFound && !outcome.breakingChangesCertified ? 1 : 0
-		if (outcome.breakingChangesFound) {
-			console.error(outcome.testResult)
-			process.stdout.write(outcome.certificationStdout)
-			process.stderr.write(outcome.certificationStderr)
-		}
+			outcome.breakingChangesFound && !outcome.release?.breaking ? 1 : 0
+		if (outcome.breakingChangesFound) console.error(outcome.testResult)
 	}
 } else if (
 	outcome.gitWasClean &&
+	"lastReleaseFound" in outcome &&
 	outcome.lastReleaseFound &&
 	!outcome.testsWereFound &&
 	outcome.summary ===

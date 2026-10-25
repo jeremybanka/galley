@@ -51,7 +51,8 @@
 		"test:watch": "vp test watch",
 		"prepare": "pnpm build",
 		"test:public": "vp test __tests__/public",
-		"test:private": "vp test __tests__/private"
+		"test:private": "vp test __tests__/private",
+		"test:breakage": "node scripts/check-compatibility.node.ts"
 	},
 	"dependencies": {
 		"@mdx-js/mdx": "3.1.1",
@@ -76,8 +77,14 @@
 		"yaml": "2.9.1"
 	},
 	"devDependencies": {
+		"@changesets/assemble-release-plan": "7.0.0",
+		"@changesets/config": "4.0.1",
+		"@changesets/pre": "3.0.0",
+		"@changesets/read": "1.0.1",
+		"@manypkg/get-packages": "3.1.0",
 		"@types/node": "26.6.5",
-		"@types/vscode": "1.140.0"
+		"@types/vscode": "1.140.0",
+		"breakage": "0.9.0"
 	},
 	"packageManager": "pnpm@12.15.0",
 	"engines": {
