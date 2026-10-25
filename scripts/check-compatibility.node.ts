@@ -1,7 +1,7 @@
 import { appendFile } from "node:fs/promises"
 import { fileURLToPath } from "node:url"
 import { breakage, breakagePrelude } from "breakage"
-import configuration from "../breakage.config.ts"
+import configuration from "../packages/galley.md/breakage.config.ts"
 
 const baseDirname = fileURLToPath(new URL("../", import.meta.url))
 const baselineFile = ".breakage/baseline.json"
