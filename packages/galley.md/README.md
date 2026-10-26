@@ -10,6 +10,7 @@ pnpm add -D galley.md
 
 Create `README.mdx`:
 
+<!-- dprint-ignore -->
 ```mdx
 import Example from "./examples/basic.ts" with { type: "code", lang: "ts" }
 
@@ -24,6 +25,10 @@ Run `galley write` to generate `README.md`. Run `galley check` in CI to exit non
 
 Run `galley`, `galley -h`, `galley --help`, or `galley help` for command usage. The help option is registered only on the root command.
 
+Galley formats generated Markdown with aligned tables, consistent emphasis, and list indentation. The CLI, API, and editor previews share the same defaults, powered by pinned dprint dependencies included with Galley. No additional installation or formatting configuration is needed.
+
+Source code blocks, raw HTML, and YAML frontmatter retain their contents. Galley does not run embedded language formatters or read project formatting settings.
+
 Pass an input and optional output path explicitly:
 
 ```sh
@@ -37,6 +42,7 @@ Without an output argument or frontmatter setting, galley.md replaces the input 
 
 Set `galley.output` in YAML frontmatter to keep a document's destination with its source:
 
+<!-- dprint-ignore -->
 ```mdx
 ---
 title: My package
@@ -85,6 +91,7 @@ export const Greeting: Component<{ name: string }> = async ({ name }) => {
 
 Import and use it in MDX:
 
+<!-- dprint-ignore -->
 ```mdx
 import { Greeting } from "./components.ts"
 
@@ -95,6 +102,7 @@ Use `Markdown({ children: generatedMarkdown })` to include Markdown produced by 
 
 Use `Comment` for HTML comments that should remain in the generated Markdown:
 
+<!-- dprint-ignore -->
 ```mdx
 import { Comment } from "galley.md"
 
@@ -111,6 +119,7 @@ For TSX components, set `jsx` to `react-jsx` and `jsxImportSource` to `galley.md
 
 Use native table tags to generate a Markdown table. No imports are required. Set `align="left"`, `"center"`, or `"right"` on a header cell to align its entire column; omit it for default alignment.
 
+<!-- dprint-ignore -->
 ```mdx
 export const packages = [{ name: "galley.md", size: "12 kB" }]
 
@@ -144,6 +153,7 @@ Table attributes are checked during rendering because these JSX tags also suppor
 
 Use `Html` for markup such as centered branding, badges, and layout tables:
 
+<!-- dprint-ignore -->
 ```mdx
 import { Html } from "galley.md"
 
@@ -174,6 +184,7 @@ Use `Markdown` for strings containing generated Markdown. Strings passed to `Htm
 pnpm add -D tonnage
 ```
 
+<!-- dprint-ignore -->
 ```mdx
 import { Tonnage } from "tonnage/galley"
 import config from "./tonnage.config.ts"

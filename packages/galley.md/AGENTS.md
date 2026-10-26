@@ -2,6 +2,7 @@
 
 Compile trusted MDX documents and executable components to checked-in Markdown.
 
+- Galley owns Markdown formatting defaults across the CLI, API, and previews using pinned dprint dependencies. No additional installation or configuration is needed. Code blocks, raw HTML, and YAML frontmatter retain their contents; project formatting settings are not read.
 - Use `galley write [input] [output]` to generate Markdown and `galley check [input] [output]` to detect drift. The default input is `README.mdx`. Output precedence is explicit CLI/API output, YAML frontmatter `galley.output`, then the input extension replaced with `.md`.
 - Frontmatter output paths are relative to the source directory; a leading `/` resolves from the nearest ancestor with a `.git` directory or file. Explicit CLI/API paths keep working-directory and filesystem-absolute semantics. Only `write` creates missing destination directories. Galley settings are omitted from generated Markdown; other frontmatter is preserved. Imported documents never choose additional destinations.
 - Import source examples with `with { type: "code", lang: "ts" }`. The language defaults to the file extension. Code imports read the file without executing it.

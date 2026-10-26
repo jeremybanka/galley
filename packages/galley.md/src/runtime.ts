@@ -9,6 +9,7 @@ import remarkParse from "remark-parse"
 import remarkStringify from "remark-stringify"
 import { unified } from "unified"
 
+import { formatMarkdown } from "./format.ts"
 import { renderTableElement, tablePreview } from "./tables.ts"
 import type {
 	ComponentPreview,
@@ -30,6 +31,21 @@ const markdownProcessor = unified()
 	.use(remarkFrontmatter)
 	.use(remarkGfm)
 	.use(remarkStringify, { bullet: "-", fences: true, listItemIndent: "one" })
+
+function stringifyMarkdown(root: Root): string {
+	const [first, ...rest] = root.children
+	if (first?.type !== "yaml")
+		return formatMarkdown(markdownProcessor.stringify(root))
+	// Blank lines in YAML block scalars are data, not Markdown whitespace.
+	const header = markdownProcessor.stringify({
+		type: "root",
+		children: [first],
+	})
+	const body = formatMarkdown(
+		markdownProcessor.stringify({ type: "root", children: rest }),
+	)
+	return body ? `${header}\n${body}` : header
+}
 
 /** Include Markdown produced by another tool as Markdown nodes. */
 export function Markdown({ children }: { children: string }): Root {
@@ -82,7 +98,7 @@ export async function renderMarkdown(
 		...(previews ? { [previewSink]: previews } : {}),
 	})
 	const root: Root = { type: "root", children: blocks(nodes) }
-	return markdownProcessor.stringify(root)
+	return stringifyMarkdown(root)
 }
 
 async function resolveContent(
@@ -127,7 +143,7 @@ async function resolveContent(
 				end: Number(element.props.end),
 				markdown: context[htmlMode]
 					? htmlContent(children)
-					: markdownProcessor.stringify({
+					: stringifyMarkdown({
 							type: "root",
 							children: blocks(tablePreview(children, context.tableParent)),
 						}),

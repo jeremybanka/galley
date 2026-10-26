@@ -4,8 +4,18 @@ import path from "node:path"
 
 import { afterEach, describe, expect, test } from "vite-plus/test"
 
-import { compileMarkdown, Markdown, previewMarkdown } from "../../src/index.ts"
+import {
+	compileMarkdown,
+	Markdown,
+	previewMarkdown,
+	runGalley,
+} from "../../src/index.ts"
 
+import markdownStructure from "#fixtures/public/compiler/markdown-structure.mdx" with { type: "text" }
+import markdownStructureExpected from "#fixtures/compiler/markdown-structure.expected.md" with { type: "text" }
+import embeddedExamples from "#fixtures/compiler/embedded-examples.mdx" with { type: "text" }
+import alignedTable from "#fixtures/public/compiler/aligned-table.mdx" with { type: "text" }
+import alignedTableExpected from "#fixtures/compiler/aligned-table.expected.md" with { type: "text" }
 import comments from "#fixtures/compiler/comments.mdx" with { type: "text" }
 import commentDelimiters from "#fixtures/compiler/comment-delimiters.mdx" with { type: "text" }
 import htmlBranding from "#fixtures/compiler/html-branding.mdx" with { type: "text" }
@@ -184,6 +194,36 @@ describe("galley documents", () => {
 			),
 		).toBe(true)
 		expect(await compileMarkdown(input)).toBe(result.markdown)
+	})
+
+	test("formats Markdown consistently across compilation, previews, write, and check", async () => {
+		const { input, output } = await fixture({ "README.mdx": markdownStructure })
+		expect(await compileMarkdown(input)).toBe(markdownStructureExpected)
+		expect((await previewMarkdown(input)).markdown).toBe(
+			markdownStructureExpected,
+		)
+		await runGalley(input, { mode: "write" })
+		expect(await fs.readFile(output, "utf8")).toBe(markdownStructureExpected)
+		expect((await runGalley(input, { mode: "check" })).changed).toBe(false)
+		// Compiling the generated Markdown again must not introduce drift.
+		expect(await compileMarkdown(output)).toBe(markdownStructureExpected)
+	})
+
+	test("preserves embedded MDX expressions and code whitespace", async () => {
+		const { input } = await fixture({ "README.mdx": embeddedExamples })
+		const output = await compileMarkdown(input)
+		const code = (markdown: string) =>
+			Markdown({ children: markdown }).children.filter(
+				(node) => node.type === "code",
+			)
+		expect(withoutPositions(code(output))).toEqual(
+			withoutPositions(code(embeddedExamples)),
+		)
+	})
+
+	test("aligns native table columns in the generated Markdown", async () => {
+		const { input } = await fixture({ "README.mdx": alignedTable })
+		expect(await compileMarkdown(input)).toBe(alignedTableExpected)
 	})
 
 	test("supports direct rows, header-only tables, and soft wrapping in cells", async () => {
