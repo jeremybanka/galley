@@ -1,13 +1,16 @@
+// Original work: dprint-plugin-markdown (MIT), see LICENSE-MIT.
+// Modifications: Copyright (c) 2026 Jeremy Banka, MPL-2.0, see LICENSE.
+
 extern crate dprint_development;
-extern crate dprint_plugin_markdown;
+extern crate dprint_plugin_galley_mdx;
 
 use std::path::PathBuf;
 use std::sync::Arc;
 
 use dprint_core::configuration::*;
 use dprint_development::*;
-use dprint_plugin_markdown::configuration::*;
-use dprint_plugin_markdown::*;
+use dprint_plugin_galley_mdx::configuration::*;
+use dprint_plugin_galley_mdx::*;
 
 fn main() {
   //debug_here!();

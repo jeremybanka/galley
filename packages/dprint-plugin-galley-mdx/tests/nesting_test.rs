@@ -1,9 +1,12 @@
+// Original work: dprint-plugin-markdown (MIT), see LICENSE-MIT.
+// Modifications: Copyright (c) 2026 Jeremy Banka, MPL-2.0, see LICENSE.
+
 //! Checks what the formatter does with a document that nests blocks far more
 //! deeply than anything written by hand, which used to take the stack out from
 //! under the process.
 
-use dprint_plugin_markdown::configuration::*;
-use dprint_plugin_markdown::*;
+use dprint_plugin_galley_mdx::configuration::*;
+use dprint_plugin_galley_mdx::*;
 
 /// One less than the limit the parser holds, which has to keep working.
 const DEEP: usize = 63;

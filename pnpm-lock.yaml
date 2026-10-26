@@ -221,6 +221,21 @@ importers:
         specifier: 'catalog:'
         version: 1.4.0(@types/node@26.6.5)(@vitest/ui@5.0.5)(esbuild@0.28.2)(typescript@7.1.0-dev.20261025.1)(yaml@2.9.1)
 
+  packages/dprint-plugin-galley-mdx:
+    devDependencies:
+      '@dprint/formatter':
+        specifier: 0.6.0
+        version: 0.6.0
+      '@mdx-js/mdx':
+        specifier: 3.1.1
+        version: 3.1.1
+      remark-frontmatter:
+        specifier: 5.0.0
+        version: 5.0.0
+      remark-gfm:
+        specifier: 4.0.1
+        version: 4.0.1
+
   packages/galley.md:
     dependencies:
       '@dprint/formatter':

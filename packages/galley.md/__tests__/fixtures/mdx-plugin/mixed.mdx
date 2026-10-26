@@ -1,0 +1,27 @@
+---
+title: "MDX: {safe}"
+---
+
+import Card from './card.js'
+export const size = 160
+
+#   Hello 世界   #
+
+<svg width={160} height={size} data-options={{ nested: { value: "}" } }} />
+
+*   **Markdown** outside JSX
+*   Second item
+
+Text with <Card width={160} {...{label: `hello ${size}`}} /> and {size + 1}.
+
+<Card>
+
+#   Keep this Markdown inside JSX
+
+{[1, 2].map(n => <span key={n}>{n}</span>)}
+
+</Card>
+
+| Name | Value |
+| --- | --- |
+| one | two |

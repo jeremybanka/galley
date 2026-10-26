@@ -7,10 +7,10 @@
 		"build": "vp run -r build",
 		"change": "changeset",
 		"check": "pnpm run \"/^check:.*/\"",
-		"check:fmt": "dprint check",
+		"check:fmt": "pnpm build:mdx && mise exec -- cargo fmt --all --check && dprint check",
 		"check:vp": "vp check --no-fmt",
 		"check:spelling": "cspell .",
-		"fmt": "dprint fmt",
+		"fmt": "pnpm build:mdx && mise exec -- cargo fmt --all && dprint fmt",
 		"release:publish": "pnpm build && changeset publish",
 		"release:version": "changeset version",
 		"staged": "vp staged",
@@ -19,7 +19,9 @@
 		"workflows:update": "./scripts/update-workflows.node.ts",
 		"test:public": "pnpm --filter galley.md run test:public",
 		"test:private": "pnpm --filter galley.md run test:private",
-		"test:breakage": "vp run -r --no-cache test:breakage"
+		"test:breakage": "vp run -r --no-cache test:breakage",
+		"check:rust": "mise exec -- cargo clippy --locked --all-targets -- -D warnings",
+		"build:mdx": "node scripts/build-mdx-plugin.node.ts"
 	},
 	"devDependencies": {
 		"@changesets/cli": "3.0.3",

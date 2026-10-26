@@ -1,3 +1,6 @@
+// Original work: dprint-plugin-markdown (MIT), see LICENSE-MIT.
+// Modifications: Copyright (c) 2026 Jeremy Banka, MPL-2.0, see LICENSE.
+
 #![allow(clippy::bool_assert_comparison)]
 #![allow(clippy::bool_to_int_with_if)]
 #![allow(clippy::comparison_chain)]
@@ -16,7 +19,10 @@ mod format_range;
 mod format_text;
 mod generation;
 mod html;
+mod mdx;
 mod parser;
+
+pub use mdx::format_mdx;
 
 pub use format_range::format_text_range;
 pub use format_text::format_text;

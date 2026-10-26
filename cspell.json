@@ -1,7 +1,17 @@
 {
 	"version": "0.2",
 	"useGitignore": true,
-	"ignorePaths": ["pnpm-lock.yaml"],
+	"ignorePaths": [
+		"pnpm-lock.yaml",
+		"Cargo.lock",
+		"**/target/**",
+		"packages/dprint-plugin-galley-mdx/src/**",
+		"packages/dprint-plugin-galley-mdx/tests/**",
+		"packages/dprint-plugin-galley-mdx/source/**",
+		"packages/dprint-plugin-galley-mdx/schema.json",
+		"packages/dprint-plugin-galley-mdx/DEPENDENCY_NOTICES.txt",
+		"packages/dprint-plugin-galley-mdx/licenses/**"
+	],
 	"words": [
 		"eMudhra",
 		"comline",
@@ -27,6 +37,21 @@
 		"viteplus",
 		"vitest",
 		"voidzero",
-		"worktrees"
+		"worktrees",
+		"clippy",
+		"rustfmt",
+		"Serde",
+		"SWC",
+		"cdylib",
+		"Linguist",
+		"Sherret",
+		"unpkg",
+		"RUSTFLAGS",
+		"ddbase",
+		"dudykr",
+		"Nugine",
+		"smartstring",
+		"thiserror",
+		"reparsed"
 	]
 }

@@ -1,3 +1,6 @@
+// Original work: dprint-plugin-markdown (MIT), see LICENSE-MIT.
+// Modifications: Copyright (c) 2026 Jeremy Banka, MPL-2.0, see LICENSE.
+
 use std::collections::HashMap;
 
 use super::builder::ConfigurationBuilder;
@@ -12,7 +15,7 @@ use dprint_core::configuration::*;
 /// ```
 /// use dprint_core::configuration::ConfigKeyMap;
 /// use dprint_core::configuration::resolve_global_config;
-/// use dprint_plugin_markdown::configuration::resolve_config;
+/// use dprint_plugin_galley_mdx::configuration::resolve_config;
 ///
 /// let mut config_map = ConfigKeyMap::new(); // get a collection of key value pairs from somewhere
 /// let global_config_result = resolve_global_config(&mut config_map);

@@ -27,7 +27,10 @@
 		"**/drizzle/meta/**",
 		"**/heap.json",
 		"**/node_modules/**",
-		"**/projects/**"
+		"**/projects/**",
+		"**/target/**",
+		"packages/dprint-plugin-galley-mdx/tests/**",
+		"packages/dprint-plugin-galley-mdx/source/**"
 	],
 	"oxc": {
 		"associations": ["**/*.{ts,tsx,js,jsx,mjs,cjs}"],
@@ -38,7 +41,7 @@
 		"associations": ["**/*.{json,jsonc}"]
 	},
 	"markdown": {
-		"associations": ["**/*.{md,mdx}"]
+		"associations": ["**/*.md"]
 	},
 	"malva": {
 		"associations": ["**/*.css"]
@@ -55,6 +58,10 @@
 		"./node_modules/@dprint/markdown/plugin.wasm",
 		"./node_modules/dprint-plugin-malva/plugin.wasm",
 		"./node_modules/@dprint/toml/plugin.wasm",
-		"./node_modules/dprint-plugin-yaml/plugin.wasm"
-	]
+		"./node_modules/dprint-plugin-yaml/plugin.wasm",
+		"./packages/dprint-plugin-galley-mdx/plugin.wasm"
+	],
+	"mdx": {
+		"associations": ["**/*.mdx"]
+	}
 }

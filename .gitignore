@@ -10,3 +10,9 @@ artifacts/
 .env
 *.log
 .breakage/
+
+/target/
+/packages/dprint-plugin-galley-mdx/plugin.wasm
+/packages/dprint-plugin-galley-mdx/manifest.json
+/packages/dprint-plugin-galley-mdx/source/
+/packages/dprint-plugin-galley-mdx/DEPENDENCY_NOTICES.txt

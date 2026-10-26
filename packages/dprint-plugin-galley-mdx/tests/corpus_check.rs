@@ -1,3 +1,6 @@
+// Original work: dprint-plugin-markdown (MIT), see LICENSE-MIT.
+// Modifications: Copyright (c) 2026 Jeremy Banka, MPL-2.0, see LICENSE.
+
 //! Formats every `.md` file of a corpus twice over, reporting the ones that
 //! panic, fail, or come out differently the second time.
 //!
@@ -10,14 +13,14 @@ fn checks_a_corpus() {
   let Some(files) = corpus_files() else {
     return;
   };
-  let config = dprint_plugin_markdown::configuration::ConfigurationBuilder::new().build();
+  let config = dprint_plugin_galley_mdx::configuration::ConfigurationBuilder::new().build();
   for path in &files {
     let Ok(text) = std::fs::read_to_string(path) else {
       continue;
     };
     let started = std::time::Instant::now();
     let once =
-      match std::panic::catch_unwind(|| dprint_plugin_markdown::format_text(&text, &config, |_, _, _| Ok(None))) {
+      match std::panic::catch_unwind(|| dprint_plugin_galley_mdx::format_text(&text, &config, |_, _, _| Ok(None))) {
         Ok(Ok(result)) => result.unwrap_or_else(|| text.clone()),
         Ok(Err(err)) => {
           report(format_args!("ERROR {} {}", path.display(), err));
@@ -28,7 +31,7 @@ fn checks_a_corpus() {
           continue;
         }
       };
-    match std::panic::catch_unwind(|| dprint_plugin_markdown::format_text(&once, &config, |_, _, _| Ok(None))) {
+    match std::panic::catch_unwind(|| dprint_plugin_galley_mdx::format_text(&once, &config, |_, _, _| Ok(None))) {
       Ok(Ok(Some(_))) => report(format_args!("NOTIDEMPOTENT {}", path.display())),
       Ok(Ok(None)) => {}
       Ok(Err(err)) => report(format_args!("ERROR2 {} {}", path.display(), err)),

@@ -1,3 +1,6 @@
+// Original work: dprint-plugin-markdown (MIT), see LICENSE-MIT.
+// Modifications: Copyright (c) 2026 Jeremy Banka, MPL-2.0, see LICENSE.
+
 //! The parser's spec tests, which pair markdown text with the json of the ast
 //! it should parse into.
 //!
@@ -137,7 +140,7 @@ fn validate_spans(nodes: &[&Node<'_>], parent: Span, source: &str) -> Result<(),
 pub fn validate_text_coverage(file: &SourceFile<'_>, source: &str) -> Result<(), String> {
   // the file's own span may sit within the source, but only whitespace can be
   // outside of it
-  let outside = written_letters(&source[..file.span.start]) + &written_letters(&source[file.span.end..]);
+  let outside = written_letters(&source[..file.span.start]) + written_letters(&source[file.span.end..]).as_str();
   if !outside.is_empty() {
     return Err(format!(
       "SourceFile at {:?} leaves the text {:?} of {:?} outside the ast",
@@ -192,39 +195,45 @@ pub fn validate_text_coverage(file: &SourceFile<'_>, source: &str) -> Result<(),
       // a fenced code block names the language it is written in
       Node::CodeBlock(block) => {
         let info = block.fence.as_ref().and_then(|fence| fence.info).unwrap_or("");
-        written_letters(info) + &written_letters(&block.code)
+        written_letters(info) + written_letters(&block.code).as_str()
       }
       // a footnote is written under the name it is referred to by
       Node::FootnoteReference(reference) => written_letters(reference.name),
       Node::FootnoteDefinition(definition) => {
-        written_letters(definition.name) + &children_content(&definition.children, source)
+        written_letters(definition.name) + children_content(&definition.children, source).as_str()
       }
       // a link is written as the text it is under, then as where it points
       Node::InlineLink(link) => {
-        children_content(&link.children, source) + &written_letters(&link.url) + &title_content(&link.title)
+        children_content(&link.children, source)
+          + written_letters(&link.url).as_str()
+          + title_content(&link.title).as_str()
       }
       Node::ReferenceLink(link) => {
-        children_content(&link.children, source) + &reference_content(&link.reference, link.span, source)
+        children_content(&link.children, source) + reference_content(&link.reference, link.span, source).as_str()
       }
       Node::LinkReference(reference) => {
-        written_letters(&reference.name) + &written_letters(&reference.link) + &title_content(&reference.title)
+        written_letters(&reference.name)
+          + written_letters(&reference.link).as_str()
+          + title_content(&reference.title).as_str()
       }
       Node::InlineImage(image) => {
-        written_letters(&image.text) + &written_letters(&image.url) + &title_content(&image.title)
+        written_letters(&image.text) + written_letters(&image.url).as_str() + title_content(&image.title).as_str()
       }
       Node::ReferenceImage(image) => {
-        written_letters(&image.text) + &reference_content(&image.reference, image.span, source)
+        written_letters(&image.text) + reference_content(&image.reference, image.span, source).as_str()
       }
       Node::ShortcutImage(image) => written_letters(&image.text),
       // an item is written after a marker that may hold a number, and may open
       // with the marker of a task list
       Node::Item(item) => {
         written_letters(&source[item.marker_span.start..item.marker_span.end])
-          + &marker_content(&item.marker)
-          + &children_content(&item.children, source)
-          + &children_content(&item.sub_lists, source)
+          + marker_content(&item.marker).as_str()
+          + children_content(&item.children, source).as_str()
+          + children_content(&item.sub_lists, source).as_str()
       }
-      Node::Paragraph(paragraph) => marker_content(&paragraph.marker) + &children_content(&paragraph.children, source),
+      Node::Paragraph(paragraph) => {
+        marker_content(&paragraph.marker) + children_content(&paragraph.children, source).as_str()
+      }
       Node::TaskListMarker(marker) => checked_content(marker.is_checked),
       Node::Table(table) => {
         let cells = |cells: &[TableCell<'_>]| {
@@ -233,7 +242,13 @@ pub fn validate_text_coverage(file: &SourceFile<'_>, source: &str) -> Result<(),
             .map(|cell| children_content(&cell.children, source))
             .collect::<String>()
         };
-        cells(&table.header.cells) + &table.rows.iter().map(|row| cells(&row.cells)).collect::<String>()
+        cells(&table.header.cells)
+          + table
+            .rows
+            .iter()
+            .map(|row| cells(&row.cells))
+            .collect::<String>()
+            .as_str()
       }
       node => children_content(node.children(), source),
     }

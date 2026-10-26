@@ -1,3 +1,6 @@
+// Original work: dprint-plugin-markdown (MIT), see LICENSE-MIT.
+// Modifications: Copyright (c) 2026 Jeremy Banka, MPL-2.0, see LICENSE.
+
 use dprint_core::configuration::ConfigKeyMap;
 use dprint_core::configuration::ConfigKeyValue;
 use dprint_core::configuration::GlobalConfiguration;
@@ -10,7 +13,7 @@ use super::*;
 /// # Example
 ///
 /// ```
-/// use dprint_plugin_markdown::configuration::*;
+/// use dprint_plugin_galley_mdx::configuration::*;
 ///
 /// let config = ConfigurationBuilder::new()
 ///     .line_width(80)

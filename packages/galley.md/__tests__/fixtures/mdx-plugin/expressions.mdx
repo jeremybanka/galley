@@ -1,0 +1,11 @@
+export const object = { nested: { braces: "}" }, regex: /[{}]/ }
+
+#   Expressions   #
+
+{(() => { /* } */ return `${object.nested.braces}${/}/.test('}')}` })()}
+
+<>
+
+Unicode: café 🌱 {object.nested.braces}
+
+</>

@@ -1,27 +1,29 @@
 # Repository commands
 
-Run commands from the repository root. The publishable package lives in `packages/galley.md`; the root package is private. `mise.toml` selects the Node and pnpm versions.
+Run commands from the repository root. The publishable packages live in `packages/galley.md` and `packages/dprint-plugin-galley-mdx`; the root package is private. `mise.toml` selects Node, pnpm, and Rust, including Clippy, rustfmt, and the `wasm32-unknown-unknown` target. Run `mise install` before installing dependencies.
 
-| Command            | Purpose                                                        |
-| ------------------ | -------------------------------------------------------------- |
-| `build`            | Build the compiler, CLI, content mapper, and language server.  |
-| `fmt`              | Apply formatting.                                              |
-| `check`            | Run formatting, spelling, lint, and TypeScript checks.         |
-| `check:fmt`        | Validate formatting.                                           |
-| `check:spelling`   | Validate spelling.                                             |
-| `check:vp`         | Run lint and TypeScript checks through Vite Plus.              |
-| `test`             | Run the test suite once.                                       |
-| `test:public`      | Run the current consumer contracts against source once.        |
-| `test:private`     | Run implementation and detailed regression tests once.         |
-| `test:breakage`    | Replay the latest release's consumer contracts against source. |
-| `test:watch`       | Watch the test suite.                                          |
-| `change`           | Author release notes.                                          |
-| `release:version`  | Prepare versions and release metadata.                         |
-| `release:publish`  | Build and publish the npm package.                             |
-| `staged`           | Format and check staged files.                                 |
-| `workflows:update` | Update pinned workflow tooling references.                     |
+| Command            | Purpose                                                           |
+| ------------------ | ----------------------------------------------------------------- |
+| `build`            | Build Galley and the dprint MDX WebAssembly plugin.               |
+| `build:mdx`        | Build only the MDX plugin, dependency notices, and source bundle. |
+| `check:rust`       | Run Clippy over the Rust library and regression tests.            |
+| `fmt`              | Apply formatting.                                                 |
+| `check`            | Run formatting, spelling, lint, and TypeScript checks.            |
+| `check:fmt`        | Validate formatting.                                              |
+| `check:spelling`   | Validate spelling.                                                |
+| `check:vp`         | Run lint and TypeScript checks through Vite Plus.                 |
+| `test`             | Run the test suite once.                                          |
+| `test:public`      | Run the current consumer contracts against source once.           |
+| `test:private`     | Run implementation and detailed regression tests once.            |
+| `test:breakage`    | Replay the latest release's consumer contracts against source.    |
+| `test:watch`       | Watch the test suite.                                             |
+| `change`           | Author release notes.                                             |
+| `release:version`  | Prepare versions and release metadata.                            |
+| `release:publish`  | Build and publish the npm package.                                |
+| `staged`           | Format and check staged files.                                    |
+| `workflows:update` | Update pinned workflow tooling references.                        |
 
-The package's `prepare` script builds source installations. Published npm packages include the built files.
+Galley's `prepare` script builds source installations. Published npm packages include the built files.
 
 Tests start in `packages/galley.md/__tests__/private/`. The lean `public/` suite protects selected consumer capabilities: Markdown structure, native tables, source import content and identity, async components and document context, custom import plugins, fresh dependency evaluation, write/check and CLI behavior, frontmatter destinations, and unsaved preview content and offsets. It is a selected contract, not exhaustive API coverage. Detailed editor protocols, generated TypeScript, exact error messages, serializer snapshots, and implementation assertions remain private.
 
@@ -50,3 +52,15 @@ To build a VSIX after `pnpm build`, run `node packages/galley.md/dist/cli.mjs vs
 The workspace associates `.mdx` files with the **galley.md** language. Install the Galley extension using the command above so fixtures use Galley's JSX runtime and import handling in the editor. Fixtures remain excluded from direct project type checking.
 
 For the initial `0.0.0` npm publication, run `pnpm build`, then `pnpm --filter galley.md publish`. `release:version` applies pending changesets and advances the version.
+
+## Maintaining the dprint MDX plugin
+
+`fmt` and `check:fmt` build the plugin before dprint loads it, and run rustfmt for Rust sources. The root `test` command includes the imported Markdown formatter/parser regression suites and WebAssembly integration tests observed with the independent JavaScript MDX parser. The existing Breakage command continues to cover the `galley.md` API; the new plugin has no released contract baseline yet.
+
+The fork starts at dprint-plugin-markdown 0.28.0, commit `a49e479f3e38c18ea915a4b68708bcd69894b245`. Keep its attribution and MIT license intact when merging upstream changes. The added MDX adapter is `src/mdx.rs`; `src/wasm_plugin.rs` supplies the independent identity, MDX-only matching, and adapter routing. The original Markdown formatter and parser remain covered by the imported `tests/` corpus. Its exact whitespace must not be formatted.
+
+The build generates `plugin.wasm`, a checksum manifest, `DEPENDENCY_NOTICES.txt`, and `source/` inside the package. They are ignored locally and included in the npm archive. Missing dependency license texts fail the build. The `licenses/` directory supplies the repository licenses omitted by some crate archives: Nugine/simd (`LICENSE`, blob `2c7eabb59093ea117d73b20effdd0414f87b2af2`), swc-project/swc (`LICENSE`, blob `6a08504909fe063aedf79b9113c240dec13858d5`), and dudykr/ddbase (`LICENSE`, blob `7a4a3ea2424c09fbe48d455aed1eaa94d9124835`). Verify these when updating their crates. MPL dependency source is also included.
+
+The official MDX Rust parser currently uses an SWC release that depends on Serde's former private API. Cargo pins compatible Serde and serde_json versions; revisit those pins with the next MDX parser upgrade.
+
+Changesets owns the plugin's npm version. The Wasm metadata reads the included `package.json`; the private, unpublished Rust crate version is not a second release counter. Before publishing, build the workspace and inspect `pnpm --filter dprint-plugin-galley-mdx pack` for the Wasm, manifest, sources, and license notices.

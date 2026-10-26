@@ -1,3 +1,6 @@
+// Original work: dprint-plugin-markdown (MIT), see LICENSE-MIT.
+// Modifications: Copyright (c) 2026 Jeremy Banka, MPL-2.0, see LICENSE.
+
 //! Runs the CommonMark spec examples through the parser, rendering its ast to
 //! html the way the reference implementation does, and checks the html against
 //! what the spec says.
@@ -52,7 +55,7 @@ fn checks_the_commonmark_spec() {
     serde_json::from_str(&std::fs::read_to_string(data_dir.join("entities.json")).unwrap()).unwrap();
   let entities: HashMap<String, String> = entities.into_iter().map(|(k, v)| (k, v.characters)).collect();
   let known = KnownFailures::read(&data_dir.join("known_failures.txt"));
-  let mut builder = dprint_plugin_markdown::configuration::ConfigurationBuilder::new();
+  let mut builder = dprint_plugin_galley_mdx::configuration::ConfigurationBuilder::new();
   // the code block options that change what a block holds are turned off
   // with `SPEC_PRESERVE_CODE`, which leaves only what the formatter does
   // whatever its configuration says
@@ -71,8 +74,9 @@ fn checks_the_commonmark_spec() {
     let actual = render_document(&example.markdown, &entities);
     let parse_ok = actual == example.html;
 
-    let formatted =
-      std::panic::catch_unwind(|| dprint_plugin_markdown::format_text(&example.markdown, &config, |_, _, _| Ok(None)));
+    let formatted = std::panic::catch_unwind(|| {
+      dprint_plugin_galley_mdx::format_text(&example.markdown, &config, |_, _, _| Ok(None))
+    });
     let (formatted_text, format_note) = match formatted {
       Ok(Ok(Some(text))) => (text, None),
       Ok(Ok(None)) => (example.markdown.clone(), None),

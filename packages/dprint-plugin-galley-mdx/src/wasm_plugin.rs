@@ -1,3 +1,6 @@
+// Original work: dprint-plugin-markdown (MIT), see LICENSE-MIT.
+// Modifications: Copyright (c) 2026 Jeremy Banka, MPL-2.0, see LICENSE.
+
 use std::path::PathBuf;
 
 use dprint_core::configuration::ConfigKeyMap;
@@ -20,9 +23,9 @@ use super::configuration::get_config_key_renames;
 use super::configuration::resolve_config;
 use super::configuration::Configuration;
 
-struct MarkdownPluginHandler;
+struct MdxPluginHandler;
 
-impl SyncPluginHandler<Configuration> for MarkdownPluginHandler {
+impl SyncPluginHandler<Configuration> for MdxPluginHandler {
   fn resolve_config(
     &mut self,
     config: ConfigKeyMap,
@@ -33,17 +36,7 @@ impl SyncPluginHandler<Configuration> for MarkdownPluginHandler {
       config: config.config,
       diagnostics: config.diagnostics,
       file_matching: FileMatchingInfo {
-        // Markdown extensions: markdown, mdown, mkdn, mdwn, mkd, md
-        // ref: https://superuser.com/questions/249436/file-extension-for-markdown-files/285878#285878
-        // ref: https://github.com/denoland/deno_registry2/issues/206
-        file_extensions: vec![
-          "md".to_string(),
-          "mkd".to_string(),
-          "mdwn".to_string(),
-          "mkdn".to_string(),
-          "mdown".to_string(),
-          "markdown".to_string(),
-        ],
+        file_extensions: vec!["mdx".to_string()],
         file_names: vec![],
         additive: false,
       },
@@ -68,22 +61,29 @@ impl SyncPluginHandler<Configuration> for MarkdownPluginHandler {
   }
 
   fn plugin_info(&mut self) -> PluginInfo {
-    let version = env!("CARGO_PKG_VERSION").to_string();
+    let manifest: serde_json::Value = serde_json::from_str(include_str!("../package.json")).unwrap();
+    let version = manifest["version"].as_str().unwrap().to_string();
     PluginInfo {
       name: env!("CARGO_PKG_NAME").to_string(),
       version: version.clone(),
-      config_key: "markdown".to_string(),
-      help_url: "https://dprint.dev/plugins/markdown".to_string(),
-      config_schema_url: format!(
-        "https://plugins.dprint.dev/dprint/dprint-plugin-markdown/{}/schema.json",
-        version
-      ),
-      update_url: Some("https://plugins.dprint.dev/dprint/dprint-plugin-markdown/latest.json".to_string()),
+      config_key: "mdx".to_string(),
+      help_url: "https://github.com/jeremybanka/galley/tree/main/packages/dprint-plugin-galley-mdx".to_string(),
+      config_schema_url: format!("https://unpkg.com/dprint-plugin-galley-mdx@{}/schema.json", version),
+      update_url: None,
     }
   }
 
   fn license_text(&mut self) -> String {
-    std::str::from_utf8(include_bytes!("../LICENSE")).unwrap().into()
+    concat!(
+      include_str!("../LICENSE"),
+      "\n",
+      include_str!("../LICENSE-MIT"),
+      "\n",
+      include_str!("../THIRD_PARTY_NOTICES.md"),
+      "\n",
+      include_str!("../DEPENDENCY_NOTICES.txt")
+    )
+    .into()
   }
 
   fn format(
@@ -91,6 +91,10 @@ impl SyncPluginHandler<Configuration> for MarkdownPluginHandler {
     request: SyncFormatRequest<Configuration>,
     mut format_with_host: impl FnMut(SyncHostFormatRequest) -> FormatResult,
   ) -> FormatResult {
+    // Partial Markdown ranges can split MDX expressions or JSX containers.
+    if request.range.is_some() {
+      return Ok(None);
+    }
     let file_text = String::from_utf8(request.file_bytes)?;
     let config = request.config.clone();
     let format_code_block_text = |tag: &str, file_text: &str, line_width: u32| {
@@ -120,12 +124,9 @@ impl SyncPluginHandler<Configuration> for MarkdownPluginHandler {
         Ok(None)
       }
     };
-    return match request.range {
-      Some(range) => super::format_text_range(&file_text, range, request.config, format_code_block_text),
-      None => super::format_text(&file_text, request.config, format_code_block_text),
-    }
-    .map(|maybe_text| maybe_text.map(|t| t.into_bytes()))
-    .map_err(CoreFormatError::new);
+    return super::format_mdx(&file_text, request.config, format_code_block_text)
+      .map(|maybe_text| maybe_text.map(|t| t.into_bytes()))
+      .map_err(CoreFormatError::new);
 
     fn tag_to_extension<'a>(tag: &str, config: &'a Configuration) -> Option<&'a str> {
       let tag_lower = tag.trim().to_lowercase();
@@ -140,4 +141,4 @@ impl SyncPluginHandler<Configuration> for MarkdownPluginHandler {
   }
 }
 
-generate_plugin_code!(MarkdownPluginHandler, MarkdownPluginHandler);
+generate_plugin_code!(MdxPluginHandler, MdxPluginHandler);

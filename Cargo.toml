@@ -1,0 +1,13 @@
+[workspace]
+members = ["packages/dprint-plugin-galley-mdx"]
+resolver = "2"
+
+[profile.release]
+opt-level = 3
+lto = true
+panic = "abort"
+strip = true
+
+[profile.dev]
+debug = 0
+incremental = false

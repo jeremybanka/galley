@@ -1,5 +1,8 @@
-use dprint_plugin_markdown::configuration::*;
-use dprint_plugin_markdown::*;
+// Original work: dprint-plugin-markdown (MIT), see LICENSE-MIT.
+// Modifications: Copyright (c) 2026 Jeremy Banka, MPL-2.0, see LICENSE.
+
+use dprint_plugin_galley_mdx::configuration::*;
+use dprint_plugin_galley_mdx::*;
 
 #[test]
 fn test_issue22_with_carriage_return_line_feeds() {
