@@ -8,35 +8,46 @@ import {
 	help,
 	helpOption,
 	logWarnings,
+	noOptions,
 	optional,
 } from "comline"
 
 import { runGalley } from "./run.ts"
 
-const manual = helpOption("Show help for the galley command line.")
+const manuals = {
+	root: helpOption("Show help for the galley command line."),
+	help: noOptions("Show help for the galley command line."),
+	write: noOptions("Compile MDX and write Markdown."),
+	check: noOptions("Check whether Markdown is up to date."),
+	vsix: noOptions("Build and install the editor extension."),
+	build: noOptions("Build the editor extension without installing it."),
+	lsp: noOptions("Start the language server."),
+}
 const command = cli({
 	cliName: "galley",
 	cliDescription:
 		"Compile MDX components and source imports into plain Markdown.",
 	routes: optional({
+		help: null,
 		write: optional({ $input: optional({ $output: null }) }),
 		check: optional({ $input: optional({ $output: null }) }),
 		vsix: optional({ build: optional({ $outdir: null }), $editor: null }),
 		lsp: null,
 	}),
 	routeOptions: {
-		"": manual,
-		write: manual,
-		"write/$input": manual,
-		"write/$input/$output": manual,
-		check: manual,
-		"check/$input": manual,
-		"check/$input/$output": manual,
-		vsix: manual,
-		"vsix/$editor": manual,
-		"vsix/build": manual,
-		"vsix/build/$outdir": manual,
-		lsp: manual,
+		"": manuals.root,
+		help: manuals.help,
+		write: manuals.write,
+		"write/$input": manuals.write,
+		"write/$input/$output": manuals.write,
+		check: manuals.check,
+		"check/$input": manuals.check,
+		"check/$input/$output": manuals.check,
+		vsix: manuals.vsix,
+		"vsix/$editor": manuals.vsix,
+		"vsix/build": manuals.build,
+		"vsix/build/$outdir": manuals.build,
+		lsp: manuals.lsp,
 	},
 	discoverConfigPath: () => undefined,
 })
@@ -49,7 +60,7 @@ async function main() {
 	}
 	const { inputs, warnings } = command(process.argv)
 	logWarnings(warnings)
-	if (inputs.case === "" || inputs.opts.help) {
+	if (inputs.case === "" || inputs.case === "help") {
 		process.stdout.write(help(command.definition))
 		return
 	}
