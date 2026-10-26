@@ -2,7 +2,7 @@ import { existsSync } from "node:fs"
 import path from "node:path"
 import { closeProject as closeMdxProject } from "mdx-content-mapper/lib/requests/close-project.js"
 import { openProject as openMdxProject } from "mdx-content-mapper/lib/requests/open-project.js"
-import { transform as transformMdx } from "mdx-content-mapper/lib/requests/transform.js"
+import { transform as transformMdxUpstream } from "mdx-content-mapper/lib/requests/transform.js"
 
 import {
 	documentImports,
@@ -56,6 +56,21 @@ export async function openProject(params: OpenProject) {
 export function closeProject(params: { projectHandle: string }) {
 	projects.delete(params.projectHandle)
 	closeMdxProject(params)
+}
+
+function transformMdx(params: Transform): MappedOutput {
+	const result = transformMdxUpstream(params)
+	// The upstream mapper imports our JSX types but leaves automatic JSX runtime
+	// resolution to the project's compiler options, which otherwise select React.
+	const prefix = "/** @jsxImportSource galley.md */\n"
+	return {
+		...result,
+		text: prefix + result.text,
+		mappings: (result.mappings ?? []).map(([start, ...rest]) => [
+			start + prefix.length,
+			...rest,
+		]),
+	}
 }
 
 /** Compose the MDX projection with our attributed-import projection. */

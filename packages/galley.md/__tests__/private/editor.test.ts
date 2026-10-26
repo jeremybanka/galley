@@ -175,6 +175,22 @@ test("reports unsupported attributes at their original spans and supports plugin
 	closeProject({ projectHandle: "custom" })
 })
 
+test("incomplete MDX retains Galley's JSX runtime during parser recovery", async () => {
+	await openProject({
+		projectHandle: "incomplete",
+		configFileName: "",
+		compilerOptions: {},
+	})
+	const result = transform({
+		projectHandle: "incomplete",
+		fileName: "/tmp/README.mdx",
+		content: incompleteImport,
+	})
+	expect(result.diagnostics?.length).toBeGreaterThan(0)
+	expect(result.text).toContain("@jsxImportSource galley.md")
+	closeProject({ projectHandle: "incomplete" })
+})
+
 test("TypeScript 7.1 checks real attributed imports and maps errors back to MDX", async () => {
 	const { directory, input } = await fixture(checkedImports)
 	const tsc = path.join(root, "node_modules/typescript/bin/tsc")
@@ -201,6 +217,36 @@ test("TypeScript 7.1 checks real attributed imports and maps errors back to MDX"
 		expect(output).not.toContain("no default export")
 	}
 }, 20_000)
+
+test.each([undefined, "react"])(
+	"MDX selects Galley's JSX runtime when the project uses %s",
+	async (jsxImportSource) => {
+		const { directory, input } = await fixture(checkedImports)
+		const configPath = path.join(directory, "tsconfig.json")
+		const config = JSON.parse(await fs.readFile(configPath, "utf8")) as {
+			compilerOptions: { jsxImportSource?: string }
+		}
+		if (jsxImportSource === undefined)
+			delete config.compilerOptions.jsxImportSource
+		else config.compilerOptions.jsxImportSource = jsxImportSource
+		await fs.writeFile(configPath, JSON.stringify(config))
+		const check = () =>
+			execute(process.execPath, [
+				path.join(root, "node_modules/typescript/bin/tsc"),
+				"--runExternalCode",
+				"--pretty",
+				"false",
+				"-p",
+				directory,
+			])
+		await expect(check()).resolves.toMatchObject({ stdout: "" })
+		await fs.appendFile(input, invalidUsages)
+		await expect(check()).rejects.toMatchObject({
+			stdout: expect.stringMatching(/README\.mdx\(9,/),
+		})
+	},
+	20_000,
+)
 
 test("TypeScript checks native tables and HTML table attributes in MDX and TSX", async () => {
 	const { directory, input } = await fixture(checkedTable)
@@ -273,7 +319,11 @@ test("previews use unsaved source, evaluate each component once, and retain nest
 	).rejects.toThrow("timed out")
 }, 20_000)
 
-async function lsp(directory: string, preview = false) {
+async function lsp(
+	directory: string,
+	preview = false,
+	registrations: { method: string }[] = [],
+) {
 	const child = spawn(
 		process.execPath,
 		[path.join(root, "src/lsp/server.ts")],
@@ -295,7 +345,13 @@ async function lsp(directory: string, preview = false) {
 		"workspace/configuration",
 		({ items }: { items: unknown[] }) => items.map(() => null),
 	)
-	connection.onRequest("client/registerCapability", () => null)
+	connection.onRequest(
+		"client/registerCapability",
+		(params: { registrations: { method: string }[] }) => {
+			registrations.push(...params.registrations)
+			return null
+		},
+	)
 	connection.listen()
 	const result = await connection.sendRequest<{ capabilities: unknown }>(
 		"initialize",
@@ -304,8 +360,10 @@ async function lsp(directory: string, preview = false) {
 			rootUri: pathToFileURL(directory).href,
 			capabilities: {
 				textDocument: {
+					synchronization: { dynamicRegistration: true },
+					hover: { dynamicRegistration: true },
 					completion: { completionItem: { snippetSupport: true } },
-					diagnostic: {},
+					diagnostic: { dynamicRegistration: true },
 				},
 				workspace: { configuration: true },
 			},
@@ -316,6 +374,40 @@ async function lsp(directory: string, preview = false) {
 	await connection.sendNotification("initialized", {})
 	return connection
 }
+
+test("LSP avoids duplicate document registrations for dynamic-capable clients", async () => {
+	const { directory, input } = await fixture(codeImportDocument)
+	await fs.unlink(path.join(directory, "tsconfig.json"))
+	const registrations: { method: string }[] = []
+	const connection = await lsp(directory, false, registrations)
+	const uri = pathToFileURL(input).href
+	await connection.sendNotification("textDocument/didOpen", {
+		textDocument: {
+			uri,
+			languageId: "galley",
+			version: 1,
+			text: codeImportDocument,
+		},
+	})
+	const hover = await connection.sendRequest("textDocument/hover", {
+		textDocument: { uri },
+		position: { line: 0, character: 10 },
+	})
+	expect(JSON.stringify(hover)).toContain("Code component")
+	const diagnostics = await connection.sendRequest<{ items: unknown[] }>(
+		"textDocument/diagnostic",
+		{ textDocument: { uri } },
+	)
+	expect(diagnostics.items).toEqual([])
+	expect(
+		registrations.filter(({ method }) => method.startsWith("textDocument/")),
+	).toEqual([])
+	expect(registrations).toContainEqual(
+		expect.objectContaining({ method: "workspace/didChangeConfiguration" }),
+	)
+	await connection.sendRequest("shutdown")
+	await connection.sendNotification("exit")
+}, 20_000)
 
 test("LSP serves attribute completion, definitions, real TypeScript hover, and isolated versioned previews", async () => {
 	const source = languageServerDocument
@@ -406,6 +498,11 @@ test("inferred projects receive the TypeScript mapper without a tsconfig", async
 		position: { line: 2, character: 2 },
 	})
 	expect(JSON.stringify(hover)).toContain("Component")
+	const diagnostics = await connection.sendRequest<{ items: unknown[] }>(
+		"textDocument/diagnostic",
+		{ textDocument: { uri } },
+	)
+	expect(diagnostics.items).toEqual([])
 	await connection.sendRequest("shutdown")
 	await connection.sendNotification("exit")
 }, 20_000)

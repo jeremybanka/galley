@@ -69,7 +69,7 @@ test("compiles native tables with column alignment, inline Markdown, and escaped
 test("imports one source as distinct code components, reuses identical attributes, and never executes it", async () => {
 	const source = codeSource
 	const { input } = await fixture({
-		"example.ts": source,
+		"code-source.ts": source,
 		"README.mdx": codeImports,
 	})
 	const output = await compileMarkdown(input)
