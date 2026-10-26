@@ -1,5 +1,13 @@
 # galley.md
 
+## 0.1.7
+
+### Patch Changes
+
+- b54468e: Give each CLI command an accurate description, add `galley help`, and register `-h`/`--help` only on the root command instead of every subcommand.
+- 6d72b87: Fix missing React runtime errors and duplicate diagnostics and hover text when editing Galley MDX files.
+- a8eb79b: Format compiled Markdown and previews with aligned tables and consistent layout using pinned dprint dependencies while preserving code blocks, raw HTML, and YAML frontmatter; regenerate checked-in output after upgrading.
+
 ## 0.1.6
 
 ### Patch Changes
