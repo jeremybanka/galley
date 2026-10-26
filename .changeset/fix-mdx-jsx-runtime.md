@@ -2,4 +2,4 @@
 "galley.md": patch
 ---
 
-Select Galley's JSX runtime in mapped MDX so editor diagnostics do not require React when the project omits jsxImportSource or uses another runtime.
+Fix missing React runtime errors and duplicate diagnostics and hover text when editing Galley MDX files.
