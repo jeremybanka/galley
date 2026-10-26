@@ -36,7 +36,7 @@
 				"scopeName": "source.galley",
 				"path": "./galley.tmLanguage.json",
 				"embeddedLanguages": {
-					"meta.embedded.block.javascript": "javascriptreact"
+					"meta.embedded.block.typescript": "typescriptreact"
 				}
 			}
 		],

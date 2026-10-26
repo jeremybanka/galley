@@ -1,11 +1,16 @@
 import type { Root } from "mdast"
 import remarkFrontmatter from "remark-frontmatter"
 import remarkGfm from "remark-gfm"
-import remarkMdx from "remark-mdx"
+import remarkMdx, { type Options as MdxOptions } from "remark-mdx"
 import remarkParse from "remark-parse"
 import { unified } from "unified"
 
-export const mdxParserOptions = { acornOptions: { ecmaVersion: 2025 as const } }
+import { typescriptParser } from "./typescript.ts"
+
+export const mdxParserOptions: MdxOptions = {
+	acorn: typescriptParser,
+	acornOptions: { ecmaVersion: 2025 as const },
+}
 
 const parser = unified()
 	.use(remarkParse)
@@ -24,6 +29,7 @@ export type Attribute = Span & {
 }
 export type DocumentImport = Span & {
 	type: "ImportDeclaration"
+	importKind?: "type" | "value"
 	source: Span & { value: string }
 	specifiers: (Span & {
 		type: string
@@ -67,55 +73,6 @@ export function documentImports(source: string): DocumentImport[] {
 				statement.type === "ImportDeclaration",
 		)
 	})
-}
-
-/**
- * mdx-content-mapper 0.0.2 assumes every link label belongs to an image and
- * throws on ordinary Markdown links. Keep their children (including JSX and
- * expressions) and erase only the link framing, without changing any offsets.
- * Erase frontmatter too so the upstream mapper never treats YAML as MDX.
- */
-export function projectMarkdownLinks(source: string): string {
-	let tree: Root
-	try {
-		tree = parseEditorDocument(source)
-	} catch {
-		return source
-	}
-	const characters = source.split("")
-	type Node = {
-		type: string
-		children?: Node[]
-		position?: { start: { offset?: number }; end: { offset?: number } }
-	}
-	function erase(start: number | undefined, end: number | undefined) {
-		if (start === undefined || end === undefined) return
-		for (let i = start; i < end; i++)
-			if (characters[i] !== "\n" && characters[i] !== "\r") characters[i] = " "
-	}
-	function visit(node: Node) {
-		if (node.type === "link" || node.type === "linkReference") {
-			const first = node.children?.[0]?.position
-			const last = node.children?.at(-1)?.position
-			erase(
-				node.position?.start.offset,
-				first?.start.offset ?? node.position?.end.offset,
-			)
-			erase(
-				last?.end.offset ?? node.position?.start.offset,
-				node.position?.end.offset,
-			)
-		} else if (
-			node.type === "imageReference" ||
-			node.type === "definition" ||
-			node.type === "yaml"
-		) {
-			erase(node.position?.start.offset, node.position?.end.offset)
-		}
-		for (const child of node.children ?? []) visit(child)
-	}
-	visit(tree as Node)
-	return characters.join("")
 }
 
 export function importAttributes(

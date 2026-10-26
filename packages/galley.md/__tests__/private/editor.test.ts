@@ -19,6 +19,14 @@ import {
 } from "../../src/mapper/transform.ts"
 import { previewSummary } from "../../src/vscode/preview-model.ts"
 
+import { createFromBuffer } from "@dprint/formatter"
+import { parseDocument } from "../../src/editor/document.ts"
+import layoutDocument from "#fixtures/editor/layout.mdx" with { type: "text" }
+import layoutComponent from "#fixtures/editor/layout.tsx" with { type: "text" }
+import documentProps from "#fixtures/editor/document-props.mdx" with { type: "text" }
+import typedFormatting from "#fixtures/editor/typed-formatting.mdx" with { type: "text" }
+import typedDocument from "#fixtures/editor/typed.mdx" with { type: "text" }
+import typedInvalid from "#fixtures/editor/typed-invalid.mdx" with { type: "text" }
 import checkedComments from "#fixtures/editor/checked-comments.mdx" with { type: "text" }
 import editorSource from "#fixtures/editor/example.ts" with { type: "text" }
 import mappedImports from "#fixtures/editor/mapped-imports.mdx" with { type: "text" }
@@ -134,7 +142,7 @@ test("composes UTF-16 source maps and keeps attributed imports distinct from ord
 	).toEqual([])
 	expect(result.text).toContain("import { value } from './example.ts'")
 	expect(result.text).toContain('import("galley.md").Component')
-	expect(result.text).toContain("@type {string}")
+	expect(result.text).toContain("as unknown as string")
 	for (const [v, vl, o, ol, kind] of result.mappings ?? []) {
 		if (kind === 0)
 			expect(result.text.slice(v, v + vl)).toBe(source.slice(o, o + ol))
@@ -163,7 +171,7 @@ test("reports unsupported attributes at their original spans and supports plugin
 		fileName: "/tmp/README.mdx",
 		content,
 	})
-	expect(result.text).toContain("@type {number}")
+	expect(result.text).toContain("as unknown as number")
 	expect(result.diagnostics).toHaveLength(3)
 	expect(
 		content.slice(
@@ -533,5 +541,146 @@ test("Markdown links retain embedded expressions and source maps without breakin
 		]),
 	).rejects.toMatchObject({
 		stdout: expect.stringContaining("README.mdx(5,10)"),
+	})
+}, 20_000)
+
+test("typed MDX compiles, typechecks, and maps TypeScript and strict-prop errors", async () => {
+	const { directory, input } = await fixture(typedDocument)
+	const check = () =>
+		execute(process.execPath, [
+			path.join(root, "node_modules/typescript/bin/tsc"),
+			"--runExternalCode",
+			"--pretty",
+			"false",
+			"-p",
+			directory,
+		])
+	await expect(check()).resolves.toMatchObject({ stdout: "" })
+	const preview = await previewMarkdown(input)
+	expect(preview.markdown).toContain('width="160"')
+	expect(preview.markdown).toContain("**160px**")
+	expect(preview.markdown).toContain("export const value")
+	await fs.appendFile(input, typedInvalid)
+	await expect(check()).rejects.toMatchObject({
+		stdout: expect.stringContaining("README.mdx"),
+	})
+	try {
+		await check()
+	} catch (error) {
+		const output = (error as { stdout: string }).stdout
+		for (const fragment of [
+			"number",
+			"unknownProperty",
+			"justify",
+			"custom-badge",
+			"missing",
+		])
+			expect(output).toContain(fragment)
+		expect(output).not.toContain("virtual code")
+	}
+}, 20_000)
+
+test("the standalone MDX WASM formats typed code without changing evaluation or types", async () => {
+	const bytes = await fs.readFile(
+		new URL("../../../dprint-plugin-galley-mdx/plugin.wasm", import.meta.url),
+	)
+	const formatter = createFromBuffer(bytes)
+	formatter.setConfig({ lineWidth: 80 }, {})
+	const format = (source: string) =>
+		formatter.formatText({ filePath: "README.mdx", fileText: source })
+	const formatted = format(typedFormatting)
+	expect(formatted).not.toBe(typedFormatting)
+	expect(formatted).toContain("export type Size = { width: number }")
+	expect(formatted).toContain("as string")
+	expect(formatted).toContain("satisfies Size")
+	expect(formatted).not.toContain('width="{160}"')
+	expect(format(formatted)).toBe(formatted)
+	expect(() => parseDocument(formatted)).not.toThrow()
+	const { directory, input } = await fixture(typedFormatting)
+	const original = await previewMarkdown(input)
+	await fs.writeFile(input, formatted)
+	expect((await previewMarkdown(input)).markdown).toBe(original.markdown)
+	await expect(
+		execute(process.execPath, [
+			path.join(root, "node_modules/typescript/bin/tsc"),
+			"--runExternalCode",
+			"--pretty",
+			"false",
+			"-p",
+			directory,
+		]),
+	).resolves.toMatchObject({ stdout: "" })
+}, 20_000)
+
+test("typed MDX editor hover, rename, and diagnostics retain authored positions", async () => {
+	const { directory, input } = await fixture(typedDocument)
+	const connection = await lsp(directory)
+	const uri = pathToFileURL(input).href
+	await connection.sendNotification("textDocument/didOpen", {
+		textDocument: {
+			uri,
+			languageId: "galley",
+			version: 1,
+			text: typedDocument,
+		},
+	})
+	const offset = typedDocument.indexOf("size.width")
+	const before = typedDocument.slice(0, offset)
+	const position = {
+		line: before.split("\n").length - 1,
+		character: before.length - before.lastIndexOf("\n") - 1,
+	}
+	const hover = await connection.sendRequest("textDocument/hover", {
+		textDocument: { uri },
+		position,
+	})
+	expect(JSON.stringify(hover)).toContain("Size")
+	const rename = await connection.sendRequest("textDocument/rename", {
+		textDocument: { uri },
+		position,
+		newName: "dimensions",
+	})
+	expect(JSON.stringify(rename)).toContain('"newText":"dimensions"')
+	await connection.sendNotification("textDocument/didChange", {
+		textDocument: { uri, version: 2 },
+		contentChanges: [{ text: typedDocument + typedInvalid }],
+	})
+	const diagnostics = await connection.sendRequest<{
+		items: { message: string; range: { start: { line: number } } }[]
+	}>("textDocument/diagnostic", { textDocument: { uri } })
+	expect(
+		diagnostics.items.some((item) => item.message.includes("unknownProperty")),
+	).toBe(true)
+	expect(
+		diagnostics.items.every(
+			(item) => item.range.start.line >= typedDocument.split("\n").length - 1,
+		),
+	).toBe(true)
+	await connection.sendRequest("shutdown")
+	await connection.sendNotification("exit")
+}, 20_000)
+
+test("typed projection preserves exported document props and re-exported layouts", async () => {
+	const { directory, input } = await fixture(layoutDocument)
+	await fs.writeFile(path.join(directory, "layout.tsx"), layoutComponent)
+	const check = () =>
+		execute(process.execPath, [
+			path.join(root, "node_modules/typescript/bin/tsc"),
+			"--runExternalCode",
+			"--pretty",
+			"false",
+			"-p",
+			directory,
+		])
+	await expect(check()).resolves.toMatchObject({ stdout: "" })
+	expect((await previewMarkdown(input)).markdown).toContain("> # Typed layout")
+	await fs.writeFile(input, documentProps)
+	await expect(check()).resolves.toMatchObject({ stdout: "" })
+	await fs.writeFile(
+		input,
+		documentProps.replace("props.title", "props.missing"),
+	)
+	await expect(check()).rejects.toMatchObject({
+		stdout: expect.stringContaining("README.mdx(3,"),
 	})
 }, 20_000)

@@ -1,0 +1,30 @@
+import {Html,type Content} from 'galley.md'
+import Source from './example.ts' with {type:'code',lang:'ts'}
+
+export type Size={width:number}
+export const size:Size={width:160} satisfies Size
+export const Label=({value}:{value:string}):Content=><strong>{value}</strong>
+
+#   Typed formatting   #
+
+<Html.Element tag="img" attributes={{...size,alt:'number' as string}} />
+
+<Label value={`${size.width satisfies number}px`} />
+
+{['}', '{'].map((value:string)=><Label value={value as string} />)}
+
+{(() => { /* } */ return `${size.width}${/}/.test('}')}` })()}
+
+<Source />
+
+
+export const paragraph = `one
+
+two }`
+export const sum =
+/* open {
+
+} */
+1 satisfies number
+
+{paragraph} {sum}

@@ -314,3 +314,18 @@ describe("galley documents", () => {
 		await expect(compileMarkdown(input)).rejects.toThrow(error)
 	})
 })
+
+test("built-in components reject extra properties hidden in spreads", async () => {
+	const { Code, Comment, Html } = await import("../../src/runtime.ts")
+	const extra = { misspelled: true }
+	expect(() => Code({ source: "x", ...extra })).toThrow("misspelled")
+	expect(() => Markdown({ children: "text", ...extra })).toThrow("misspelled")
+	expect(() => Html({ children: "text", ...extra })).toThrow("misspelled")
+	expect(() => Html.Element({ tag: "div", ...extra })).toThrow("misspelled")
+	await expect(
+		Comment(
+			{ children: "text", ...extra },
+			{ path: "/tmp/readme.mdx", directory: "/tmp" },
+		),
+	).rejects.toThrow("misspelled")
+})

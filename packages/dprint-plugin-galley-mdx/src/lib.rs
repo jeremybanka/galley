@@ -21,6 +21,7 @@ mod generation;
 mod html;
 mod mdx;
 mod parser;
+mod typescript;
 
 pub use mdx::format_mdx;
 

@@ -16,33 +16,35 @@ export { jsx as jsxDEV, jsx as jsxs }
 export namespace JSX {
 	export type Element = Content
 	export type ElementType = keyof IntrinsicElements | Component<never>
+	export interface IntrinsicAttributes {
+		key?: string | number
+	}
 	export interface ElementChildrenAttribute {
 		children: unknown
 	}
 	export interface IntrinsicElements {
-		// Html boundaries also support HTML tags and custom elements.
-		[tagName: Lowercase<string>]: Record<string, unknown>
-		p: Record<string, unknown>
-		h1: Record<string, unknown>
-		h2: Record<string, unknown>
-		h3: Record<string, unknown>
-		h4: Record<string, unknown>
-		h5: Record<string, unknown>
-		h6: Record<string, unknown>
-		strong: Record<string, unknown>
-		em: Record<string, unknown>
-		del: Record<string, unknown>
-		blockquote: Record<string, unknown>
-		a: Record<string, unknown>
-		br: Record<string, unknown>
-		hr: Record<string, unknown>
-		"galley-fragment": Record<string, unknown>
-		// Markdown syntax in the editor's virtual JSX projection.
-		code: Record<string, unknown>
-		pre: Record<string, unknown>
-		ul: Record<string, unknown>
-		ol: Record<string, unknown>
-		li: Record<string, unknown>
-		img: Record<string, unknown>
+		p: Children
+		h1: Children
+		h2: Children
+		h3: Children
+		h4: Children
+		h5: Children
+		h6: Children
+		strong: Children
+		em: Children
+		del: Children
+		blockquote: Children
+		a: Children & { href: string }
+		br: Record<string, never>
+		hr: Record<string, never>
+		table: Children
+		thead: Children
+		tbody: Children
+		tr: Children
+		th: Children & { align?: "left" | "center" | "right" }
+		td: Children
+		"galley-fragment": Children
 	}
 }
+
+type Children = { children?: Content; key?: string | number }

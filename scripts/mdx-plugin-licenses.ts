@@ -55,7 +55,14 @@ export function writeDependencyNotices(root: string, directory: string): void {
 			files.push(join(source, dependency.license_file))
 		if (!files.length) {
 			// These crates omit their repository license files from the crate archive.
-			if (
+			const supplemental: Record<string, string> = {
+				capacity_builder_macros: "CAPACITY-BUILDER-MIT",
+				deno_error_macro: "DENO-ERROR-MIT",
+				"dprint-swc-ext": "DPRINT-SWC-EXT-MIT",
+			}
+			if (supplemental[dependency.name]) {
+				files.push(join(directory, "licenses", supplemental[dependency.name]!))
+			} else if (
 				dependency.repository?.startsWith("https://github.com/swc-project/swc")
 			) {
 				files.push(join(directory, "licenses/SWC-APACHE"))

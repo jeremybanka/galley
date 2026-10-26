@@ -47,16 +47,27 @@ function stringifyMarkdown(root: Root): string {
 	return body ? `${header}\n${body}` : header
 }
 
+function assertProps(name: string, props: object, allowed: readonly string[]) {
+	for (const key of Object.keys(props)) {
+		if (key !== "key" && !allowed.includes(key))
+			throw new Error(`Unsupported property "${key}" on ${name}.`)
+	}
+}
+
 /** Include Markdown produced by another tool as Markdown nodes. */
-export function Markdown({ children }: { children: string }): Root {
+export function Markdown(props: { children: string }): Root {
+	assertProps("Markdown", props, ["children"])
+	const { children } = props
 	return markdownProcessor.parse(children)
 }
 
 /** Preserve children as an HTML comment in the generated Markdown. */
 export async function Comment(
-	{ children }: { children: Content },
+	props: { children: Content },
 	context: DocumentContext,
 ): Promise<Nodes> {
+	assertProps("Comment", props, ["children"])
+	const { children } = props
 	const commentContext: RenderContext = { ...context, [htmlMode]: false }
 	const value = (await renderMarkdown(children, commentContext)).trim()
 	if (/<!--|-->|--!>/.test(value)) {
@@ -66,18 +77,52 @@ export async function Comment(
 }
 
 /** Render children as HTML without adding a wrapper element. */
-export function Html({ children }: { children?: Content }): Element {
-	return { kind: "galley:element", type: "galley-html", props: { children } }
+export const Html = Object.assign(
+	function Html(props: { children?: Content }): Element {
+		assertProps("Html", props, ["children"])
+		return { kind: "galley:element", type: "galley-html", props }
+	},
+	{ Element: HtmlElement },
+)
+
+type HtmlAttribute =
+	| string
+	| number
+	| boolean
+	| null
+	| undefined
+	| (string | number)[]
+
+/** Explicit HTML/custom-element attributes, isolated from Markdown JSX props. */
+function HtmlElement(props: {
+	tag: string
+	attributes?: Record<string, HtmlAttribute>
+	children?: Content
+}): Element {
+	assertProps("Html.Element", props, ["tag", "attributes", "children"])
+	if (!/^[a-z][a-z0-9-]*$/.test(props.tag))
+		throw new Error(
+			"Html.Element requires a lowercase HTML or custom-element tag.",
+		)
+	if (props.attributes && "children" in props.attributes)
+		throw new Error("Pass Html.Element children as children, not an attribute.")
+	return {
+		kind: "galley:element",
+		type: "galley-html",
+		props: {
+			children: {
+				kind: "galley:element",
+				type: props.tag,
+				props: { ...props.attributes, children: props.children },
+			},
+		},
+	}
 }
 
 /** A code component returns source text; the serializer owns safe fencing. */
-export function Code({
-	source,
-	lang,
-}: {
-	source: string
-	lang?: string
-}): Nodes {
+export function Code(props: { source: string; lang?: string }): Nodes {
+	assertProps("Code", props, ["source", "lang"])
+	const { source, lang } = props
 	if (lang !== undefined && /[\r\n`]/.test(lang)) {
 		throw new Error("Code languages cannot contain newlines or backticks.")
 	}
@@ -244,6 +289,11 @@ async function intrinsic(
 				resolveContent(children, { ...context, tableParent }),
 		)
 		if (table) return table
+		assertProps(
+			`<${String(element.type)}>`,
+			element.props,
+			element.type === "a" ? ["children", "href"] : ["children"],
+		)
 	}
 	const children = await resolveContent(
 		element.props.children as Content,
@@ -255,7 +305,7 @@ async function intrinsic(
 			string | number | boolean | null | undefined | (string | number)[]
 		> = {}
 		for (const [name, value] of Object.entries(element.props)) {
-			if (name === "children") continue
+			if (name === "children" || name === "key") continue
 			if (
 				value === null ||
 				value === undefined ||

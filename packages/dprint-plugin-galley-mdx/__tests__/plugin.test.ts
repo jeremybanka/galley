@@ -43,11 +43,33 @@ function format(source: string, config: Record<string, unknown> = {}) {
 
 // Observe semantics using the independent JavaScript MDX implementation.
 function semantics(source: string): unknown {
-	return JSON.parse(
-		JSON.stringify(processor.parse(source), (key, value: unknown) =>
-			key === "position" || key === "data" ? undefined : value,
-		),
-	) as unknown
+	function normalize(value: unknown): unknown {
+		if (Array.isArray(value)) return value.map(normalize)
+		if (!value || typeof value !== "object") return value
+		const node = value as Record<string, unknown>
+		if (node.type === "ParenthesizedExpression")
+			return normalize(node.expression)
+		const result = Object.fromEntries(
+			Object.entries(node)
+				.filter(
+					([key]) =>
+						![
+							"position",
+							"data",
+							"start",
+							"end",
+							"loc",
+							"range",
+							"raw",
+						].includes(key),
+				)
+				.map(([key, value]) => [key, normalize(value)]),
+		)
+		const estree = (node.data as { estree?: unknown } | undefined)?.estree
+		if (estree) result.value = normalize(estree)
+		return result
+	}
+	return normalize(processor.parse(source))
 }
 
 describe("MDX WebAssembly plugin", () => {
@@ -97,7 +119,7 @@ describe("MDX WebAssembly plugin", () => {
 		expect(result).toContain("# Hello 世界\n")
 		expect(result).toContain("- **Markdown** outside JSX")
 		expect(result).toContain("#   Keep this Markdown inside JSX")
-		expect(result).toContain("import Card from './card.js'")
+		expect(result).toContain('import Card from "./card.js";')
 		expect(result).toContain('title: "MDX: {safe}"')
 	})
 

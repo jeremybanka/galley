@@ -52,6 +52,7 @@
 		"Nugine",
 		"smartstring",
 		"thiserror",
-		"reparsed"
+		"reparsed",
+		"shiki"
 	]
 }

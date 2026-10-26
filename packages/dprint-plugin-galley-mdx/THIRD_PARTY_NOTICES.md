@@ -9,7 +9,7 @@ The upstream Rust formatter, configuration, parser, HTML formatter, language
 mapping, regression tests, and configuration schema are used under the MIT
 license. Copyright (c) 2020–2023 David Sherret. The full upstream license is
 retained in [LICENSE-MIT](LICENSE-MIT). All upstream `src/` files except the
-new `mdx.rs`, and the imported `tests/` tree, originate in that revision.
+new `mdx.rs` and `typescript.rs`, and the imported `tests/` tree, originate in that revision.
 
 Galley's additions and modifications are licensed under MPL-2.0; see [LICENSE](LICENSE).
 These include the MDX adapter, plugin identity and routing changes, build and
@@ -39,3 +39,8 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
+
+The MDX grammar comes from the MIT-licensed `markdown` crate. Embedded TypeScript
+parsing and formatting use `deno_ast` and `dprint-plugin-typescript`, with their
+MIT and Apache-2.0 dependency notices included in `DEPENDENCY_NOTICES.txt`.
+The TypeScript bridge is original Galley code under MPL-2.0.

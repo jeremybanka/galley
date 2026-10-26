@@ -1,0 +1,19 @@
+export const object = {
+
+  width: 160,
+} satisfies { width: number }
+
+Prose after code.
+
+<Html.Element attributes={{ width: object.width as number }} tag="img" />
+
+<Section>
+**Markdown children** stay Markdown.
+</Section>
+
+{(() => {
+  const close = `text ${'}'} text`
+  return close as string
+})()}
+
+Prose after expression.

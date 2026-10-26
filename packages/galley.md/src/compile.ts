@@ -12,6 +12,7 @@ import type { PluggableList } from "unified"
 
 import { markdownNodes } from "./markdown-nodes.ts"
 import { consumeFrontmatter } from "./frontmatter.ts"
+import { eraseTypes } from "./editor/erase-types.ts"
 import { mdxParserOptions } from "./editor/document.ts"
 import { renderMarkdown } from "./runtime.ts"
 import type {
@@ -81,7 +82,7 @@ async function compileDocument(
 						"Code languages cannot contain newlines or backticks.",
 					)
 				return {
-					contents: `export default function Code() { return ${JSON.stringify({ type: "code", lang, value: source })} }`,
+					contents: `export default function Code(props) { for (const key of Object.keys(props)) { if (key !== "key") throw new Error('Unsupported property "' + key + '" on a code import.') } return ${JSON.stringify({ type: "code", lang, value: source })} }`,
 					loader: "js",
 					watchFiles: [args.path],
 				}
@@ -101,7 +102,7 @@ async function compileDocument(
 					[markdownNodes, { previews: capture }],
 				]
 				if (args.path.endsWith(".mdx"))
-					remarkPlugins.unshift([remarkMdx, mdxParserOptions])
+					remarkPlugins.unshift([remarkMdx, mdxParserOptions], eraseTypes)
 				return {
 					contents: String(
 						await compile(

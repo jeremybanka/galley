@@ -73,6 +73,32 @@ Frontmatter must be a YAML mapping, and `galley.output` must be a nonempty liter
 
 The same file can be imported with different attributes to create distinct components. Identical attribute maps reuse the same component regardless of key order. The built-in code handler accepts `type` and `lang`; unknown attributes are errors. esbuild also supports `type: "text"` for importing a string you can use in an expression or pass as a prop.
 
+## TypeScript in MDX
+
+Galley extends MDX's existing code regions with TypeScript and TSX. This is a Galley dialect: standard MDX tools do not necessarily accept its TypeScript syntax.
+
+- Module blocks start with `import` or `export`. Type imports, import attributes, exported type/interface declarations, and typed `export const` declarations are supported.
+- `{expression}`, `prop={expression}`, and `{...spread}` accept TypeScript expressions, including `as`, `satisfies`, generics, and nested TSX.
+- Outside those regions, the document is Markdown. Direct JSX element children remain Markdown; JSX inside a TypeScript expression follows TSX rules. Code fences are examples, not executable regions.
+- A blank line ends a complete module block. Blank lines inside an unfinished declaration, string, comment, or nested expression do not end it. Bare top-level `const`, `type`, and `interface` declarations are prose; use exported declarations or a separate `.ts` file.
+
+<!-- dprint-ignore -->
+```mdx
+import { Html, type Content } from "galley.md"
+
+export type Size = { width: number }
+export const size = { width: 160 } satisfies Size
+export const Label = ({ value }: { value: string }): Content => <strong>{value}</strong>
+
+<Html.Element tag="img" attributes={{ ...size, alt: "Logo" }} />
+
+<Label value={`${size.width as number}px`} />
+```
+
+Compilation erases types; it does not typecheck them. The TypeScript 7.1 content mapper below checks the original source as TSX and maps diagnostics and editor actions back to MDX. An exported `Props` type or interface declares a document's props. Move reusable logic into `.ts` or `.tsx` files.
+
+To format authored `.mdx`, use the separate [dprint-plugin-galley-mdx](../dprint-plugin-galley-mdx/README.md) plugin. It owns its TypeScript formatter dependency and needs no peer language plugin. This is separate from Galley's built-in formatting of generated `.md` output.
+
 ## Components
 
 Components can be async and return Markdown nodes directly. For example, `components.ts`:
@@ -113,7 +139,7 @@ This emits `<!-- Generated from README.mdx. Run pnpm readme:write to update. -->
 
 The second argument is a `DocumentContext` with absolute `path` and `directory` fields for the containing document. Use this directory to resolve local inputs. Imported `.mdx` documents get their own context; `.md` imports are parsed as ordinary Markdown.
 
-For TSX components, set `jsx` to `react-jsx` and `jsxImportSource` to `galley.md` in TypeScript configuration. React is not required. Outside an `Html` boundary, supported intrinsic JSX elements are `p`, `h1` through `h6`, `strong`, `em`, `del`, `blockquote`, `a`, `br`, `hr`, `table`, `thead`, `tbody`, `tr`, `th`, and `td`. They produce Markdown nodes. Wrap markup in `Html` to preserve HTML tags and attributes.
+For TSX components, set `jsx` to `react-jsx` and `jsxImportSource` to `galley.md` in TypeScript configuration. React is not required. Outside an `Html` boundary, supported intrinsic JSX elements are `p`, `h1` through `h6`, `strong`, `em`, `del`, `blockquote`, `a`, `br`, `hr`, `table`, `thead`, `tbody`, `tr`, `th`, and `td`. They produce Markdown nodes. Use `Html.Element` for HTML-specific tags and attributes.
 
 ## Tables
 
@@ -147,36 +173,29 @@ The first row must contain only `th` cells, and every subsequent row must contai
 
 Arrays, fragments, and async components can generate sections, rows, cells, or inline cell content. Cells support text, numbers, links, emphasis, and other Markdown inline content. Strings are escaped automatically, including pipe characters. A single paragraph is accepted, and soft line breaks become spaces.
 
-Table attributes are checked during rendering because these JSX tags also support HTML attributes inside an `Html` boundary. Unsupported structures and attributes produce errors. Tables do not support merged cells (`colSpan` or `rowSpan`), captions, footers (`tfoot`), `col` or `colgroup`, CSS classes or styles, or attributes other than header `align` and JSX `key`. Put alignment on `th`, not `td` or `tr`. Lists, code blocks, multiple paragraphs, nested tables, raw HTML, and hard line breaks inside cells cannot be represented by this Markdown table API.
+Native table attributes are checked by TypeScript and during rendering, including properties introduced through spreads. Unsupported structures and attributes produce errors. Tables do not support merged cells (`colSpan` or `rowSpan`), captions, footers (`tfoot`), `col` or `colgroup`, CSS classes or styles, or attributes other than header `align` and JSX `key`. Put alignment on `th`, not `td` or `tr`. Lists, code blocks, multiple paragraphs, nested tables, raw HTML, and hard line breaks inside cells cannot be represented by this Markdown table API.
 
 ## HTML
 
-Use `Html` for markup such as centered branding, badges, and layout tables:
+Use `Html.Element` for HTML-specific tags, attributes, custom elements, and layout tables. Its props are `tag`, optional `attributes`, and optional `children`; the attribute dictionary is the explicit HTML escape hatch:
 
 <!-- dprint-ignore -->
 ```mdx
 import { Html } from "galley.md"
 
-<Html>
-  <div align="center">
-    <img src="logo.png" alt="My package" width={160} height={160} />
-    <h1 align="center"><code>my-package</code></h1>
-  </div>
-  <table>
-    <tbody><tr><td>Markup table</td><td>Custom layout</td></tr></tbody>
-  </table>
-</Html>
+<Html.Element tag="div" attributes={{ align: "center" }}>
+  <Html.Element tag="img" attributes={{ src: "logo.png", alt: "My package", width: 160 }} />
+  <h1>My package</h1>
+</Html.Element>
 
-| Markdown table | Value |
-| --- | --- |
-| Bundle size | 500 B |
+<Html.Element tag="custom-badge" attributes={{ "data-label": "example" }} />
 ```
 
-`Html` adds no wrapper tag. Its descendants render as HTML, including nested components, async results, and Markdown nodes. A `<table>` inside `Html` stays an HTML table; a Markdown table outside stays a Markdown table. Ordinary Markdown formatting inside the boundary converts to HTML too.
+`Html.Element` renders its descendants as HTML. `Html` remains a wrapper-free HTML boundary for components and Markdown nodes. Text and attribute values are escaped. Attributes accept strings, numbers, booleans, and arrays of strings or numbers; null and undefined omit the attribute. HTML names such as `class` and `colspan` work, as do JSX names such as `className`, `htmlFor`, and `colSpan`. Use a CSS string for `style`; event-handler functions and style objects are unsupported.
 
-Text and attribute values are HTML-escaped. Attributes accept strings, numbers, booleans, and arrays of strings or numbers; null and undefined omit the attribute. HTML names such as `class` and `colspan` work, as do JSX names such as `className`, `htmlFor`, and `colSpan`. Use a CSS string for `style`. HTML void elements such as `img` and `br` need no closing tag in the generated Markdown, but use self-closing JSX syntax in MDX. This produces static markup, so event-handler functions and style objects are unsupported.
+Wrapping JSX in `Html` does not change its TypeScript prop types. Migrate HTML-only lowercase tags and attributes to `Html.Element`. Existing untyped markup inside `Html` still renders, but there is no catch-all JSX tag or property signature. Native Markdown tags accept their documented props, and `Component` without a type argument accepts no props. Built-in components reject unknown properties at runtime, including spreads. TypeScript's structural typing can still allow extra properties in spreads passed to user-defined components; validate those components when exact runtime props matter.
 
-Use `Markdown` for strings containing generated Markdown. Strings passed to `Html` are text, so write markup as JSX children rather than an HTML string. Existing raw HTML in Markdown nodes is preserved; `Html` does not sanitize it.
+Strings passed to either HTML component are text. Use `Markdown` for strings containing generated Markdown. Existing raw HTML in Markdown nodes is preserved; these components do not sanitize it.
 
 ## Tonnage
 
@@ -238,7 +257,7 @@ For other editors, run `galley-lsp --stdio` (or `galley lsp`) using the `galley`
 
 ## TypeScript content mapper
 
-The editor server bundles TypeScript `7.1.0-dev.20261014.1`. The same content mapper works with that version for command-line checking. TypeScript 7.1 is still prerelease; the version is pinned to the tested protocol.
+The editor server bundles TypeScript `7.1.0-dev.20261025.1`. The same content mapper works with that version for command-line checking. TypeScript 7.1 is still prerelease; the version is pinned to the tested protocol.
 
 Register the mapper in your project's `tsconfig.json`:
 
@@ -247,6 +266,7 @@ Register the mapper in your project's `tsconfig.json`:
 	"compilerOptions": {
 		"allowJs": true,
 		"checkJs": true,
+		"strict": true,
 		"jsx": "react-jsx",
 		"jsxImportSource": "galley.md",
 		"module": "nodenext",
@@ -257,7 +277,7 @@ Register the mapper in your project's `tsconfig.json`:
 }
 ```
 
-Then run TypeScript 7.1's `tsc --runExternalCode`. A configured project needs this registration for the editor too; files outside a configured project receive the mapper from the language server automatically. MDX syntax remains JavaScript and JSX; component implementation files can use TypeScript.
+Then run TypeScript 7.1's `tsc --runExternalCode`. A configured project needs this registration for the editor too; files outside a configured project receive the mapper from the language server automatically. MDX code regions are checked as TSX, including types and component props.
 
 The mapper selects Galley's JSX runtime for MDX even when the project's `jsxImportSource` is unset or points to another runtime. The `jsxImportSource` setting above is needed for your Galley TSX components.
 

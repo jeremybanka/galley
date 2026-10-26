@@ -2,9 +2,11 @@
 
 An independent MDX formatter for dprint, based on the official
 [Markdown plugin 0.28.0](https://github.com/dprint/dprint-plugin-markdown/tree/0.28.0)
-and the MDX project's [Rust parser](https://github.com/mdx-js/mdxjs-rs).
+with [markdown-rs](https://github.com/wooorm/markdown-rs) for MDX boundaries
+and the official [TypeScript formatter](https://github.com/dprint/dprint-plugin-typescript)
+for embedded TypeScript/TSX.
 
-It formats ordinary Markdown while preserving MDX JavaScript and JSX. For example,
+It formats ordinary Markdown and embedded code while preserving MDX semantics. For example,
 `<svg width={160} />` retains a numeric expression prop; it never becomes
 `<svg width="{160}" />`.
 
@@ -40,22 +42,27 @@ to the locally built plugin.
 
 - Markdown uses the upstream plugin's configuration and defaults, under the
   `mdx` configuration key. See the included `schema.json` for supported options.
-- JSX elements, JavaScript expressions, imports, exports, and YAML/TOML
-  frontmatter are preserved verbatim. A top-level block containing MDX is
-  preserved as a whole, including Markdown inside JSX, paragraphs with inline
-  expressions, and lists or block quotes containing JSX. This first version does
-  not reformat JavaScript or JSX itself.
+- Imports, exports, expressions, expression props, and spreads are parsed as
+  TypeScript/TSX and formatted by a bundled dprint TypeScript dependency.
+  Type imports, import attributes, `as`, and `satisfies` are supported. No peer
+  TypeScript formatter is required. Embedded code uses dprint TypeScript defaults
+  and the MDX `lineWidth` setting.
+- Code starts only at MDX's import/export and brace-expression boundaries. Bare
+  top-level declarations remain prose. This TypeScript extension is Galley's
+  dialect, not part of standard MDX.
+- JSX tag layout, direct Markdown children, YAML/TOML frontmatter, and separators
+  around MDX blocks retain their source layout. Noncontiguous code slices inside
+  Markdown list/quote prefixes are preserved to avoid damaging those prefixes.
 - GitHub-flavored Markdown is supported, including tables and task lists.
 - Fenced code can be formatted by other plugins registered with the dprint host.
-  Set `codeBlock.skipFormat` to `true` to preserve it instead. JavaScript **inside
-  MDX syntax** is always preserved.
+  Set `codeBlock.skipFormat` to `true` to preserve it instead. Executable MDX expressions use the bundled formatter.
 - The complete result is reparsed as MDX. If Markdown formatting would produce
   invalid MDX or change its syntax tree, the original document is returned.
   Source positions, soft line wrapping, and intentionally formatted fenced code
-  contents are excluded from this comparison. This conservative check can leave
+  contents are excluded; embedded TypeScript is compared in canonical formatter form. This conservative check can leave
   some otherwise formattable documents unchanged.
 - Separators next to preserved blocks retain their original line endings and
-  blank lines. Formatting settings affect the Markdown portions only.
+  blank lines. Markdown configuration applies to the Markdown portions.
 - Invalid MDX produces an error. Range formatting currently returns the original
   text; use whole-document formatting.
 
