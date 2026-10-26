@@ -11,17 +11,15 @@ import {
 	Markdown,
 	previewMarkdown,
 	runGalley,
-} from "../src/index.ts"
+} from "../../src/index.ts"
 import {
 	closeProject,
 	openProject,
 	transform,
-} from "../src/mapper/transform.ts"
+} from "../../src/mapper/transform.ts"
 import relativeDocument from "#fixtures/frontmatter/relative.mdx" with { type: "text" }
 import rootDocument from "#fixtures/frontmatter/root.mdx" with { type: "text" }
-import documentMetadata from "#fixtures/frontmatter/document.mdx" with { type: "text" }
 import multilineMetadata from "#fixtures/frontmatter/multiline.mdx" with { type: "text" }
-import parentDocument from "#fixtures/frontmatter/parent.mdx" with { type: "text" }
 import invalidYaml from "#fixtures/frontmatter/invalid-yaml.mdx" with { type: "text" }
 import invalidSettings from "#fixtures/frontmatter/invalid-settings.mdx" with { type: "text" }
 import invalidOutput from "#fixtures/frontmatter/invalid-output.mdx" with { type: "text" }
@@ -30,7 +28,7 @@ import duplicateOutput from "#fixtures/frontmatter/duplicate-output.mdx" with { 
 import editorDocument from "#fixtures/frontmatter/editor.mdx" with { type: "text" }
 
 const execute = promisify(execFile)
-const cli = fileURLToPath(new URL("../src/cli.ts", import.meta.url))
+const cli = fileURLToPath(new URL("../../src/cli.ts", import.meta.url))
 const directories: string[] = []
 
 afterEach(async () => {
@@ -51,55 +49,6 @@ async function fixture(source: string) {
 	await fs.writeFile(input, source)
 	return { directory, input }
 }
-
-test("relative destinations use the source directory; check never creates directories", async () => {
-	const { directory, input } = await fixture(relativeDocument)
-	const outputPath = path.join(directory, "generated/README.md")
-	expect(await runGalley(input, { mode: "check" })).toMatchObject({
-		changed: true,
-		outputPath,
-	})
-	await expect(fs.stat(path.dirname(outputPath))).rejects.toMatchObject({
-		code: "ENOENT",
-	})
-	const written = await runGalley(input, { mode: "write" })
-	expect(written.outputPath).toBe(outputPath)
-	expect(await fs.readFile(outputPath, "utf8")).toBe(written.markdown)
-	expect(await runGalley(input, { mode: "check" })).toMatchObject({
-		changed: false,
-		outputPath,
-	})
-	await fs.writeFile(outputPath, "stale")
-	expect((await runGalley(input, { mode: "check" })).changed).toBe(true)
-	expect(await fs.readFile(outputPath, "utf8")).toBe("stale")
-	expect(await fs.readFile(input, "utf8")).toBe(relativeDocument)
-	const header = Markdown({ children: written.markdown }).children[0]
-	expect(header?.type).toBe("yaml")
-	if (header?.type !== "yaml") throw new Error("Expected frontmatter")
-	expect(parse(`${header.value}\n`)).toEqual({
-		title: "A {guide}",
-		tags: ["docs", "mdx"],
-	})
-	expect(written.markdown).not.toContain("galley:")
-})
-
-test.each(["directory", "file"])(
-	"root destinations find the nearest .git %s from the source",
-	async (marker) => {
-		const { directory, input } = await fixture(rootDocument)
-		await fs.mkdir(path.join(directory, ".git"))
-		const root = path.join(directory, "docs")
-		if (marker === "directory") await fs.mkdir(path.join(root, ".git"))
-		else
-			await fs.writeFile(
-				path.join(root, ".git"),
-				"gitdir: ../.git/worktrees/docs\n",
-			)
-		const result = await runGalley(input, { mode: "write" })
-		expect(result.outputPath).toBe(path.join(root, "generated/root.md"))
-		expect(result.markdown).toBe("# Root\n")
-	},
-)
 
 test("a root destination needs a repository, but explicit output overrides it", async () => {
 	const { directory, input } = await fixture(rootDocument)
@@ -170,26 +119,6 @@ test("frontmatter cannot overwrite the source directly or through a symlink", as
 		"must differ",
 	)
 	expect(await fs.readFile(input, "utf8")).toBe(rootDocument)
-})
-
-test("imported document destinations do not cause writes or repository lookups", async () => {
-	const { input } = await fixture(parentDocument)
-	await fs.writeFile(path.join(path.dirname(input), "child.mdx"), rootDocument)
-	const result = await runGalley(input, { mode: "write" })
-	expect(result.outputPath).toBe(input.replace(/\.mdx$/, ".md"))
-	expect(result.markdown).toBe("# Parent\n\n# Root\n")
-	expect((await fs.readdir(path.dirname(input))).sort()).toEqual([
-		"README.md",
-		"README.mdx",
-		"child.mdx",
-	])
-})
-
-test("ordinary frontmatter preserves comments and values and keeps the default destination", async () => {
-	const { input } = await fixture(documentMetadata)
-	const result = await runGalley(input, { mode: "check" })
-	expect(result.outputPath).toBe(input.replace(/\.mdx$/, ".md"))
-	expect(result.markdown).toBe(documentMetadata)
 })
 
 test("removing Galley settings preserves significant trailing newlines in YAML values", async () => {

@@ -24,6 +24,11 @@
 	],
 	"packageRules": [
 		{
+			"description": "Review compatibility supervisor upgrades separately",
+			"matchPackageNames": ["breakage", "@breakage/changesets"],
+			"automerge": false
+		},
+		{
 			"matchPackageNames": ["jdx/mise"],
 			"matchDatasources": ["github-releases"],
 			"ignoreUnstable": true
@@ -94,6 +99,8 @@
 				"npm"
 			],
 			"matchPackageNames": [
+				"breakage",
+				"@breakage/changesets",
 				"comline",
 				"treetrunks"
 			],

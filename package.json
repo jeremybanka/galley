@@ -16,7 +16,10 @@
 		"staged": "vp staged",
 		"test": "vp run -r test",
 		"test:watch": "vp run -r --parallel --no-cache test:watch",
-		"workflows:update": "./scripts/update-workflows.node.ts"
+		"workflows:update": "./scripts/update-workflows.node.ts",
+		"test:public": "pnpm --filter galley.md run test:public",
+		"test:private": "pnpm --filter galley.md run test:private",
+		"test:breakage": "vp run -r --no-cache test:breakage"
 	},
 	"devDependencies": {
 		"@changesets/cli": "3.0.3",

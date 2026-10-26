@@ -1,9 +1,17 @@
 import { fileURLToPath } from "node:url"
 import { defineConfig } from "vite-plus"
-import { textFixtures } from "./__tests__/text-fixtures.ts"
+import { textFixtures } from "./__tests__/public/text-fixtures.ts"
 
 export default defineConfig({
 	plugins: [textFixtures()],
+	resolve: {
+		alias: [
+			{
+				find: /^galley\.md$/,
+				replacement: fileURLToPath(new URL("./src/index.ts", import.meta.url)),
+			},
+		],
+	},
 	pack: [
 		{
 			clean: true,
@@ -48,5 +56,10 @@ export default defineConfig({
 			sourcemap: true,
 		},
 	],
-	test: { include: ["__tests__/**/*.test.ts"] },
+	test: {
+		include: ["__tests__/{private,public}/**/*.test.ts"],
+		env: {
+			GALLEY_TEST_CLI: fileURLToPath(new URL("./src/cli.ts", import.meta.url)),
+		},
+	},
 })

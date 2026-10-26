@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url"
 import { build } from "esbuild"
 import type { Plugin } from "vite-plus"
 
-const directory = fileURLToPath(new URL("./fixtures/", import.meta.url))
+const directory = fileURLToPath(new URL("../fixtures/", import.meta.url))
 
 /** Resolve attributes before Vite's development import analysis drops them. */
 export function textFixtures(): Plugin {

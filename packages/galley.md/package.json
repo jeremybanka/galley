@@ -49,7 +49,11 @@
 		"build": "vp pack",
 		"test": "vp test",
 		"test:watch": "vp test watch",
-		"prepare": "pnpm build"
+		"prepare": "pnpm build",
+		"test:public": "vp test __tests__/public",
+		"test:private": "vp test __tests__/private",
+		"test:breakage": "pnpm run test:breakage:prelude && breakage breakage.config.ts --verbose --baseline-file .breakage/baseline.json",
+		"test:breakage:prelude": "breakage prelude --out .breakage/baseline.json"
 	},
 	"dependencies": {
 		"@mdx-js/mdx": "3.1.1",
@@ -74,8 +78,10 @@
 		"yaml": "2.9.1"
 	},
 	"devDependencies": {
+		"@breakage/changesets": "0.1.0",
 		"@types/node": "26.6.5",
-		"@types/vscode": "1.140.0"
+		"@types/vscode": "1.140.0",
+		"breakage": "0.10.0"
 	},
 	"packageManager": "pnpm@12.15.0",
 	"engines": {

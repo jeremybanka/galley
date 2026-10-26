@@ -9,3 +9,4 @@ artifacts/
 .mise.local.toml
 .env
 *.log
+.breakage/

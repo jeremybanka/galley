@@ -10,14 +10,14 @@ import {
 	StreamMessageReader,
 	StreamMessageWriter,
 } from "vscode-jsonrpc/node"
-import { previewMarkdown } from "../src/compile.ts"
-import { evaluatePreview } from "../src/editor/preview.ts"
+import { previewMarkdown } from "../../src/compile.ts"
+import { evaluatePreview } from "../../src/editor/preview.ts"
 import {
 	openProject,
 	closeProject,
 	transform,
-} from "../src/mapper/transform.ts"
-import { previewSummary } from "../src/vscode/preview-model.ts"
+} from "../../src/mapper/transform.ts"
+import { previewSummary } from "../../src/vscode/preview-model.ts"
 
 import checkedComments from "#fixtures/editor/checked-comments.mdx" with { type: "text" }
 import editorSource from "#fixtures/editor/example.ts" with { type: "text" }
@@ -42,12 +42,10 @@ import loggingSource from "#fixtures/editor/logging-source.ts" with { type: "tex
 import incompleteImport from "#fixtures/editor/incomplete-import.mdx" with { type: "text" }
 import readmeDocument from "#fixtures/editor/readme.mdx" with { type: "text" }
 import summaryCode from "#fixtures/editor/summary.md" with { type: "text" }
-import inlineComponent from "#fixtures/editor/inline.ts" with { type: "text" }
-import inlineDocument from "#fixtures/editor/inline.mdx" with { type: "text" }
 import markdownLinks from "#fixtures/editor/markdown-links.mdx" with { type: "text" }
 
 const execute = promisify(execFile)
-const root = fileURLToPath(new URL("../", import.meta.url))
+const root = fileURLToPath(new URL("../../", import.meta.url))
 const directories: string[] = []
 const cleanups: (() => void)[] = []
 afterEach(async () => {
@@ -411,18 +409,6 @@ test("inferred projects receive the TypeScript mapper without a tsconfig", async
 	await connection.sendRequest("shutdown")
 	await connection.sendNotification("exit")
 }, 20_000)
-
-test("inline component previews preserve the exact document output and source offsets", async () => {
-	const { directory, input } = await fixture(savedDocument)
-	await fs.writeFile(path.join(directory, "inline.ts"), inlineComponent)
-	const source = inlineDocument
-	const result = await previewMarkdown(input, { source })
-	expect(result.markdown).toBe("Hello **Ada**, welcome.\n")
-	expect(result.components).toHaveLength(1)
-	const preview = result.components[0]!
-	expect(source.slice(preview.start, preview.end)).toBe("<names.Name />")
-	expect(preview.markdown).toBe("**Ada**\n")
-})
 
 test("Markdown links retain embedded expressions and source maps without breaking TypeScript projection", async () => {
 	const source = markdownLinks

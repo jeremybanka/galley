@@ -11,7 +11,8 @@
 		"module": "NodeNext",
 		"moduleResolution": "NodeNext",
 		"paths": {
-			"#fixtures/*": ["./packages/galley.md/__tests__/fixture-text.d.ts"]
+			"#fixtures/*": ["./packages/galley.md/__tests__/fixture-text.d.ts"],
+			"galley.md": ["./packages/galley.md/src/index.ts"]
 		},
 		"noEmit": true,
 		"noUncheckedIndexedAccess": true,
