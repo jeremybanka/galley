@@ -1,5 +1,11 @@
 # galley.md
 
+## 0.1.6
+
+### Patch Changes
+
+- bd81d3c: Establish a consumer behavior test baseline for release compatibility checks with Breakage.
+
 ## 0.1.5
 
 ### Patch Changes
