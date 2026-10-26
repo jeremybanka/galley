@@ -3,8 +3,7 @@
 	"include": [
 		"src",
 		"__tests__",
-		"*.config.ts",
-		"scripts"
+		"*.config.ts"
 	],
 	"exclude": ["__tests__/fixtures"],
 	"compilerOptions": {
