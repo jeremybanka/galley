@@ -77,14 +77,10 @@
 		"yaml": "2.9.1"
 	},
 	"devDependencies": {
-		"@changesets/assemble-release-plan": "7.0.0",
-		"@changesets/config": "4.0.1",
-		"@changesets/pre": "3.0.0",
-		"@changesets/read": "1.0.1",
-		"@manypkg/get-packages": "3.1.0",
+		"@breakage/changesets": "0.1.0",
 		"@types/node": "26.6.5",
 		"@types/vscode": "1.140.0",
-		"breakage": "0.9.0"
+		"breakage": "0.10.0"
 	},
 	"packageManager": "pnpm@12.15.0",
 	"engines": {

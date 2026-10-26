@@ -284,21 +284,9 @@ importers:
         specifier: 2.9.1
         version: 2.9.1
     devDependencies:
-      '@changesets/assemble-release-plan':
-        specifier: 7.0.0
-        version: 7.0.0
-      '@changesets/config':
-        specifier: 4.0.1
-        version: 4.0.1
-      '@changesets/pre':
-        specifier: 3.0.0
-        version: 3.0.0
-      '@changesets/read':
-        specifier: 1.0.1
-        version: 1.0.1
-      '@manypkg/get-packages':
-        specifier: 3.1.0
-        version: 3.1.0
+      '@breakage/changesets':
+        specifier: 0.1.0
+        version: 0.1.0(breakage@0.10.0)
       '@types/node':
         specifier: 26.6.5
         version: 26.6.5
@@ -306,8 +294,8 @@ importers:
         specifier: 1.140.0
         version: 1.140.0
       breakage:
-        specifier: 0.9.0
-        version: 0.9.0(@changesets/assemble-release-plan@7.0.0)(@changesets/config@4.0.1)(@changesets/pre@3.0.0)(@changesets/read@1.0.1)(@manypkg/get-packages@3.1.0)
+        specifier: 0.10.0
+        version: 0.10.0
 
 packages:
 
@@ -383,6 +371,11 @@ packages:
 
   '@blazediff/core@1.10.0':
     resolution: {integrity: sha512-AOQff0zgR7cGsZL+4E7hVkmujoPUpm0J9xzWGWZj5wCjd3gmxESXAPfKyuzs93VdpQNFhHlBhfOjrcZ+XTERtQ==}
+
+  '@breakage/changesets@0.1.0':
+    resolution: {integrity: sha512-6PS6IdZlP8l64Bor33G/xWkFshJdNDJu3AdjWVshwVPbLmIr1XsjuGmK6hEPxEjrnFxDH3E4XjWckjSOYKVR+g==}
+    peerDependencies:
+      breakage: ^0.10.0
 
   '@changesets/apply-release-plan@8.1.1':
     resolution: {integrity: sha512-nk2Hbq3M9NeHMdaIRBDvawKrQJzXB9sGyBUE5yWnIKtvdcNCPj75zBekJYr0gTT2ecJH3eFeTrc8eisPImcv0Q==}
@@ -1850,26 +1843,9 @@ packages:
     resolution: {integrity: sha512-YovQ3rzhaLMIrDjNDMkNS01tea93qhEhG5xy8f6+R0l+dw3Ki+5sCoIoI942iuLZTHWogWktgwVDhU09iNEimQ==}
     engines: {node: 20 || >=22}
 
-  breakage@0.9.0:
-    resolution: {integrity: sha512-XtYI3NBP6Jvlxr63ZzXWOcF4ZJiIPFww4vWlYliJc624R/yLiKOQUj4eTJtNeexUShrnoO65bFGp/khO1QP/Kg==}
+  breakage@0.10.0:
+    resolution: {integrity: sha512-NdrlShsiuiOadVTkD1EPscKxOgnX0/3vBMHww1Jm2YNATYXCpF+vySY/W3vZ/G020brOd3ZPbySt9tEcjJS9/A==}
     hasBin: true
-    peerDependencies:
-      '@changesets/assemble-release-plan': ^7.0.0
-      '@changesets/config': ^4.0.1
-      '@changesets/pre': ^3.0.0
-      '@changesets/read': ^1.0.1
-      '@manypkg/get-packages': ^3.1.0
-    peerDependenciesMeta:
-      '@changesets/assemble-release-plan':
-        optional: true
-      '@changesets/config':
-        optional: true
-      '@changesets/pre':
-        optional: true
-      '@changesets/read':
-        optional: true
-      '@manypkg/get-packages':
-        optional: true
 
   buffer-crc32@0.2.13:
     resolution: {integrity: sha512-VO9Ht/+p3SN7SKWqcrgEzjGbRSJYTx+Q1pTQC0wrWqHx0vpJraQ6GtHx8tvcg1rlK1byhU5gccxgOgj7B0TDkQ==}
@@ -3203,6 +3179,15 @@ snapshots:
 
   '@blazediff/core@1.10.0': {}
 
+  '@breakage/changesets@0.1.0(breakage@0.10.0)':
+    dependencies:
+      '@changesets/assemble-release-plan': 7.0.0
+      '@changesets/config': 4.0.1
+      '@changesets/pre': 3.0.0
+      '@changesets/read': 1.0.1
+      '@manypkg/get-packages': 3.1.0
+      breakage: 0.10.0
+
   '@changesets/apply-release-plan@8.1.1':
     dependencies:
       '@changesets/config': 4.0.1
@@ -4398,7 +4383,7 @@ snapshots:
     dependencies:
       balanced-match: 4.0.4
 
-  breakage@0.9.0(@changesets/assemble-release-plan@7.0.0)(@changesets/config@4.0.1)(@changesets/pre@3.0.0)(@changesets/read@1.0.1)(@manypkg/get-packages@3.1.0):
+  breakage@0.10.0:
     dependencies:
       arktype: 2.2.9
       comline: 0.9.3(arktype@2.2.9)
@@ -4406,12 +4391,6 @@ snapshots:
       semver: 7.8.5
       simple-git: 4.0.2
       takua: 0.2.3
-    optionalDependencies:
-      '@changesets/assemble-release-plan': 7.0.0
-      '@changesets/config': 4.0.1
-      '@changesets/pre': 3.0.0
-      '@changesets/read': 1.0.1
-      '@manypkg/get-packages': 3.1.0
     transitivePeerDependencies:
       - supports-color
       - zod
