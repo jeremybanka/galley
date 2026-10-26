@@ -1,0 +1,93 @@
+~~ lineWidth: 40, textWrap: always ~~
+!! should format the headers !!
+# H1
+
+## H2
+
+### H3
+
+#### H4
+
+First Header
+============
+
+Second Header
+-------------
+
+[expect]
+# H1
+
+## H2
+
+### H3
+
+#### H4
+
+# First Header
+
+## Second Header
+
+!! should format links in headers !!
+
+# Text [  Some text  ](  Other   text  ) other
+
+[expect]
+# Text [ Some text ]( Other text ) other
+
+!! should keep a header on a single line even when it goes over the line width !!
+# Testing this out by going over the line width
+
+Verifying that text is wrapping in other places.
+
+[expect]
+# Testing this out by going over the line width
+
+Verifying that text is wrapping in other
+places.
+
+!! should remove consecutive spaces in the header text !!
+# Here   is      a           test
+
+[expect]
+# Here is a test
+
+!! should not leave a trailing space for an empty heading !!
+#
+
+##
+
+######
+
+> #
+
+- #
+
+[expect]
+#
+
+##
+
+######
+
+> #
+
+- #
+
+!! should escape the hashes a heading's text ends with !!
+# foo ### 	###
+
+[expect]
+# foo \###
+
+!! should escape the hashes a setext heading's text ends with !!
+foo ###
+===
+
+[expect]
+# foo \###
+
+!! should read the hashes that close a heading as the closing sequence they are !!
+# foo ###
+
+[expect]
+# foo

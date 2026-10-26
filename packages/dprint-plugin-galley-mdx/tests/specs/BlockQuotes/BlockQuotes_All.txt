@@ -1,0 +1,107 @@
+~~ lineWidth: 40 ~~
+!! should format !!
+> First line.
+> Second line.
+
+[expect]
+> First line.
+> Second line.
+
+!! should not wrap a line when it exceeds the line width and text wrapping is to maintain !!
+> First line that goes very very very long.
+
+[expect]
+> First line that goes very very very long.
+
+!! should keep blank lines in the middle !!
+>
+> First
+>
+> Second
+>
+>
+> Third
+>
+>
+
+[expect]
+> First
+>
+> Second
+>
+> Third
+
+!! should keep the markers of a line break within a link's text !!
+> [some words here that are quite long
+> and more text](a.png)
+
+[expect]
+> [some words here that are quite long
+> and more text](a.png)
+
+!! should keep the markers of a line break within a link's text when nested !!
+> > [some words here that are quite long
+> > and more text](a.png)
+
+[expect]
+>> [some words here that are quite long
+>> and more text](a.png)
+
+!! should keep the markers of a line break within a link's text in a list !!
+> - [some words here that are quite long
+>   and more text](a.png)
+
+[expect]
+> - [some words here that are quite long
+>   and more text](a.png)
+
+!! should keep a line a tab begins within the quote it is in !!
+> <a
+>	b>
+
+[expect]
+> <a
+> 	b>
+
+!! should keep indented code within nested block quotes !!
+>>     a
+
+[expect]
+>>     a
+
+!! should mark a lazy line !!
+> foo
+bar
+
+[expect]
+> foo
+> bar
+
+!! should drop the empty lines at the edges of a quote !!
+>
+> a
+>
+
+[expect]
+> a
+
+!! should keep an empty quote !!
+>
+
+[expect]
+>
+
+!! should read an underline within a quote as a heading !!
+> a
+> ===
+
+[expect]
+> # a
+
+!! should mark a lazy line of a quote within a list item !!
+- > a
+b
+
+[expect]
+- > a
+  > b

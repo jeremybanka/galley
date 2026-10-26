@@ -1,0 +1,33 @@
+~~ textWrap: always, lineWidth: 40 ~~
+!! should format !!
+This should wrap. Testing testing testing.
+
+$$
+\begin{align}
+  y = mx + b \\
+  xy = 3x^2 - 7
+\end{align}
+$$
+
+[expect]
+This should wrap. Testing testing
+testing.
+
+$$
+\begin{align}
+  y = mx + b \\
+  xy = 3x^2 - 7
+\end{align}
+$$
+
+!! should keep display math written within a paragraph in it !!
+aaa $$y$$ bbb
+
+aaa
+$$y$$
+bbb
+
+[expect]
+aaa $$y$$ bbb
+
+aaa $$y$$ bbb

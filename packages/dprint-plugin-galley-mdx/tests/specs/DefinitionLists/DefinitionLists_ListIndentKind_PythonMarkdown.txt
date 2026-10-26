@@ -1,0 +1,12 @@
+~~ list.indentKind: pythonMarkdown ~~
+!! should indent a definition by 4 spaces !!
+Term
+: Definition
+
+  Second paragraph.
+
+[expect]
+Term
+: Definition
+
+    Second paragraph.

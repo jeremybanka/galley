@@ -1,0 +1,200 @@
+~~ lineWidth: 40, heading.kind: setext ~~
+!! should format the headers !!
+# H1
+
+## H2
+
+### H3
+
+#### H4
+
+First Header
+============
+
+Second Header
+-------------
+
+[expect]
+H1
+==
+
+H2
+--
+
+### H3
+
+#### H4
+
+First Header
+============
+
+Second Header
+-------------
+
+!! should handle level 2 multi-line heading !!
+This Header
+spans
+multiple lines
+----------------------------------------
+
+
+[expect]
+This Header
+spans
+multiple lines
+--------------
+
+!! should handle level 1 multi-line heading !!
+This Header
+spans
+multiple lines
+========================================
+
+
+[expect]
+This Header
+spans
+multiple lines
+==============
+
+!! should keep a line break within a link's text and size the underline to the longest line !!
+Testing [this
+out](/test) testing
+===
+
+[expect]
+Testing [this
+out](/test) testing
+===================
+
+!! should keep a hard break and size the underline to the longest line !!
+Testing a\
+b here
+===
+
+[expect]
+Testing a\
+b here
+==========
+
+!! should use an atx heading when the heading is empty !!
+#
+
+##
+
+# a
+
+#
+
+# b
+
+[expect]
+#
+
+##
+
+a
+=
+
+#
+
+b
+=
+
+!! should use an atx heading for an empty heading in a container !!
+> #
+
+- #
+
+> > #
+
+[^1]: #
+
+term
+
+: #
+
+[expect]
+> #
+
+- #
+
+>> #
+
+[^1]: #
+
+term
+
+: #
+
+!! should use an atx heading when the heading has no visible width !!
+# ​
+
+[expect]
+# ​
+
+!! should underline a heading whose text only looks like whitespace !!
+#  
+
+[expect]
+ 
+=
+
+!! should not leave a trailing space for an empty level 3 or higher heading !!
+###
+
+######
+
+[expect]
+###
+
+######
+
+!! should use an atx heading when the text would start a block of its own !!
+# <!-- c -->
+
+[expect]
+# <!-- c -->
+
+!! should underline a heading by its width rather than its length !!
+# 日本語
+
+## 😀 foo
+
+[expect]
+日本語
+======
+
+😀 foo
+------
+
+!! should underline a heading that starts with what a block would !!
+## = foo
+
+## | a |
+
+## \- foo
+
+[expect]
+= foo
+-----
+
+| a |
+-----
+
+\- foo
+------
+
+!! should keep a heading that could not be underlined as atx !!
+## - foo
+
+## 2. foo
+
+## [a]: b
+
+[expect]
+## - foo
+
+## 2. foo
+
+## [a]: b

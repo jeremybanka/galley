@@ -1,0 +1,244 @@
+~~ lineWidth: 40 ~~
+!! should format an inline image !!
+![  testing  ](  https://dprint.dev/image.png  )
+
+[expect]
+![testing](https://dprint.dev/image.png)
+
+!! should format an inline image with a title !!
+![  testing  ](  https://dprint.dev/image.png  "Dprint homepage"  )
+
+[expect]
+![testing](https://dprint.dev/image.png "Dprint homepage")
+
+!! should format a reference link !!
+![testing][Some reference]
+![  testing ][Other reference]
+
+[Some reference]:    https://dprint.dev/image.png
+[Other reference]:   https://dprint.dev/image.png    "Testing"
+
+testing
+
+[expect]
+![testing][Some reference]
+![testing][Other reference]
+
+[Some reference]: https://dprint.dev/image.png
+[Other reference]: https://dprint.dev/image.png "Testing"
+
+testing
+
+!! should format a collapsed reference image !!
+![testing][]
+![  testing ][]
+
+[testing]: https://dprint.dev/image.png
+
+[expect]
+![testing][]
+![testing][]
+
+[testing]: https://dprint.dev/image.png
+
+!! should format a shortcut reference image !!
+![testing]
+![  testing ]
+
+[testing]: https://dprint.dev/image.png
+
+[expect]
+![testing]
+![testing]
+
+[testing]: https://dprint.dev/image.png
+
+!! should remove unnecessary pointy brackets from a destination !!
+![img](<foo>)
+![img](<>)
+
+[expect]
+![img](foo)
+![img]()
+
+!! should keep pointy brackets a destination needs !!
+![img](<foo bar>)
+![img](<foo bar> "title")
+
+[expect]
+![img](<foo bar>)
+![img](<foo bar> "title")
+
+!! should enclose a destination in pointy brackets when it needs them !!
+![img](foo\(bar)
+![img](a>b\(c)
+
+[expect]
+![img](<foo(bar>)
+![img](<a\>b(c>)
+
+!! should handle parentheses in a destination !!
+![img](a(b)c)
+![img](<a(b>)
+![img](<a)b>)
+![img](a(b)c "title")
+
+[expect]
+![img](a(b)c)
+![img](<a(b>)
+![img](<a)b>)
+![img](a(b)c "title")
+
+!! should not treat a pointy bracket after the destination start as enclosing it !!
+![t](\a<b)c>)
+![t](a<b)
+
+[expect]
+![t](\a<b)c>)
+![t](a<b)
+
+!! should handle a destination that starts with a parenthesis !!
+![t]((a)b)
+![t](())
+![t]((a) "title")
+
+[expect]
+![t]((a)b)
+![t](())
+![t]((a) "title")
+
+!! should keep a line break in alt text !!
+![some
+text](https://dprint.dev/image.png)
+
+![some
+text][testing]
+
+![some
+text]
+
+[testing]: https://dprint.dev/image.png
+
+[expect]
+![some
+text](https://dprint.dev/image.png)
+
+![some
+text][testing]
+
+![some
+text]
+
+[testing]: https://dprint.dev/image.png
+
+!! should keep a line break in a title !!
+![img](https://dprint.dev/image.png "some
+title")
+
+[expect]
+![img](https://dprint.dev/image.png "some
+title")
+
+!! should keep a line break in a reference label !!
+![img][some
+reference]
+
+[some reference]: https://dprint.dev/image.png
+
+[expect]
+![img][some
+reference]
+
+[some reference]: https://dprint.dev/image.png
+
+!! should keep the indentation of a line break in alt text out of the text !!
+- ![some
+  text]
+
+[some text]: https://dprint.dev/image.png
+
+[expect]
+- ![some
+  text]
+
+[some text]: https://dprint.dev/image.png
+
+!! should keep a line break in alt text within a link !!
+[![some
+text]](https://dprint.dev)
+
+[some text]: https://dprint.dev/image.png
+
+[expect]
+[![some
+text]](https://dprint.dev)
+
+[some text]: https://dprint.dev/image.png
+
+!! should keep the block quote markers of a line break in alt text !!
+> ![some
+> text](https://dprint.dev/image.png)
+
+> > ![some
+> > text][testing]
+
+[testing]: https://dprint.dev/image.png
+
+[expect]
+> ![some
+> text](https://dprint.dev/image.png)
+
+>> ![some
+>> text][testing]
+
+[testing]: https://dprint.dev/image.png
+
+!! should move alt text onto a single line within a heading !!
+![some
+text](https://dprint.dev/image.png)
+===
+
+[expect]
+# ![some text](https://dprint.dev/image.png)
+
+!! should keep a reference label resolvable within a heading !!
+![img][some
+reference]
+===
+
+[some reference]: https://dprint.dev/image.png
+
+[expect]
+# ![img][some reference]
+
+[some reference]: https://dprint.dev/image.png
+
+!! should keep a tab in alt text, a title and a reference label !!
+![a	b](https://dprint.dev/image.png "c	d")
+
+![a	b][e	f]
+
+[e f]: https://dprint.dev/image.png
+
+[expect]
+![a	b](https://dprint.dev/image.png "c	d")
+
+![a	b][e	f]
+
+[e f]: https://dprint.dev/image.png
+
+!! should not separate adjacent images !!
+![a](x.png)![b](y.png)
+
+![a](x.png) ![b](y.png)
+
+[expect]
+![a](x.png)![b](y.png)
+
+![a](x.png) ![b](y.png)
+
+!! should not separate an image from adjacent code !!
+`a`![b](y.png)`c`
+
+[expect]
+`a`![b](y.png)`c`
