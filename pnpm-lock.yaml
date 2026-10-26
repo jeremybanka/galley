@@ -185,8 +185,8 @@ importers:
         specifier: 0.25.2
         version: 0.25.2
       '@dprint/markdown':
-        specifier: 0.27.1
-        version: 0.27.1
+        specifier: 0.28.0
+        version: 0.28.0
       '@dprint/oxc':
         specifier: 0.47.0
         version: 0.47.0
@@ -223,6 +223,12 @@ importers:
 
   packages/galley.md:
     dependencies:
+      '@dprint/formatter':
+        specifier: 0.6.0
+        version: 0.6.0
+      '@dprint/markdown':
+        specifier: 0.28.0
+        version: 0.28.0
       '@mdx-js/mdx':
         specifier: 3.1.1
         version: 3.1.1
@@ -700,6 +706,9 @@ packages:
     cpu: [x64]
     os: [darwin]
 
+  '@dprint/formatter@0.6.0':
+    resolution: {integrity: sha512-otnYh2jmGWbekYkAd4xiF416lpdZwNCbhkDrLQcAanvvutp0PhTNSJrwJ4DKBEu6xtP36NUX70t9YQw3oC/ONg==}
+
   '@dprint/freebsd-arm64@0.64.3':
     resolution: {integrity: sha512-fJt4LMMxjNir4ingKZQ1sRSnqaTpAGR/WOmK+1AQDS4gg1cGI73Vqbe4Cgb3NZ5/0TwewNbAi7koGQXlAUNTOQ==}
     cpu: [arm64]
@@ -779,8 +788,8 @@ packages:
     os: [linux]
     libc: [musl]
 
-  '@dprint/markdown@0.27.1':
-    resolution: {integrity: sha512-WrWYer/dUHz1u3SaYsvECteaN1/fqxiEyOwwdVAk4XHKO+zjL4yLkFt5ZU1Q6dQVwt6JAscrbzFVW7+Zp8KmHA==}
+  '@dprint/markdown@0.28.0':
+    resolution: {integrity: sha512-JK8RPPd1ie+iTgO10faxk1kbzmulhkQxgf9tZjOiyngLA/6PZWmV+HAgruLL3f+P12P3MPkMRIqIr3/jL9+l/g==}
 
   '@dprint/oxc@0.47.0':
     resolution: {integrity: sha512-Bl3Ag2bK557YtuqY2ZV2rUU0I4VPo4nZ/3UmCv/Qhi+lR8ey3jo1EECdid3WJLOiro1rP7HNuWBO+WSlncUNAQ==}
@@ -3538,6 +3547,8 @@ snapshots:
   '@dprint/darwin-x64@0.64.3':
     optional: true
 
+  '@dprint/formatter@0.6.0': {}
+
   '@dprint/freebsd-arm64@0.64.3':
     optional: true
 
@@ -3579,7 +3590,7 @@ snapshots:
   '@dprint/linux-x64-musl@0.64.3':
     optional: true
 
-  '@dprint/markdown@0.27.1': {}
+  '@dprint/markdown@0.28.0': {}
 
   '@dprint/oxc@0.47.0': {}
 

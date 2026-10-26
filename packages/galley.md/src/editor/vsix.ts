@@ -86,6 +86,7 @@ async function copyRuntimeDependencies(destination: string) {
 	}
 	await copy("typescript")
 	await copy("esbuild")
+	await copy("@dprint/markdown")
 }
 
 export async function buildVsix(
@@ -140,7 +141,7 @@ export async function buildVsix(
 			splitting: true,
 			platform: "node",
 			format: "esm",
-			external: ["esbuild", "typescript"],
+			external: ["esbuild", "typescript", "@dprint/markdown"],
 			target: "node22",
 			metafile: true,
 			banner: {

@@ -43,6 +43,8 @@ The test-only Vite plugin uses esbuild's native import-attribute handling to rea
 
 Fixtures preserve their exact bytes, including leading blank lines, missing final newlines, and intentionally invalid syntax. Formatting, linting, and direct type checking exclude the fixture directory; spelling checks still apply. Keep expected errors and focused output assertions in the test files. Larger expected Markdown documents can live alongside their input fixtures.
 
+Keep the user guide's `dprint-ignore` comments before MDX examples. The Markdown plugin treats embedded MDX as Markdown and can rewrite JSX expressions as literal HTML attribute strings. The rest of the guide remains formatted normally.
+
 To build a VSIX after `pnpm build`, run `node packages/galley.md/dist/cli.mjs vsix build artifacts/editor`. To install it, run `node packages/galley.md/dist/cli.mjs vsix [editor]`.
 
 The workspace associates `.mdx` files with the **galley.md** language. Install the Galley extension using the command above so fixtures use Galley's JSX runtime and import handling in the editor. Fixtures remain excluded from direct project type checking.
