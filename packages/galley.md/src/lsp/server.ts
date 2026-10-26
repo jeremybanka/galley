@@ -99,9 +99,20 @@ editor.onRequest(async (method, rawParams, token) => {
 			...(options.contentMapperContributions ?? []),
 		]
 		const initializationOptions = { ...options, runExternalCode: true }
+		// Galley's client already selects its documents for the static features.
+		// TypeScript's extra mapper registrations would match the same files twice.
+		const capabilities = structuredClone(params.capabilities)
+		for (const capability of Object.values(capabilities.textDocument ?? {})) {
+			if (
+				capability &&
+				typeof capability === "object" &&
+				"dynamicRegistration" in capability
+			)
+				capability.dynamicRegistration = false
+		}
 		const result = await upstream.sendRequest<InitializeResult>(
 			method,
-			{ ...params, initializationOptions },
+			{ ...params, capabilities, initializationOptions },
 			token,
 		)
 		result.capabilities.completionProvider ??= {}

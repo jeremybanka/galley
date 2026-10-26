@@ -246,6 +246,8 @@ Register the mapper in your project's `tsconfig.json`:
 
 Then run TypeScript 7.1's `tsc --runExternalCode`. A configured project needs this registration for the editor too; files outside a configured project receive the mapper from the language server automatically. MDX syntax remains JavaScript and JSX; component implementation files can use TypeScript.
 
+The mapper selects Galley's JSX runtime for MDX even when the project's `jsxImportSource` is unset or points to another runtime. The `jsxImportSource` setting above is needed for your Galley TSX components.
+
 The mapper understands code imports as components, text imports as strings, and ordinary TypeScript imports using their actual exports. Each attributed binding gets its own type projection, so importing one file both normally and with different attributes never changes the original module's types. Source mappings retain UTF-16 offsets for diagnostics and renames, including documents containing emoji.
 
 Plugins can describe the static type and supported attributes of their attributed default imports through mapper options, without executing their esbuild hooks during editing:
