@@ -86,6 +86,7 @@ test.each(["/../escape.md", "/"])(
 	},
 )
 
+// Five CLI processes share this budget, including startup on shared CI runners.
 test("CLI write/check share frontmatter resolution and explicit paths stay relative to cwd", async () => {
 	const { directory, input } = await fixture(rootDocument)
 	await fs.mkdir(path.join(directory, ".git"))
@@ -102,7 +103,7 @@ test("CLI write/check share frontmatter resolution and explicit paths stay relat
 	expect(
 		await fs.readFile(path.join(path.dirname(input), "override.md"), "utf8"),
 	).toBe("# Root\n")
-})
+}, 20_000)
 
 test("frontmatter cannot overwrite the source directly or through a symlink", async () => {
 	const { directory, input } = await fixture(
