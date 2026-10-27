@@ -45,8 +45,12 @@ to the locally built plugin.
 - Imports, exports, expressions, expression props, and spreads are parsed as
   TypeScript/TSX and formatted by a bundled dprint TypeScript dependency.
   Type imports, import attributes, `as`, and `satisfies` are supported. No peer
-  TypeScript formatter is required. Embedded code uses dprint TypeScript defaults
-  and the MDX `lineWidth` setting.
+  TypeScript formatter is required. Embedded code uses the MDX `lineWidth` and
+  an owned dprint TypeScript policy: fit code on one line when possible, use
+  consistent breaks in wrapped binary/conditional expressions and member chains,
+  and always parenthesize arrow parameters. Statement bodies use a fixed placement.
+  Existing line wrapping does not select the layout. Supplier formatting runs to
+  a stable result within one operation, so the next save does not reflow it again.
 - Code starts only at MDX's import/export and brace-expression boundaries. Bare
   top-level declarations remain prose. This TypeScript extension is Galley's
   dialect, not part of standard MDX.

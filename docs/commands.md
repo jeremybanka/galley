@@ -66,7 +66,7 @@ To build a VSIX after `pnpm build`, run `node packages/galley.md/dist/cli.mjs vs
 
 The workspace associates `.mdx` files with the **galley.md** language. Install the Galley extension using the command above so fixtures use Galley's JSX runtime and import handling in the editor. The root `tsconfig.json` registers the Galley content mapper and includes authored MDX; `pnpm check:mdx` enables external mapper execution. Fixtures remain excluded from direct project type checking. Declaration packaging uses `tsconfig.build.json` with no content mappers, since it builds only TypeScript and must not execute the mapper being packaged.
 
-Workspace settings enable dprint formatting on save and recommend the dprint extension. Run `pnpm build:mdx` after installing dependencies to provide its local Wasm plugin. The formatter uses `dprint.json`, including its fixture exclusions. Rebuild and reinstall the VSIX after changing editor or parser code, then reload the VS Code window to load the new bundle.
+Workspace settings enable dprint formatting on save and recommend the dprint extension. Run `pnpm build:mdx` after installing dependencies to provide its local Wasm plugin. The formatter uses `dprint.json`, including its fixture exclusions. Incremental file caching is disabled because rebuilding the local Wasm plugin can change its output without changing its package version; formatting and checks must use the current plugin. Rebuild and reinstall the VSIX after changing editor or parser code, then reload the VS Code window to load the new bundle.
 
 For the initial `0.0.0` npm publication, run `pnpm build`, then `pnpm --filter galley.md publish`. `release:version` applies pending changesets and advances the version.
 

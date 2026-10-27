@@ -1,0 +1,43 @@
+import {
+  first,
+  second,
+} from "./values.ts";
+export const answer = first
+  && second
+  ? "yes"
+  : "no";
+export const names = [
+  "alpha",
+  "beta",
+  "gamma",
+];
+export const settings = {
+  width: 160,
+  height: 90,
+};
+export const choose = (value) => value
+  ? first
+  : second;
+
+<Card result={first
+  && second
+  ? "yes"
+  : "no"} {...{
+  width: 160,
+  height: 90,
+}} />
+
+{names
+  .filter((value) => value.length > 2)
+  .map((value) => value.toUpperCase())
+  .join(
+    ", ",
+  )}
+
+{<Card
+  result={first
+    && second
+    ? "yes"
+    : "no"}
+  width={160}
+/>}

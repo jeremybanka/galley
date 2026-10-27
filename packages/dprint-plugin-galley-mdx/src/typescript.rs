@@ -137,18 +137,39 @@ pub fn parse_expression(value: &str, kind: &MdxExpressionKind) -> MdxSignal {
 }
 
 pub fn format_module(source: &str, width: u32) -> Result<String, FormatError> {
+  use dprint_plugin_typescript::configuration::{SameOrNextLinePosition, UseParentheses};
+  // Choose layout from syntax and width rather than retaining authored wrapping.
+  // Keep this policy shared by module/expression formatting and semantic checks.
   let config = dprint_plugin_typescript::configuration::ConfigurationBuilder::new()
     .line_width(width)
+    .prefer_single_line(true)
+    .binary_expression_line_per_expression(true)
+    .conditional_expression_line_per_expression(true)
+    .member_expression_line_per_expression(true)
+    .arrow_function_use_parentheses(UseParentheses::Force)
+    .single_body_position(SameOrNextLinePosition::SameLine)
     .build();
-  dprint_plugin_typescript::format_text(dprint_plugin_typescript::FormatTextOptions {
-    path: std::path::Path::new("galley.tsx"),
-    extension: None,
-    text: source.into(),
-    config: &config,
-    external_formatter: None,
-  })
-  .map(|output| output.unwrap_or_else(|| source.into()))
-  .map_err(|error| FormatError::Parse(error.to_string()))
+  // Adding parentheses or moving a chain can change the supplier's subsequent
+  // width decisions. Reach its fixed point here, not on the user's next save.
+  let mut current = source.to_string();
+  for _ in 0..8 {
+    let next = dprint_plugin_typescript::format_text(dprint_plugin_typescript::FormatTextOptions {
+      path: std::path::Path::new("galley.tsx"),
+      extension: None,
+      text: current.clone(),
+      config: &config,
+      external_formatter: None,
+    })
+    .map_err(|error| FormatError::Parse(error.to_string()))?;
+    match next {
+      None => return Ok(current),
+      Some(next) if next == current => return Ok(current),
+      Some(next) => current = next,
+    }
+  }
+  Err(FormatError::Parse(
+    "Embedded TypeScript formatting did not stabilize after eight passes.".into(),
+  ))
 }
 
 pub fn format_expression(source: &str, spread: bool, width: u32) -> Result<String, FormatError> {

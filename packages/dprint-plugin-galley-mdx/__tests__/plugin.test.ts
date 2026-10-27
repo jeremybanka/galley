@@ -7,6 +7,9 @@ import { compile, createProcessor } from "@mdx-js/mdx"
 import remarkFrontmatter from "remark-frontmatter"
 import remarkGfm from "remark-gfm"
 import { describe, expect, test } from "vite-plus/test"
+import layoutVariants from "#fixtures/mdx-plugin/layout-variants.mdx" with { type: "text" }
+import layoutCompact from "#fixtures/mdx-plugin/layout-compact.mdx" with { type: "text" }
+import layoutExpanded from "#fixtures/mdx-plugin/layout-expanded.mdx" with { type: "text" }
 import attributes from "#fixtures/mdx-plugin/attributes.mdx" with { type: "text" }
 import boundary from "#fixtures/mdx-plugin/boundary.mdx" with { type: "text" }
 import crlf from "#fixtures/mdx-plugin/crlf.mdx" with { type: "text" }
@@ -201,6 +204,26 @@ describe("MDX WebAssembly plugin", () => {
 		expect(breaks(result)).toBe(breaks(significantWhitespace))
 		expect(format(result)).toBe(result)
 	})
+
+	test.each([40, 80, 120, 200])(
+		"converges equivalent TypeScript layouts at width %i",
+		(lineWidth) => {
+			const config = { lineWidth }
+			const variants = layoutVariants.trim().split(/\n\n+/)
+			const results = variants.map((source) => format(source + "\n", config))
+			expect(new Set(results).size).toBe(1)
+			for (const [index, result] of results.entries()) {
+				expect(format(result, config)).toBe(result)
+				expect(semantics(result)).toEqual(semantics(variants[index]!))
+			}
+			const compact = format(layoutCompact, config)
+			const expanded = format(layoutExpanded, config)
+			expect(expanded).toBe(compact)
+			expect(format(compact, config)).toBe(compact)
+			expect(semantics(compact)).toEqual(semantics(layoutCompact))
+			expect(semantics(expanded)).toEqual(semantics(layoutExpanded))
+		},
+	)
 
 	test("supports MDX ignore comments", () => {
 		const result = format(ignore)
