@@ -68,7 +68,7 @@ impl SyncPluginHandler<Configuration> for MdxPluginHandler {
       name: name.clone(),
       version: version.clone(),
       config_key: "mdx".to_string(),
-      help_url: "https://github.com/jeremybanka/galley/tree/main/packages/dprint-plugin-galley-mdx".to_string(),
+      help_url: "https://github.com/jeremybanka/galley/tree/main/packages/dprint-plugin-mdx".to_string(),
       config_schema_url: format!("https://unpkg.com/{}@{}/schema.json", name, version),
       update_url: None,
     }

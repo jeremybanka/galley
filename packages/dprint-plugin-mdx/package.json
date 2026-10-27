@@ -8,7 +8,7 @@
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/jeremybanka/galley.git",
-		"directory": "packages/dprint-plugin-galley-mdx"
+		"directory": "packages/dprint-plugin-mdx"
 	},
 	"license": "MPL-2.0 AND MIT",
 	"author": "Jeremy Banka",

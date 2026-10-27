@@ -34,8 +34,8 @@
 		"**/node_modules/**",
 		"**/projects/**",
 		"**/target/**",
-		"packages/dprint-plugin-galley-mdx/tests/**",
-		"packages/dprint-plugin-galley-mdx/source/**"
+		"packages/dprint-plugin-mdx/tests/**",
+		"packages/dprint-plugin-mdx/source/**"
 	],
 	"oxc": {
 		"associations": [
@@ -76,7 +76,7 @@
 		"./node_modules/dprint-plugin-malva/plugin.wasm",
 		"./node_modules/@dprint/toml/plugin.wasm",
 		"./node_modules/dprint-plugin-yaml/plugin.wasm",
-		"./packages/dprint-plugin-galley-mdx/plugin.wasm"
+		"./packages/dprint-plugin-mdx/plugin.wasm"
 	],
 	"mdx": {
 		"associations": [

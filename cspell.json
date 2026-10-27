@@ -5,12 +5,12 @@
 		"pnpm-lock.yaml",
 		"Cargo.lock",
 		"**/target/**",
-		"packages/dprint-plugin-galley-mdx/src/**",
-		"packages/dprint-plugin-galley-mdx/tests/**",
-		"packages/dprint-plugin-galley-mdx/source/**",
-		"packages/dprint-plugin-galley-mdx/schema.json",
-		"packages/dprint-plugin-galley-mdx/DEPENDENCY_NOTICES.txt",
-		"packages/dprint-plugin-galley-mdx/licenses/**"
+		"packages/dprint-plugin-mdx/src/**",
+		"packages/dprint-plugin-mdx/tests/**",
+		"packages/dprint-plugin-mdx/source/**",
+		"packages/dprint-plugin-mdx/schema.json",
+		"packages/dprint-plugin-mdx/DEPENDENCY_NOTICES.txt",
+		"packages/dprint-plugin-mdx/licenses/**"
 	],
 	"words": [
 		"eMudhra",

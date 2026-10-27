@@ -27,6 +27,15 @@ import expressionSpacing from "#fixtures/mdx-plugin/expression-spacing.mdx" with
 import whitespace from "#fixtures/mdx-plugin/whitespace.mdx" with { type: "text" }
 import significantWhitespace from "#fixtures/mdx-plugin/whitespace-significant.mdx" with { type: "text" }
 import plain from "#fixtures/mdx-plugin/plain.mdx" with { type: "text" }
+import article from "#fixtures/mdx-plugin/conventional/article.mdx" with { type: "text" }
+import components from "#fixtures/mdx-plugin/conventional/components.mdx" with { type: "text" }
+import conventionalExpressions from "#fixtures/mdx-plugin/conventional/expressions.mdx" with { type: "text" }
+import modules from "#fixtures/mdx-plugin/conventional/modules.mdx" with { type: "text" }
+import fragments from "#fixtures/mdx-plugin/conventional/fragments.mdx" with { type: "text" }
+import gfm from "#fixtures/mdx-plugin/conventional/gfm.mdx" with { type: "text" }
+import frontmatter from "#fixtures/mdx-plugin/conventional/frontmatter.mdx" with { type: "text" }
+import containers from "#fixtures/mdx-plugin/conventional/containers.mdx" with { type: "text" }
+import commentsAndEntities from "#fixtures/mdx-plugin/conventional/comments-and-entities.mdx" with { type: "text" }
 
 const bytes = readFileSync(new URL("../plugin.wasm", import.meta.url))
 const manifest = JSON.parse(
@@ -50,37 +59,76 @@ function format(source: string, config: Record<string, unknown> = {}) {
 }
 
 // Observe semantics using the independent JavaScript MDX implementation.
+function normalize(value: unknown): unknown {
+	if (Array.isArray(value)) return value.map(normalize)
+	if (!value || typeof value !== "object") return value
+	const node = value as Record<string, unknown>
+	if (node.type === "ParenthesizedExpression") return normalize(node.expression)
+	const result = Object.fromEntries(
+		Object.entries(node)
+			.filter(
+				([key]) =>
+					!["position", "data", "start", "end", "loc", "range", "raw"].includes(
+						key,
+					),
+			)
+			.map(([key, value]) => [key, normalize(value)]),
+	)
+	const estree = (node.data as { estree?: unknown } | undefined)?.estree
+	if (estree) result.value = normalize(estree)
+	return result
+}
+
 function semantics(source: string): unknown {
-	function normalize(value: unknown): unknown {
-		if (Array.isArray(value)) return value.map(normalize)
-		if (!value || typeof value !== "object") return value
-		const node = value as Record<string, unknown>
-		if (node.type === "ParenthesizedExpression")
-			return normalize(node.expression)
-		const result = Object.fromEntries(
-			Object.entries(node)
-				.filter(
-					([key]) =>
-						![
-							"position",
-							"data",
-							"start",
-							"end",
-							"loc",
-							"range",
-							"raw",
-						].includes(key),
-				)
-				.map(([key, value]) => [key, normalize(value)]),
-		)
-		const estree = (node.data as { estree?: unknown } | undefined)?.estree
-		if (estree) result.value = normalize(estree)
-		return result
-	}
 	return normalize(processor.parse(source))
 }
 
+async function compiledSemantics(source: string): Promise<unknown> {
+	let result: unknown
+	await compile(source, {
+		remarkPlugins: [remarkGfm, remarkFrontmatter],
+		recmaPlugins: [
+			() => (tree: unknown) => {
+				result = normalize(tree)
+			},
+		],
+	})
+	expect(result).toMatchObject({ type: "Program" })
+	return result
+}
+
 describe("MDX WebAssembly plugin", () => {
+	for (const [name, source] of Object.entries({
+		article,
+		components,
+		expressions: conventionalExpressions,
+		modules,
+		fragments,
+		gfm,
+		frontmatter,
+		containers,
+		commentsAndEntities,
+	})) {
+		test.each([40, 80, 120])(
+			`formats conventional MDX without changing its meaning: ${name}, width %i`,
+			async (lineWidth) => {
+				// Both sides must compile with the standard MDX compiler, without
+				// Galley's TypeScript parser or runtime.
+				const original = await compiledSemantics(source)
+				const config = { lineWidth }
+				const result = format(source, config)
+				// Every document contains an untidy heading. A silent fallback to
+				// the input must not count as successful formatting.
+				expect(result).not.toBe(source)
+				expect(result).not.toMatch(/^# {2,}/m)
+				// Compare compiled trees so the official compiler, rather than our
+				// test helper, decides which JSX whitespace affects runtime output.
+				expect(await compiledSemantics(result)).toEqual(original)
+				expect(format(result, config)).toBe(result)
+			},
+		)
+	}
+
 	test("identifies itself separately from the official Markdown plugin", () => {
 		const plugin = formatter()
 		expect(plugin.getPluginInfo()).toMatchObject({

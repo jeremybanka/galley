@@ -94,6 +94,19 @@ fn empty(value: &str) -> bool {
 }
 
 pub fn parse_expression(value: &str, kind: &MdxExpressionKind) -> MdxSignal {
+  // MDX probes at each closing brace, including braces inside comments. The
+  // expression wrapper can hide SWC's unterminated-comment diagnostic, so check
+  // the raw candidate before deciding that an earlier token is a syntax error.
+  if value.contains("/*") {
+    if let Err(failure) = parse(value) {
+      if matches!(
+        failure.kind(),
+        deno_ast::swc::parser::error::SyntaxError::UnterminatedBlockComment
+      ) {
+        return error(failure.to_string(), value.len(), value.len());
+      }
+    }
+  }
   if matches!(kind, MdxExpressionKind::Expression) && empty(value) {
     return MdxSignal::Ok;
   }
@@ -137,11 +150,16 @@ pub fn parse_expression(value: &str, kind: &MdxExpressionKind) -> MdxSignal {
 }
 
 pub fn format_module(source: &str, width: u32) -> Result<String, FormatError> {
-  use dprint_plugin_typescript::configuration::{SameOrNextLinePosition, UseParentheses};
+  use dprint_plugin_typescript::configuration::{SameOrNextLinePosition, SortOrder, UseParentheses};
   // Choose layout from syntax and width rather than retaining authored wrapping.
   // Keep this policy shared by module/expression formatting and semantic checks.
   let config = dprint_plugin_typescript::configuration::ConfigurationBuilder::new()
     .line_width(width)
+    // Module request order can affect initialization side effects.
+    .module_sort_import_declarations(SortOrder::Maintain)
+    .module_sort_export_declarations(SortOrder::Maintain)
+    .import_declaration_sort_named_imports(SortOrder::Maintain)
+    .export_declaration_sort_named_exports(SortOrder::Maintain)
     .prefer_single_line(true)
     .binary_expression_line_per_expression(true)
     .conditional_expression_line_per_expression(true)

@@ -1,0 +1,22 @@
+import Layout from './layout.js'
+import * as UI from './components.js'
+import {Chart as SalesChart,Axis} from './charts.js'
+export {metadata,author} from './metadata.js'
+export {license} from './license.js'
+export const title='Quarterly report'
+export function Summary({children}) { return <aside>{children}</aside> }
+export default function Page({children}) { return <Layout title={title}>{children}</Layout> }
+
+#   Quarterly report   #
+
+<Summary>
+
+A **short** overview of this quarter.
+
+</Summary>
+
+<UI.Tabs active="sales">
+
+<SalesChart data={[10,20,30]} />
+
+</UI.Tabs>

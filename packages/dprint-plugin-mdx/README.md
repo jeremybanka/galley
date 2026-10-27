@@ -51,6 +51,7 @@ to the locally built plugin.
   and always parenthesize arrow parameters. Statement bodies use a fixed placement.
   Existing line wrapping does not select the layout. Supplier formatting runs to
   a stable result within one operation, so the next save does not reflow it again.
+  Imports and exports retain their source order, including named bindings.
 - Code starts only at MDX's import/export and brace-expression boundaries. Bare
   top-level declarations remain prose. This TypeScript extension is Galley's
   dialect, not part of standard MDX.
@@ -95,7 +96,7 @@ Changesets releases do not require a second version edit in Cargo.
 
 The package includes Rust source, the locked build recipe under `source/`,
 dependency notices, and the source of MPL-covered Rust dependencies. To rebuild
-from an unpacked package, place it at `packages/dprint-plugin-galley-mdx` in an
+from an unpacked package, place it at `packages/dprint-plugin-mdx` in an
 empty directory and copy its `source/{Cargo.toml,Cargo.lock,mise.toml,rustfmt.toml}`
 to that directory's root. Run `mise install`, then:
 

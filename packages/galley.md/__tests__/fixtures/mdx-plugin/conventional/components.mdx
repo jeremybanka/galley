@@ -1,0 +1,25 @@
+import Callout from './callout.js'
+import {Button,Card} from './components.js'
+
+export const defaults={size:'small',disabled:false}
+
+#   Components   #
+
+<Callout kind="note">
+
+## A useful note
+
+Markdown **inside** a component can include a [link](./guide).
+
+- First detail
+- Second detail
+
+</Callout>
+
+<Card title="Fish &amp; chips" style={{padding:16,backgroundColor:'white'}}>
+
+<Button   {...defaults}   disabled   onClick={()=>console.log('clicked')} />
+
+</Card>
+
+Use <Button size="small">Save</Button> to continue.

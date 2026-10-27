@@ -1,0 +1,19 @@
+export const items=[{id:'one',label:'First'},{id:'two',label:'Second'}]
+export const ready=true
+export const total=items.length
+
+#   Expressions   #
+
+There are { total } entries, and the answer is { 6*7 }.
+
+{ready ? <strong>Ready</strong> : <em>Waiting</em>}
+
+<ul>
+{items.map(item=><li key={item.id}>{item.label}</li>)}
+</ul>
+
+{`Total: ${total}`}
+
+{/\{[^}]+\}/.test('{value}') ? 'matched' : 'missing'}
+
+<span title={JSON.stringify({closing:'}',opening:'{'})}>{items[0]?.label ?? 'Empty'}</span>

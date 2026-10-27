@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url"
 import { writeDependencyNotices } from "./mdx-plugin-licenses.ts"
 
 const root = fileURLToPath(new URL("..", import.meta.url))
-const directory = join(root, "packages/dprint-plugin-galley-mdx")
+const directory = join(root, "packages/dprint-plugin-mdx")
 const manifest = JSON.parse(
 	readFileSync(join(directory, "package.json"), "utf8"),
 ) as {

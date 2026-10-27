@@ -623,7 +623,7 @@ test("typed MDX compiles, typechecks, and maps TypeScript and strict-prop errors
 
 test("the standalone MDX WASM formats typed code without changing evaluation or types", async () => {
 	const bytes = await fs.readFile(
-		new URL("../../../dprint-plugin-galley-mdx/plugin.wasm", import.meta.url),
+		new URL("../../../dprint-plugin-mdx/plugin.wasm", import.meta.url),
 	)
 	const formatter = createFromBuffer(bytes)
 	formatter.setConfig({ lineWidth: 80 }, {})
