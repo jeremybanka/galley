@@ -2,35 +2,44 @@
 
 Run commands from the repository root. The publishable packages live in `packages/galley.md` and `packages/dprint-plugin-mdx`; the root package is private. `mise.toml` selects Node, pnpm, and Rust, including Clippy, rustfmt, and the `wasm32-unknown-unknown` target. Run `mise install` before installing dependencies.
 
-| Command            | Purpose                                                              |
-| ------------------ | -------------------------------------------------------------------- |
-| `build`            | Build Galley and the dprint MDX WebAssembly plugin.                  |
-| `build:mdx`        | Build only the MDX plugin, dependency notices, and source bundle.    |
-| `check:rust`       | Run Clippy over the Rust library and regression tests.               |
-| `fmt`              | Apply formatting.                                                    |
-| `check`            | Run formatting, spelling, lint, and TypeScript checks.               |
-| `check:fmt`        | Validate formatting.                                                 |
-| `check:spelling`   | Validate spelling.                                                   |
-| `check:mdx`        | Check the configured project with TypeScript 7.1 and its MDX mapper. |
-| `check:vp`         | Run lint and TypeScript checks through Vite Plus.                    |
-| `test`             | Run the test suite once.                                             |
-| `test:public`      | Run the current consumer contracts against source once.              |
-| `test:private`     | Run implementation and detailed regression tests once.               |
-| `test:breakage`    | Replay the latest release's consumer contracts against source.       |
-| `test:watch`       | Watch the test suite.                                                |
-| `change`           | Author release notes.                                                |
-| `release:version`  | Prepare versions and release metadata.                               |
-| `release:publish`  | Build and publish the npm package.                                   |
-| `staged`           | Format and check staged files.                                       |
-| `workflows:update` | Update pinned workflow tooling references.                           |
+| Command            | Purpose                                                               |
+| ------------------ | --------------------------------------------------------------------- |
+| `build`            | Build Galley and the dprint MDX WebAssembly plugin.                   |
+| `build:mdx`        | Build only the MDX plugin, dependency notices, and source bundle.     |
+| `check:rust`       | Run Clippy over the Rust library and regression tests.                |
+| `fmt`              | Apply formatting.                                                     |
+| `check`            | Run formatting, spelling, lint, and TypeScript checks.                |
+| `check:fmt`        | Validate formatting.                                                  |
+| `check:spelling`   | Validate spelling.                                                    |
+| `check:mdx`        | Check the configured project with TypeScript 7.1 and its MDX mapper.  |
+| `check:vp`         | Run lint and TypeScript checks through Vite Plus.                     |
+| `test`             | Run the test suite once.                                              |
+| `test:rust`        | Run the native Rust regression suite once.                            |
+| `test:wasm`        | Run formatter integration tests against an already-built Wasm plugin. |
+| `test:galley`      | Run compiler and editor tests against an already-built Wasm plugin.   |
+| `test:public`      | Run the current consumer contracts against source once.               |
+| `test:private`     | Run implementation and detailed regression tests once.                |
+| `test:breakage`    | Replay the latest release's consumer contracts against source.        |
+| `test:watch`       | Watch the test suite.                                                 |
+| `change`           | Author release notes.                                                 |
+| `release:version`  | Prepare versions and release metadata.                                |
+| `release:publish`  | Build and publish the npm package.                                    |
+| `staged`           | Format and check staged files.                                        |
+| `workflows:update` | Update pinned workflow tooling references.                            |
 
 Galley's `prepare` script builds source installations. Published npm packages include the built files.
 
 Tests start in `packages/galley.md/__tests__/private/`. The lean `public/` suite protects selected consumer capabilities: Markdown structure, native tables, source import content and identity, async components and document context, custom import plugins, fresh dependency evaluation, write/check and CLI behavior, frontmatter destinations, and unsaved preview content and offsets. It is a selected contract, not exhaustive API coverage. Detailed editor protocols, generated TypeScript, exact error messages, serializer snapshots, and implementation assertions remain private.
 
+Private editor tests are grouped by mapper behavior, type checking, LSP protocol, preview evaluation, and preview state. Their shared fixture and process helpers live in `private/editor-support.ts`. Formatter integration, conventional MDX compatibility, and layout regressions have separate test files with shared observation helpers. Keep new tests in the group that owns the behavior; avoid repeating a full fixture matrix when a focused boundary case covers the variation.
+
 Public tests import `galley.md`; the current Vite and TypeScript configuration map that name to source. The runner supplies `GALLEY_TEST_CLI` for subprocess tests. Update these current mappings when moving entrypoints. Public assertions use an independent Markdown parser, preserving content, code bytes, languages, and structure while allowing equivalent formatting. Exact source preservation and read-only checks deliberately compare bytes. Keep every fixture and expectation helper inside the restore pattern in `packages/galley.md/breakage.config.ts`; the fixture loader is restored too. Breakage resolves commands and restore paths from the package-local configuration directory. Changes to observer dependencies must keep released tests runnable.
 
-`test:public` runs once without task caching or a self-build and fails if no tests are selected. `test` runs the formatter package first, then Galley's public and private suites together, so cold Rust compilation does not compete with the CLI and language-server tests. Galley's `test` and `test:private` commands build the MDX Wasm plugin before testing, including when invoked directly in that package. CI runs current tests and historical compatibility in separate jobs. The Vite Plus check job also runs `check:mdx` with the configured TypeScript content mapper. The workspace's uncached `test:breakage` delegates to the package script, which first runs `breakage prelude --out .breakage/baseline.json`, then `breakage breakage.config.ts --verbose --baseline-file .breakage/baseline.json`. These direct CLI calls discover the latest matching tag on `origin`, pin its commit in ignored `packages/galley.md/.breakage/baseline.json`, and let the pinned `breakage@0.10.0` restore released tests and helpers around the run. Run from a clean checkout with access to origin; do not cache the command.
+`test:public` runs once without task caching or a self-build and fails if no tests are selected. Root `test` builds the MDX Wasm plugin once, then runs `test:rust`, `test:wasm`, and `test:galley` sequentially so cold Rust compilation does not compete with the CLI and language-server tests on a local machine. The latter two focused commands require `pnpm build:mdx` first. Package-level `test` commands and Galley's `test:private` remain self-contained and build their Wasm prerequisite.
+
+CI follows create-font's separation of build prerequisites and test groups. The Test workflow builds one Wasm artifact for its exact checkout. The formatter and Galley jobs download that artifact and run independently; native Rust tests run in a separate job. Each JavaScript group owns a whole package, so its runner automatically discovers new test files. The existing `Vitest` status aggregates all four jobs and fails if any fail, are cancelled, or are skipped. Rust compilation caches are separated by platform, architecture, and build mode; they cache compilation, not test results. Historical compatibility stays in its own uncached job. The Vite Plus check job also runs `check:mdx` with the configured TypeScript content mapper.
+
+The workspace's uncached `test:breakage` delegates to the package script, which first runs `breakage prelude --out .breakage/baseline.json`, then `breakage breakage.config.ts --verbose --baseline-file .breakage/baseline.json`. These direct CLI calls discover the latest matching tag on `origin`, pin its commit in ignored `packages/galley.md/.breakage/baseline.json`, and let the pinned `breakage@0.10.0` restore released tests and helpers around the run. Run from a clean checkout with access to origin; do not cache the command.
 
 The package's Breakage configuration uses `changesetsReleaseDelta()` and `semverPolicy({ beforeV1: "minor" })` to compare Galley's intended version with that exact baseline. A major increase certifies a failed released-contract check; before 1.0, a minor increase does too. The upstream helper reads Changesets' assembled release plan, falling back to the current manifest after changesets have been consumed. The pinned `@breakage/changesets` integration owns its Changesets dependencies. Patch releases and prerelease-identifier changes alone do not certify failures. Certification acknowledges a failed check under the release policy; it does not establish compatibility or diagnose the failure's cause. The test command's exit 1 reports incompatibility that release policy may permit; other nonzero exits and process failures are setup errors and cannot be certified. These exit codes are a reporting convention, not an automatic diagnosis. Current tests still have to pass independently.
 
@@ -74,7 +83,7 @@ Normal releases use the Changesets workflow. Merge package changes and their cha
 
 `fmt` and `check:fmt` build the plugin before dprint loads it, and run rustfmt for Rust sources. The root `test` command includes the imported Markdown formatter/parser regression suites and WebAssembly integration tests observed with the independent JavaScript MDX parser. The existing Breakage command continues to cover the `galley.md` API; the new plugin has no released contract baseline yet.
 
-The conventional MDX fixtures under `packages/galley.md/__tests__/fixtures/mdx-plugin/conventional/` cover articles, components and props, JavaScript expressions, module imports/exports and layouts, fragments, GFM, frontmatter, nested lists and block quotes, comments, and entities. At widths 40, 80, and 120, the Wasm integration suite requires actual formatting, equivalent JavaScript syntax trees from the standard MDX compiler, and unchanged output on a second pass. Compilation uses only the standard MDX compiler with GFM and frontmatter plugins, without Galley's parser or runtime. The compiled-tree comparison lets the independent compiler decide which JSX whitespace is significant and preserves module ordering in the comparison.
+The conventional MDX fixtures under `packages/galley.md/__tests__/fixtures/mdx-plugin/conventional/` cover articles, components and props, JavaScript expressions, module imports/exports and layouts, fragments, GFM, frontmatter, nested lists and block quotes, comments, and entities. The conventional suite checks all nine documents at width 80, with four additional width-40 cases for components, expressions, modules, and fragments. It requires actual formatting, equivalent JavaScript syntax trees from the standard MDX compiler, and unchanged output on a second pass. The separate layout suite owns the broader width matrix for wrapping convergence and self-closing tags. Compilation uses only the standard MDX compiler with GFM and frontmatter plugins, without Galley's parser or runtime. The compiled-tree comparison lets the independent compiler decide which JSX whitespace is significant and preserves module ordering in the comparison.
 
 The fork starts at dprint-plugin-markdown 0.28.0, commit `a49e479f3e38c18ea915a4b68708bcd69894b245`. Keep its attribution and MIT license intact when merging upstream changes. The added MDX adapter is `src/mdx.rs`; `src/wasm_plugin.rs` supplies the independent identity, MDX-only matching, and adapter routing. The original Markdown formatter and parser remain covered by the imported `tests/` corpus. Its exact whitespace must not be formatted.
 

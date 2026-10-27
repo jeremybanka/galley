@@ -18,13 +18,71 @@ defaults:
     shell: bash
 
 jobs:
-  Vitest:
+  BuildMdx:
+    name: Build MDX runtime
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup
-      - run: pnpm run test
+      - uses: ./.github/actions/cache-rust
+        with:
+          mode: wasm
+      - run: pnpm run build:mdx
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mdx-test-runtime
+          path: |
+            packages/dprint-plugin-mdx/plugin.wasm
+            packages/dprint-plugin-mdx/manifest.json
+          if-no-files-found: error
+          retention-days: 1
+
+  Rust:
+    name: Rust regression tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/cache-rust
+        with:
+          mode: native-tests
+      - run: pnpm run test:rust
+
+  Wasm:
+    name: MDX formatter
+    needs: BuildMdx
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/download-mdx-runtime
+      - run: pnpm run test:wasm
+
+  Galley:
+    name: Compiler and editor
+    needs: BuildMdx
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/download-mdx-runtime
+      - run: pnpm run test:galley
+
+  Vitest:
+    if: ${{ always() }}
+    needs: [BuildMdx, Rust, Wasm, Galley]
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Require every test group to pass
+        env:
+          RESULTS: ${{ toJSON(needs.*.result) }}
+        run: |
+          node -e 'if (!JSON.parse(process.env.RESULTS).every(result => result === "success")) process.exit(1)'
 
   Breakage:
     runs-on: ubuntu-latest
