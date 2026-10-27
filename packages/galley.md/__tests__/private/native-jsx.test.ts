@@ -42,6 +42,9 @@ test("native JSX preserves HTML while authored Markdown and explicit tables stay
 		'<svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" stroke-width="2"></circle></svg>',
 	)
 	expect(result.markdown).toContain(
+		'<svg><foreignObject width="10" height="10"><div class="embedded">HTML</div></foreignObject></svg>',
+	)
+	expect(result.markdown).toContain(
 		'href="https://example.com/?a=1&#x26;b=2" title="link"',
 	)
 	expect(result.markdown).toContain("After **Markdown**.")

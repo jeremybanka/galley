@@ -343,11 +343,11 @@ async function intrinsic(
 	const tagName = String(element.type)
 	if (!/^[a-zA-Z][a-zA-Z0-9:.-]*$/.test(tagName))
 		throw new Error(`Invalid HTML tag: ${tagName}`)
-	const svg = tagName === "svg" || (context.svg && tagName !== "foreignObject")
+	const svg = tagName === "svg" || Boolean(context.svg)
 	const children = await resolveContent(element.props.children as Content, {
 		...context,
 		[htmlMode]: true,
-		svg: Boolean(svg),
+		svg: svg && tagName !== "foreignObject",
 	})
 	const properties: Record<string, HtmlAttribute> = {}
 	for (const [name, value] of Object.entries(element.props)) {
