@@ -47,11 +47,11 @@
 	],
 	"scripts": {
 		"build": "vp pack",
-		"test": "vp test",
+		"test": "node ../../scripts/build-mdx-plugin.node.ts && vp test",
 		"test:watch": "vp test watch",
 		"prepare": "pnpm build",
 		"test:public": "vp test __tests__/public",
-		"test:private": "vp test __tests__/private",
+		"test:private": "node ../../scripts/build-mdx-plugin.node.ts && vp test __tests__/private",
 		"test:breakage": "pnpm run test:breakage:prelude && breakage breakage.config.ts --verbose --baseline-file .breakage/baseline.json",
 		"test:breakage:prelude": "breakage prelude --out .breakage/baseline.json"
 	},
