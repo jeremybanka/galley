@@ -12,7 +12,7 @@
 		"check:spelling": "cspell .",
 		"fmt": "pnpm build:mdx && mise exec -- cargo fmt --all && dprint fmt",
 		"release:publish": "pnpm build && changeset publish",
-		"release:version": "changeset version",
+		"release:version": "pnpm build:mdx && changeset version",
 		"staged": "vp staged",
 		"test": "pnpm build:mdx && pnpm test:rust && pnpm test:wasm && pnpm test:galley",
 		"test:rust": "mise exec -- cargo test --locked",
