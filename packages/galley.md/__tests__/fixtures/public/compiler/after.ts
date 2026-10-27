@@ -1,1 +1,3 @@
-export function Greeting() { return 'after' }
+export function Greeting() {
+	return "after"
+}

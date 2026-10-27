@@ -1,0 +1,101 @@
+~~ lineWidth: 40 ~~
+!! should format a paragraph !!
+testing this out
+with multiple multiple lines
+and more lines
+
+[expect]
+testing this out
+with multiple multiple lines
+and more lines
+
+!! should format multiple paragraphs and keep the blank lines !!
+testing this out
+
+even more
+
+
+
+and more
+and more
+
+[expect]
+testing this out
+
+even more
+
+and more
+and more
+
+!! should keep non breaking spaces at start and end of line and between text items !!
+ &nbsp;a&nbsp;b&nbsp;
+&nbsp;&nbsp;&nbsp;c
+d&nbsp;&nbsp;
+e&nbsp;&nbsp;
+
+[expect]
+&nbsp;a&nbsp;b&nbsp;
+&nbsp;&nbsp;&nbsp;c
+d&nbsp;&nbsp;
+e&nbsp;&nbsp;
+
+!! should keep a space that only looks like one !!
+a
+- 
+
+a|b
+-|- 
+
+[expect]
+a
+- 
+
+a|b
+-|- 
+
+!! should escape a marker a paragraph begins with, which would start a list of its own !!
+[r1]: /u
+1.
+w0
+
+[expect]
+[r1]: /u
+
+1\.
+w0
+
+!! should escape an ordered marker that does not begin at one !!
+[r1]: /u
+2. x
+
+[expect]
+[r1]: /u
+
+2\. x
+
+!! should escape an empty bullet marker a paragraph begins with !!
+[r1]: /u
+-
+w0
+
+[expect]
+[r1]: /u
+
+\-
+w0
+
+!! should escape what a hard break leaves at the start of a line !!
+a  
+2. b
+
+[expect]
+a\
+2\. b
+
+!! should escape a row of pipes a hard break leaves at the start of a line !!
+a  
+| - |
+
+[expect]
+a\
+\| - |

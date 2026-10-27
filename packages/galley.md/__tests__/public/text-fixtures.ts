@@ -11,6 +11,12 @@ export function textFixtures(): Plugin {
 	return {
 		name: "galley-test-text",
 		enforce: "pre",
+		configureVitest({ defineCacheKeyGenerator }) {
+			// Fixture bytes are inlined below, but absent from Vitest's module cache key.
+			defineCacheKeyGenerator(({ sourceCode }) =>
+				sourceCode.includes("#fixtures/") ? false : undefined,
+			)
+		},
 		async transform(source, id) {
 			if (
 				!id.includes("/__tests__/") ||

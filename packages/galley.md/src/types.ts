@@ -8,7 +8,7 @@ export type DocumentContext = {
 	directory: string
 }
 
-export type Component<Props = Record<string, unknown>> = (
+export type Component<Props = Record<string, never>> = (
 	props: Props,
 	context: DocumentContext,
 ) => Content

@@ -1,9 +1,14 @@
-import { Header, Rows } from './table.tsx'
+import { Header, Rows } from "./table.tsx";
 
 <table>
   <Header />
   <tbody>
     <Rows />
-    {[3].map(value => <tr><td>{value}</td><td>expression</td></tr>)}
+    {[3].map((value) => (
+  <tr>
+    <td>{value}</td>
+    <td>expression</td>
+  </tr>
+))}
   </tbody>
 </table>

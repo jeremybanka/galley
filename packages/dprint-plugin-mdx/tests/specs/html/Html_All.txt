@@ -1,0 +1,89 @@
+~~ lineWidth: 40 ~~
+!! should format html !!
+<dl>
+    <dt>Definition list</dt>
+    <dd>Testing</dd>
+    <dd>Testing</dd>
+<dd>Testing</dd>
+testing this out
+</dl>
+
+
+paragraph text
+
+[expect]
+<dl>
+  <dt>Definition list</dt>
+  <dd>Testing</dd>
+  <dd>Testing</dd>
+  <dd>Testing</dd>
+  testing this out
+</dl>
+
+paragraph text
+
+!! should handle inline html !!
+Some inline html <em>Testing</em> testing this out.
+
+Testing <b>test</b>.
+
+[expect]
+Some inline html <em>Testing</em> testing this out.
+
+Testing <b>test</b>.
+
+!! should keep the block quote markers out of html that spans lines !!
+> > a <a href
+> > ="yo
+> > lo">
+
+[expect]
+>> a <a href
+>> ="yo
+>> lo">
+
+!! should not put a marker in front of an html block's continued lines !!
+> <div>
+> foo
+
+[expect]
+> <div>
+> foo
+
+!! should keep a space that only looks like one at the end of a line of html !!
+<div>
+a 
+</div>
+
+[expect]
+<div>
+  a 
+</div>
+
+!! should keep a comment and preformatted content within a block quote !!
+> <div>
+> <!--
+> a
+>   b
+> -->
+> <p>c</p>
+> </div>
+
+> <pre>
+> a
+>   b
+> </pre>
+
+[expect]
+> <div>
+>   <!--
+> a
+>   b
+> -->
+>   <p>c</p>
+> </div>
+
+> <pre>
+> a
+>   b
+> </pre>

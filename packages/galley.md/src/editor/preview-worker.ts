@@ -1,7 +1,7 @@
-import { previewMarkdown } from "../compile.ts"
+import { previewEditorMarkdown } from "../compile.ts"
 
 process.once("message", (request: { input: string; source: string }) => {
-	previewMarkdown(request.input, { source: request.source }).then(
+	previewEditorMarkdown(request.input, request.source).then(
 		(result) => process.send?.({ result }),
 		(error: unknown) =>
 			process.send?.({

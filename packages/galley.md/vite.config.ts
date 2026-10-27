@@ -25,6 +25,8 @@ export default defineConfig({
 				dts: { neverBundle: [/^[\w@]/] },
 			},
 			dts: {
+				// Declarations contain only TS; packaging must not execute the mapper it is building.
+				tsconfig: "tsconfig.build.json",
 				// Vite Plus 1.0 auto-detects only TypeScript 7.0. Select 7.1 explicitly.
 				generator: "tsgo",
 				tsgo: {

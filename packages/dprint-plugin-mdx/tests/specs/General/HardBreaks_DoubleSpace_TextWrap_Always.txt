@@ -1,0 +1,50 @@
+~~ hardBreakKind: doubleSpace, textWrap: always, lineWidth: 20 ~~
+!! should use two trailing spaces when wrapping text !!
+this is some text that will wrap\
+and this is more text that will wrap
+
+[expect]
+this is some text
+that will wrap  
+and this is more
+text that will wrap
+
+!! should not count the trailing spaces toward the line width !!
+aaaa bbbb cccc dddd\
+next line here
+
+[expect]
+aaaa bbbb cccc dddd  
+next line here
+
+!! should write a hard break within a link and within strong !!
+[a\
+b](c)
+
+**a\
+b**
+
+[expect]
+[a  
+b](c)
+
+**a  
+b**
+
+!! should drop the indentation after a hard break !!
+aaaa\
+    bbbb
+
+[expect]
+aaaa  
+bbbb
+
+!! should keep a backslash on a line with no text before it !!
+a\
+\
+b
+
+[expect]
+a  
+\
+b

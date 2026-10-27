@@ -1,0 +1,215 @@
+!! should keep a title that's on the line after the destination !!
+[a]: https://example.com
+"Title"
+
+[expect]
+[a]: https://example.com "Title"
+
+!! should keep a destination that's on the line after the label !!
+[a]:
+https://example.com
+
+[expect]
+[a]: https://example.com
+
+!! should keep a multi-line title that starts on the line after the destination !!
+[a]: https://example.com
+"Title
+that spans lines"
+
+[expect]
+[a]: https://example.com "Title
+that spans lines"
+
+!! should keep a title on the next line in a list item !!
+- Text
+
+  [a]: https://example.com
+  "Title"
+
+  - Sublist
+
+[expect]
+- Text
+
+  [a]: https://example.com "Title"
+
+  - Sublist
+
+!! should keep a title on the next line in a block quote !!
+> [a]: https://example.com
+> "Title"
+
+[expect]
+> [a]: https://example.com "Title"
+
+!! should not treat the next definition as a title !!
+[a]: https://example.com/a
+[b]: https://example.com/b
+
+[expect]
+[a]: https://example.com/a
+[b]: https://example.com/b
+
+!! should keep the definitions on the lines after a list !!
+- Item
+
+[a]: https://example.com/a
+[b]: https://example.com/b
+
+[expect]
+- Item
+
+[a]: https://example.com/a
+[b]: https://example.com/b
+
+!! should keep the definitions on the lines after a sublist !!
+- Item
+
+  - Sublist
+
+  [a]: https://example.com/a
+  [b]: https://example.com/b
+
+[expect]
+- Item
+
+  - Sublist
+
+  [a]: https://example.com/a
+  [b]: https://example.com/b
+
+!! should keep a definition in an indented list item !!
+  - [a]: https://example.com
+
+    Text [a]
+
+[expect]
+- [a]: https://example.com
+
+  Text [a]
+
+!! should keep the blank lines between definitions !!
+[foo]: /url1
+
+[foo]: /url2
+[bar]: /url3
+
+[bar][foo]
+
+[expect]
+[foo]: /url1
+
+[foo]: /url2
+[bar]: /url3
+
+[bar][foo]
+
+!! should keep a definition out of the setext heading that follows it !!
+[foo]: /url
+bar
+===
+
+[foo]
+
+[expect]
+[foo]: /url
+
+# bar
+
+[foo]
+
+!! should leave an underline alone when the definition is all there is !!
+[foo]: /url
+===
+
+[foo]
+
+[expect]
+[foo]: /url
+
+===
+
+[foo]
+
+!! should stop looking for definitions at the block that follows them !!
+[a
+> b]: /foo
+
+[expect]
+[a
+
+> b]: /foo
+
+!! should keep a trailing backslash from swallowing the next line !!
+[a]: u\
+foo
+
+[expect]
+[a]: u\\
+
+foo
+
+!! should keep the text of a link that is named by it !!
+[*tox*] and [*foo* bar][]
+
+[*tox*]: /a
+[*foo* bar]: /b
+
+[expect]
+[*tox*] and [*foo* bar][]
+
+[*tox*]: /a
+[*foo* bar]: /b
+
+!! should still normalize the text of a link that isn't named by it !!
+[*a*][ref]
+
+[ref]: /url
+
+[expect]
+[_a_][ref]
+
+[ref]: /url
+
+!! should keep a paragraph that follows a definition on the line below it, where a bare tag can't start a block !!
+[a]: /url
+<b>
+
+[expect]
+[a]: /url
+<b>
+
+!! should do so for a closing tag !!
+[a]: /url
+</b>
+
+[expect]
+[a]: /url
+</b>
+
+!! should escape the text of such a paragraph where its indentation kept it from starting a block !!
+[a]: /url
+    ---
+
+[expect]
+[a]: /url
+
+\---
+
+!! should indent a tag that would start a block even below a definition !!
+[a]: /url
+    <div>
+
+[expect]
+[a]: /url
+    <div>
+
+!! should still separate a paragraph of text from a definition !!
+[a]: /url
+foo
+
+[expect]
+[a]: /url
+
+foo

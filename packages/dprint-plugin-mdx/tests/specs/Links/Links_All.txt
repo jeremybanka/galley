@@ -1,0 +1,292 @@
+~~ lineWidth: 40 ~~
+!! should format an inline link !!
+[  testing  ](  https://dprint.dev  )
+
+[expect]
+[testing](https://dprint.dev)
+
+!! should format an inline link with a title !!
+[  testing  ](  https://dprint.dev  "Dprint homepage"  )
+
+[expect]
+[testing](https://dprint.dev "Dprint homepage")
+
+!! should format a reference link !!
+[testing][Some reference]
+
+[Some reference]: https://github.com
+
+testing
+
+[expect]
+[testing][Some reference]
+
+[Some reference]: https://github.com
+
+testing
+
+!! should format a collapsed link (what even is this?) !!
+[testing][]
+
+[]: https://github.com
+
+[expect]
+[testing][]
+
+[]: https://github.com
+
+!! should format a shortcut link !!
+Testing this [out a bit].
+
+[out a bit]:    https://github.com
+
+[expect]
+Testing this [out a bit].
+
+[out a bit]: https://github.com
+
+!! should format an email link !!
+Here is an <email@google.com> link.
+
+[expect]
+Here is an <email@google.com> link.
+
+!! should format an auto link !!
+Testing <https://google.com> this.
+
+[expect]
+Testing <https://google.com> this.
+
+!! should format image inside link !!
+[![CI](image.svg)](https://github.com)
+
+[expect]
+[![CI](image.svg)](https://github.com)
+
+!! should keep a line break in a link's text !!
+Test [this
+out](/test) test
+
+[expect]
+Test [this
+out](/test) test
+
+!! should keep a hard break in a link's text !!
+[this  
+out](/test)
+
+[this\
+out](/test)
+
+[expect]
+[this\
+out](/test)
+
+[this\
+out](/test)
+
+!! should keep a line break in a code span within a link's text !!
+[`this
+out`](/test)
+
+[expect]
+[`this
+out`](/test)
+
+!! handle when file only has link reference directive !!
+[Some reference]: https://github.com
+
+[expect]
+[Some reference]: https://github.com
+
+!! should keep a line break in a title !!
+[testing](https://dprint.dev "some
+title")
+
+[expect]
+[testing](https://dprint.dev "some
+title")
+
+!! should keep a line break in a reference label !!
+[testing][some
+reference]
+
+[some reference]: https://dprint.dev
+
+[expect]
+[testing][some
+reference]
+
+[some reference]: https://dprint.dev
+
+!! should keep the block quote markers of a line break in a title !!
+> [testing](https://dprint.dev "some
+> title")
+
+[expect]
+> [testing](https://dprint.dev "some
+> title")
+
+!! should keep a reference label resolvable within a heading !!
+[testing][some
+reference]
+===
+
+[some reference]: https://dprint.dev
+
+[expect]
+# [testing][some reference]
+
+[some reference]: https://dprint.dev
+
+!! should keep a link reference definition that comes before other content !!
+[some name]: https://dprint.dev
+
+[some name]
+
+[expect]
+[some name]: https://dprint.dev
+
+[some name]
+
+!! should keep a link reference definition in a block quote !!
+> [some name]: https://dprint.dev
+>
+> [some name]
+
+[expect]
+> [some name]: https://dprint.dev
+>
+> [some name]
+
+!! should keep a link reference definition that's a block quote's only content !!
+> [some name]: https://dprint.dev
+
+[expect]
+> [some name]: https://dprint.dev
+
+!! should keep a line break in a link reference definition's label !!
+[some
+name]: https://dprint.dev
+
+[some name]
+
+[expect]
+[some
+name]: https://dprint.dev
+
+[some name]
+
+!! should keep the block quote markers of a line break in a definition's label !!
+> [some
+> name]: https://dprint.dev
+>
+> [some name]
+
+[expect]
+> [some
+> name]: https://dprint.dev
+>
+> [some name]
+
+!! should not separate adjacent links !!
+[a](x)[b](y)
+
+[expect]
+[a](x)[b](y)
+
+!! should keep a line break in a link reference definition's title !!
+[n]: https://dprint.dev "some
+title"
+
+[n]
+
+[expect]
+[n]: https://dprint.dev "some
+title"
+
+[n]
+
+!! should keep a quote in a link reference definition's destination !!
+[a]: https://dprint.dev/q"z
+[b]: https://dprint.dev
+
+[expect]
+[a]: https://dprint.dev/q"z
+[b]: https://dprint.dev
+
+!! should escape the double quotes within a title !!
+[link](/url 'title "and" title')
+
+[a]: /url (a "quoted" title)
+
+[expect]
+[link](/url "title \"and\" title")
+
+[a]: /url "a \"quoted\" title"
+
+!! should keep the escapes of a destination as they were written !!
+[foo](/bar\* "ti\*tle")
+
+[foo](/f&ouml;&ouml; "f&ouml;&ouml;")
+
+[expect]
+[foo](/bar\* "ti\*tle")
+
+[foo](/f&ouml;&ouml; "f&ouml;&ouml;")
+
+!! should keep a collapsed reference collapsed !!
+[foo][]
+
+[foo]: /url
+
+[expect]
+[foo][]
+
+[foo]: /url
+
+!! should keep the name of a reference with an escaped bracket !!
+[foo][ref\[]
+
+[ref\[]: /uri
+
+[expect]
+[foo][ref\[]
+
+[ref\[]: /uri
+
+!! should wrap a destination holding an escaped parenthesis in angle brackets !!
+[d](e\)f)
+
+[expect]
+[d](<e)f>)
+
+!! should write every title with double quotes !!
+[a](<b c> "t") [d](e 't') [f](g (h))
+
+[a](b 'say "hi"')
+
+[a]: b (title)
+
+[expect]
+[a](<b c> "t") [d](e "t") [f](g "h")
+
+[a](b "say \"hi\"")
+
+[a]: b "title"
+
+!! should write an empty destination as nothing !!
+[a]() [b](<>)
+
+[expect]
+[a]() [b]()
+
+!! should keep the case of a reference label !!
+[Foo][BAR]
+
+[bar]: /u
+
+[expect]
+[Foo][BAR]
+
+[bar]: /u

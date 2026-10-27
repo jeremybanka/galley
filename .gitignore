@@ -10,3 +10,9 @@ artifacts/
 .env
 *.log
 .breakage/
+
+/target/
+/packages/dprint-plugin-mdx/plugin.wasm
+/packages/dprint-plugin-mdx/manifest.json
+/packages/dprint-plugin-mdx/source/
+/packages/dprint-plugin-mdx/DEPENDENCY_NOTICES.txt

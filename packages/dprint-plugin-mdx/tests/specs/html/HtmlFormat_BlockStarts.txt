@@ -1,0 +1,92 @@
+~~ lineWidth: 40 ~~
+!! should keep a long img tag on one line because img starts no html block !!
+<img src="https://example.com/a/rather/long/path/to/an/image.svg" width="900">
+
+[expect]
+<img src="https://example.com/a/rather/long/path/to/an/image.svg" width="900">
+
+!! should break a long div tag because div starts an html block either way !!
+<div class="one two three" id="identifier" data-value="something">a</div>
+
+[expect]
+<div
+  class="one two three"
+  id="identifier"
+  data-value="something"
+>a</div>
+
+!! should keep a long span tag on one line because span starts no html block !!
+<span class="one two three" id="identifier" data-value="something">a</span>
+
+[expect]
+<span class="one two three" id="identifier" data-value="something">a</span>
+
+!! should break a long p tag because p starts an html block either way !!
+<p class="one two three" id="identifier" data-value="something">a</p>
+
+[expect]
+<p
+  class="one two three"
+  id="identifier"
+  data-value="something"
+>a</p>
+
+!! should keep a long anchor tag on one line !!
+<a href="https://example.com/a/rather/long/path" title="a title here">a</a>
+
+[expect]
+<a href="https://example.com/a/rather/long/path" title="a title here">a</a>
+
+!! should keep text written after what closes a pre block !!
+<pre>a</pre>*em*
+
+[expect]
+<pre>a</pre>*em*
+
+!! should keep text written after what closes a script block !!
+<script>a</script>*em*
+
+[expect]
+<script>a</script>*em*
+
+!! should keep text written after a pre block on the same line !!
+<pre>a</pre>text after
+
+[expect]
+<pre>a</pre>text after
+
+!! should still lay out a pre block written on its own !!
+<div><pre>  a  </pre></div>
+
+[expect]
+<div>
+  <pre>  a  </pre>
+</div>
+
+!! should still lay out a script block written on its own !!
+<div><script>const a = 1</script></div>
+
+[expect]
+<div>
+  <script>const a = 1</script>
+</div>
+
+!! should lay out a block that starts with an inline element !!
+<span>
+a</span>
+<div>b</div>
+
+[expect]
+<span>
+  a</span>
+<div>b</div>
+
+!! should leave a long svg tag whose attributes cannot be laid out !!
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none">
+<path d="M0 0h24v24H0z"/>
+</svg>
+
+[expect]
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none">
+<path d="M0 0h24v24H0z"/>
+</svg>

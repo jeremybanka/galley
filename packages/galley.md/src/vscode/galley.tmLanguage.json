@@ -6,26 +6,89 @@
 			"begin": "\\A---[ \\t]*$",
 			"end": "^---[ \\t]*$",
 			"contentName": "meta.embedded.block.yaml",
-			"patterns": [{ "include": "source.yaml" }]
+			"patterns": [
+				{
+					"include": "source.yaml"
+				}
+			]
 		},
 		{
 			"begin": "^(?=(?:import|export)\\b)",
 			"end": "^\\s*$",
-			"contentName": "meta.embedded.block.javascript",
-			"patterns": [{ "include": "source.js.jsx" }]
+			"contentName": "meta.embedded.block.typescript",
+			"patterns": [
+				{
+					"include": "source.tsx"
+				}
+			]
 		},
 		{
-			"begin": "(?=<[A-Z])",
-			"end": "(?<=>)",
-			"contentName": "meta.embedded.block.javascript",
-			"patterns": [{ "include": "source.js.jsx" }]
+			"include": "#tag"
 		},
 		{
+			"include": "#expression"
+		},
+		{
+			"include": "text.html.markdown"
+		}
+	],
+	"repository": {
+		"tag": {
+			"begin": "(</?)([A-Za-z][\\w.$:-]*)",
+			"beginCaptures": {
+				"1": {
+					"name": "punctuation.definition.tag.begin.tsx"
+				},
+				"2": {
+					"name": "entity.name.tag.tsx"
+				}
+			},
+			"end": "(/?>)",
+			"endCaptures": {
+				"1": {
+					"name": "punctuation.definition.tag.end.tsx"
+				}
+			},
+			"name": "meta.tag.galley",
+			"patterns": [
+				{
+					"include": "#expression"
+				},
+				{
+					"begin": "\"",
+					"end": "\"",
+					"name": "string.quoted.double.galley"
+				},
+				{
+					"begin": "'",
+					"end": "'",
+					"name": "string.quoted.single.galley"
+				},
+				{
+					"match": "[\\w:-]+(?=\\s*(?:=|/?>))",
+					"name": "entity.other.attribute-name.tsx"
+				}
+			]
+		},
+		"expression": {
 			"begin": "\\{",
 			"end": "\\}",
-			"contentName": "meta.embedded.block.javascript",
-			"patterns": [{ "include": "source.js.jsx" }]
-		},
-		{ "include": "text.html.markdown" }
-	]
+			"beginCaptures": {
+				"0": {
+					"name": "punctuation.section.embedded.begin.tsx"
+				}
+			},
+			"endCaptures": {
+				"0": {
+					"name": "punctuation.section.embedded.end.tsx"
+				}
+			},
+			"contentName": "meta.embedded.block.typescript",
+			"patterns": [
+				{
+					"include": "source.tsx"
+				}
+			]
+		}
+	}
 }

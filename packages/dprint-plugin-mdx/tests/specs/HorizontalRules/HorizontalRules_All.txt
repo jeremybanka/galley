@@ -1,0 +1,94 @@
+!! should output the different kinds of horizontal rules !!
+test
+
+***
+
+asdf
+
+---
+
+Testing this
+___________
+
+test
+
+***
+asdf
+
+[expect]
+test
+
+---
+
+asdf
+
+---
+
+Testing this
+
+---
+
+test
+
+---
+
+asdf
+
+!! should use asterisks for a rule beside a dash list marker !!
+- ___
+
+[expect]
+- ***
+
+!! should use dashes for a rule that isn't beside a marker !!
+- foo
+
+  ___
+
+[expect]
+- foo
+
+  ---
+
+!! should use asterisks for a rule written under an item's paragraph !!
+- a
+  ***
+
+[expect]
+- a
+  ***
+
+!! should use dashes for a rule written under an item's paragraph with a blank line between !!
+- a
+
+  ***
+
+[expect]
+- a
+
+  ---
+
+!! should read an underline within an item as a heading !!
+- a
+  ---
+
+[expect]
+- ## a
+
+!! should separate a rule from the paragraph above it within a block quote !!
+> foo
+> ***
+
+[expect]
+> foo
+>
+> ---
+
+!! should read a rule where a list item would be !!
+- a
+- - -
+
+[expect]
+- a
+
+---

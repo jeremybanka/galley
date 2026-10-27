@@ -1,8 +1,10 @@
-import One from 'virtual:example' with { type: 'custom', label: 'one' }
-import Two from 'virtual:example' with { type: 'custom', label: 'two' }
-import Again from 'virtual:example' with { label: 'one', type: 'custom' }
+import One from "virtual:example" with { type: "custom", label: "one" };
+import Two from "virtual:example" with { type: "custom", label: "two" };
+import Again from "virtual:example" with { label: "one", type: "custom" };
 
-{One === Again && One !== Two ? 'identity passed' : 'identity failed'}
+{One === Again && One !== Two
+  ? "identity passed"
+  : "identity failed"}
 
 <One />
 

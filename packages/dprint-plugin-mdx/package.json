@@ -1,0 +1,51 @@
+{
+	"name": "dprint-plugin-mdx",
+	"version": "0.0.0",
+	"description": "MDX-safe Markdown formatting for dprint.",
+	"bugs": {
+		"url": "https://github.com/jeremybanka/galley/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/jeremybanka/galley.git",
+		"directory": "packages/dprint-plugin-mdx"
+	},
+	"license": "MPL-2.0 AND MIT",
+	"author": "Jeremy Banka",
+	"type": "module",
+	"exports": {
+		"./plugin.wasm": "./plugin.wasm",
+		"./manifest.json": "./manifest.json",
+		"./schema.json": "./schema.json",
+		"./package.json": "./package.json"
+	},
+	"files": [
+		"plugin.wasm",
+		"manifest.json",
+		"schema.json",
+		"LICENSE",
+		"LICENSE-MIT",
+		"THIRD_PARTY_NOTICES.md",
+		"README.md",
+		"CHANGELOG.md",
+		"src",
+		"Cargo.toml",
+		"source",
+		"DEPENDENCY_NOTICES.txt",
+		"licenses",
+		"tests"
+	],
+	"scripts": {
+		"build": "node ../../scripts/build-mdx-plugin.node.ts",
+		"test": "mise exec -- cargo test --locked && pnpm build && vp test"
+	},
+	"devDependencies": {
+		"@dprint/formatter": "0.6.0",
+		"@mdx-js/mdx": "3.1.1",
+		"remark-frontmatter": "5.0.0",
+		"remark-gfm": "4.0.1"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
+}

@@ -1,0 +1,224 @@
+!! should format !!
+test *emphasis* or _emphasis_ test
+
+test **strong** or __strong__ test
+
+Both **strong and _emphasis_ and *emphasis***.
+
+Test ~~strikethrough~~ test
+
+[expect]
+test _emphasis_ or _emphasis_ test
+
+test **strong** or **strong** test
+
+Both **strong and _emphasis_ and _emphasis_**.
+
+Test ~~strikethrough~~ test
+
+!! should leave as-is when asterisk is in middle of word for GitHub ~~
+
+*wor*d
+*word*1
+*word*?
+
+[expect]
+*wor*d
+*word*1
+_word_?
+
+!! should not separate adjacent text decoration !!
+**a**_b_
+
+[expect]
+**a**_b_
+
+!! should turn a tab between adjacent nodes into a space !!
+**a**	_b_
+
+[expect]
+**a** _b_
+
+!! should not let a decoration's delimiter run into the one it wraps !!
+*_foo_*
+
+_*foo*_
+
+[expect]
+*_foo_*
+
+*_foo_*
+
+!! should not let a decoration's delimiter run into its text !!
+foo *_*
+
+foo __*__
+
+[expect]
+foo *_*
+
+foo __*__
+
+!! should not let text within a decoration pair with its delimiter !!
+*foo __bar *baz bim__ bam*
+
+[expect]
+_foo __bar *baz bim__ bam_
+
+!! should keep asterisks for a decoration within a word !!
+foo*bar*
+
+foo***bar***baz
+
+[expect]
+foo*bar*
+
+foo***bar***baz
+
+!! should leave an escaped delimiter out of the reckoning !!
+foo **\***
+
+foo _\__
+
+[expect]
+foo **\***
+
+foo _\__
+
+!! should keep a tab that separates two runs of delimiters !!
+**	**foo****
+
+[expect]
+** **foo****
+
+!! should keep asterisks where an underscore would not read as a delimiter !!
+*a [*b*​](u)*
+
+[expect]
+_a [*b*​](u)_
+
+!! should keep asterisks where underscores would not be read as emphasis !!
+*foo*1
+
+**5 * 3**
+
+**_a_**
+
+*x\*
+
+[expect]
+*foo*1
+
+**5 * 3**
+
+**_a_**
+
+*x\*
+
+!! should use underscores beside punctuation that is not ascii !!
+*foo*—bar
+
+“*foo*”
+
+*foo*、*bar*。
+
+[expect]
+_foo_—bar
+
+“_foo_”
+
+_foo_、_bar_。
+
+!! should keep asterisks where an underscore would be taken by one written earlier !!
+_(*=*!
+
+_a：)、*=*
+
+[expect]
+_(*=*!
+
+_a：)、*=*
+
+!! should keep asterisks where an underscore could be read as opening or closing !!
+(*=*)
+
+[expect]
+(*=*)
+
+!! should write a decoration read out of a longer run of delimiters with the configured kind !!
+*a**
+
+**a*
+
+***a**
+
+**a***
+
+**a* and _b_
+
+[expect]
+_a_*
+
+*_a_
+
+***a**
+
+**a***
+
+*_a_ and _b_
+
+!! should keep asterisks where what a run left beside the decoration could pair with a run written elsewhere !!
+*a** and *b
+
+x*y *a** z*
+
+_x **a*_
+
+[expect]
+*a** and *b
+
+x*y *a** z*
+
+_x **a*_
+
+!! should not escape text at the start of a line that a decoration written after it keeps from being markup !!
+-**a**
+
+1.*a*
+
+[expect]
+-**a**
+
+1._a_
+
+!! should split the delimiters of emphasis around strong where the kinds differ !!
+***a***
+
+[expect]
+_**a**_
+
+!! should leave underscores that are not emphasis !!
+__太字__テキスト
+
+foo_bar_baz
+
+**a**_b
+
+[expect]
+__太字__テキスト
+
+foo_bar_baz
+
+**a**_b
+
+!! should write strong that is only its delimiters with the configured kind !!
+__init__
+
+[expect]
+**init**
+
+!! should write a single tilde strikethrough with two !!
+~a~
+
+[expect]
+~~a~~

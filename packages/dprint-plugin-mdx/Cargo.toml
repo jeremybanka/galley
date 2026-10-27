@@ -1,0 +1,48 @@
+[package]
+name = "dprint-plugin-galley-mdx"
+version = "0.0.0"
+authors = ["Jeremy Banka", "David Sherret <dsherret@gmail.com>"]
+edition = "2021"
+homepage = "https://github.com/jeremybanka/galley"
+license = "MPL-2.0 AND MIT"
+publish = false
+repository = "https://github.com/jeremybanka/galley"
+description = "MDX formatter for dprint, based on the official Markdown plugin."
+
+[lib]
+crate-type = ["lib", "cdylib"]
+
+[features]
+wasm = ["dprint-core/wasm"]
+tracing = ["dprint-core/tracing"]
+
+[[test]]
+name = "specs"
+path = "tests/spec_test.rs"
+harness = false
+
+[[test]]
+name = "parser_specs"
+path = "tests/parser_spec_test.rs"
+harness = false
+
+[[test]]
+name = "html_parser_specs"
+path = "tests/html_parser_spec_test.rs"
+harness = false
+
+[dependencies]
+deno_ast = { version = "0.53.0", features = ["view"] }
+dprint-core = { version = "0.71.0", features = ["formatting"] }
+dprint-core-macros = "0.1.0"
+dprint-plugin-typescript = "0.96.1"
+markdown = { version = "1.0.0", features = ["serde"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+unicode-width = "0.2"
+
+[dev-dependencies]
+dprint-development = "0.12.1"
+file_test_runner = "0.12.1"
+serde_json = "1.0"

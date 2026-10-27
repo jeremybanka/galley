@@ -1,7 +1,7 @@
-import { Html } from 'galley.md'
+import { Html } from "galley.md";
 
-<Html>
-  <div align="center"><img src="logo.png" width={160} /><h1><code>Package</code></h1></div>
-  <table><tbody><tr><td colSpan={2}>Markup</td></tr></tbody></table>
-  <custom-badge data-label="example" />
-</Html>
+<Html.Element tag="div" attributes={{ align: "center" }}>
+  <Html.Element tag="img" attributes={{ src: "logo.png", width: 160 }} />
+  <Html.Element tag="table"><Html.Element tag="tr"><Html.Element tag="td" attributes={{ colSpan: 2 }}>Markup</Html.Element></Html.Element></Html.Element>
+  <Html.Element tag="custom-badge" attributes={{ "data-label": "example" }} />
+</Html.Element>

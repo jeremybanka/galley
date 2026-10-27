@@ -1,14 +1,8 @@
 import { existsSync } from "node:fs"
 import path from "node:path"
-import { closeProject as closeMdxProject } from "mdx-content-mapper/lib/requests/close-project.js"
-import { openProject as openMdxProject } from "mdx-content-mapper/lib/requests/open-project.js"
-import { transform as transformMdxUpstream } from "mdx-content-mapper/lib/requests/transform.js"
+import { projectTypescript } from "./projection.ts"
 
-import {
-	documentImports,
-	importAttributes,
-	projectMarkdownLinks,
-} from "../editor/document.ts"
+import { documentImports, importAttributes } from "../editor/document.ts"
 import type {
 	ImportType,
 	MappedOutput,
@@ -43,34 +37,21 @@ export async function openProject(params: OpenProject) {
 		throw new Error("importTypes must contain type and valueType strings.")
 	}
 	projects.set(params.projectHandle, [...importTypes, ...builtinImportTypes])
-	return openMdxProject({
-		...params,
-		compilerOptions: {
-			...params.compilerOptions,
-			jsxImportSource: "galley.md",
-		},
-		options: { checkMdx: true, ...options },
-	})
+	return {
+		optionDiagnostics: Object.keys(options).map((key) => ({
+			path: [key],
+			messageText: `Unknown galley mapper option: ${key}`,
+			code: 95003,
+		})),
+	}
 }
 
 export function closeProject(params: { projectHandle: string }) {
 	projects.delete(params.projectHandle)
-	closeMdxProject(params)
 }
 
 function transformMdx(params: Transform): MappedOutput {
-	const result = transformMdxUpstream(params)
-	// The upstream mapper imports our JSX types but leaves automatic JSX runtime
-	// resolution to the project's compiler options, which otherwise select React.
-	const prefix = "/** @jsxImportSource galley.md */\n"
-	return {
-		...result,
-		text: prefix + result.text,
-		mappings: (result.mappings ?? []).map(([start, ...rest]) => [
-			start + prefix.length,
-			...rest,
-		]),
-	}
+	return projectTypescript(params.content)
 }
 
 /** Compose the MDX projection with our attributed-import projection. */
@@ -105,34 +86,22 @@ export function transform(params: Transform): MappedOutput {
 	let imports
 	try {
 		imports = documentImports(params.content).filter(
-			(item) => item.attributes?.length,
+			(item) => item.importKind !== "type" && item.attributes?.length,
 		)
 	} catch {
-		// The upstream mapper recovers from incomplete JavaScript while typing.
+		// Recover complete code islands while the next island is being edited.
 		return transformMdx(params)
 	}
 	let content = ""
-	const projected = projectMarkdownLinks(params.content)
 	let cursor = 0
 	const mappings: SpanMapping[] = []
 	const diagnostics: MapperDiagnostic[] = []
 	function verbatim(start: number, end: number) {
-		let run = start
-		for (let i = start; i <= end; i++) {
-			if (i === end || projected[i] !== params.content[i]) {
-				if (i > run)
-					mappings.push([
-						content.length + run - start,
-						i - run,
-						run,
-						i - run,
-						0,
-					])
-				run = i + 1
-			}
-		}
-		content += projected.slice(start, end)
+		if (end > start)
+			mappings.push([content.length, end - start, start, end - start, 0])
+		content += params.content.slice(start, end)
 	}
+
 	for (const statement of imports) {
 		verbatim(cursor, statement.start)
 		const attributes = importAttributes(statement)
@@ -201,7 +170,7 @@ export function transform(params: Transform): MappedOutput {
 			const local = statement.specifiers[0].local
 			content += "export const "
 			verbatim(local.start, local.end)
-			content += ` = /** @type {${definition?.valueType ?? "any"}} */ (/** @type {any} */ (null));`
+			content += ` = null as unknown as ${definition?.valueType ?? "unknown"};`
 		}
 		cursor = statement.end
 	}
