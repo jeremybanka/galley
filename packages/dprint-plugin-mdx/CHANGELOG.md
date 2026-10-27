@@ -1,5 +1,11 @@
 # dprint-plugin-mdx
 
+## 0.1.0
+
+### Minor Changes
+
+- 1d2107c: Release the independent MDX formatter as 0.1.0 with bundled TypeScript formatting, consistent expression and JSX layouts, whitespace normalization, preserved import/export order, and conventional MDX compatibility verified against the standard MDX compiler.
+
 ## 0.0.0
 
 Initial release of the independent dprint MDX plugin, based on the official Markdown formatter.
