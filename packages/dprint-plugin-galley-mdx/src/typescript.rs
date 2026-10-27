@@ -153,7 +153,7 @@ pub fn format_module(source: &str, width: u32) -> Result<String, FormatError> {
 
 pub fn format_expression(source: &str, spread: bool, width: u32) -> Result<String, FormatError> {
   if !spread && empty(source) {
-    return Ok(source.into());
+    return Ok(format_module(source, width)?.trim().into());
   }
   let wrapper = if spread {
     format!("{PREFIX}{{{source}}};")

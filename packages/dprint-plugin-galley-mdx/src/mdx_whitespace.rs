@@ -109,75 +109,11 @@ pub fn normalize(source: &str, tree: &Node, config: &Configuration) -> String {
 
   // Attribute expressions lack ordinary positions. Tokenizer stops also account
   // for the source prefixes of expressions inside Markdown lists and blockquotes.
-  fn expressions(value: &Value, spans: &mut Vec<Span>) {
-    if let Value::Object(object) = value {
-      if let (Some(Value::String(code)), Some(Value::Array(stops))) =
-        (object.get("value"), object.get("_markdownRsStops"))
-      {
-        if let (Some(first), Some(last)) = (stops.first(), stops.last()) {
-          if let (Some(start), Some(end), Some(index)) = (
-            first.get(1).and_then(Value::as_u64),
-            last.get(1).and_then(Value::as_u64),
-            last.get(0).and_then(Value::as_u64),
-          ) {
-            spans.push(Span {
-              start: start as usize,
-              end: end as usize + code.len() - index as usize,
-              replacement: None,
-            });
-          }
-        }
-      }
-      for value in object.values() {
-        expressions(value, spans);
-      }
-    } else if let Value::Array(values) = value {
-      for value in values {
-        expressions(value, spans);
-      }
-    }
-  }
   expressions(&serde_json::to_value(tree).unwrap(), &mut spans);
 
   // Quoted JSX attributes are literal data, not inter-attribute whitespace.
-  fn attributes(node: &Node, source: &str, spans: &mut Vec<Span>) {
-    if matches!(node, Node::MdxJsxFlowElement(_) | Node::MdxJsxTextElement(_)) {
-      let position = node.position().unwrap();
-      let bytes = source.as_bytes();
-      let mut i = position.start.offset;
-      while i < position.end.offset {
-        if let Some(end) = spans
-          .iter()
-          .filter(|span| span.start <= i && i < span.end)
-          .map(|span| span.end)
-          .max()
-        {
-          i = end;
-        } else if bytes[i] == b'>' {
-          break;
-        } else if matches!(bytes[i], b'\'' | b'"') {
-          let start = i;
-          let quote = bytes[i];
-          i += 1;
-          while i < position.end.offset && bytes[i] != quote {
-            i += 1;
-          }
-          i += 1;
-          spans.push(Span {
-            start,
-            end: i,
-            replacement: None,
-          });
-        } else {
-          i += 1;
-        }
-      }
-    }
-    for child in node.children().into_iter().flatten() {
-      attributes(child, source, spans);
-    }
-  }
-  attributes(tree, source, &mut spans);
+  let mut tags = Vec::new();
+  attributes(tree, source, &mut spans, &mut tags, &mut Vec::new());
   spans.sort_by_key(|span| (span.start, std::cmp::Reverse(span.end)));
 
   let bytes = source.as_bytes();
@@ -195,6 +131,7 @@ pub fn normalize(source: &str, tree: &Node, config: &Configuration) -> String {
       continue;
     }
     let limit = ranges.peek().map_or(bytes.len(), |span| span.start);
+    let in_tag = tags.iter().any(|&(start, end)| start <= i && i < end);
     if matches!(bytes[i], b' ' | b'\t') {
       let start = i;
       while i < limit && matches!(bytes[i], b' ' | b'\t') {
@@ -205,7 +142,8 @@ pub fn normalize(source: &str, tree: &Node, config: &Configuration) -> String {
       let indentation = source[line_start..start]
         .bytes()
         .all(|byte| matches!(byte, b' ' | b'\t'));
-      if !trailing {
+      let around_equals = in_tag && (bytes.get(i) == Some(&b'=') || start > 0 && bytes[start - 1] == b'=');
+      if !trailing && !around_equals {
         output.push_str(if indentation { &source[start..i] } else { " " });
       }
     } else if matches!(bytes[i], b'\r' | b'\n') {
@@ -231,7 +169,11 @@ pub fn normalize(source: &str, tree: &Node, config: &Configuration) -> String {
         }
       }
       if !output.is_empty() {
-        for _ in 0..if i == bytes.len() { 1 } else { count.min(2) } {
+        for _ in 0..if i == bytes.len() {
+          1
+        } else {
+          count.min(if in_tag { 1 } else { 2 })
+        } {
           output.push_str(newline);
         }
       }
@@ -245,4 +187,90 @@ pub fn normalize(source: &str, tree: &Node, config: &Configuration) -> String {
     output.push_str(newline);
   }
   output
+}
+
+fn expressions(value: &Value, spans: &mut Vec<Span>) {
+  if let Value::Object(object) = value {
+    if let (Some(Value::String(code)), Some(Value::Array(stops))) =
+      (object.get("value"), object.get("_markdownRsStops"))
+    {
+      if let (Some(first), Some(last)) = (stops.first(), stops.last()) {
+        if let (Some(start), Some(end), Some(index)) = (
+          first.get(1).and_then(Value::as_u64),
+          last.get(1).and_then(Value::as_u64),
+          last.get(0).and_then(Value::as_u64),
+        ) {
+          spans.push(Span {
+            start: start as usize,
+            end: end as usize + code.len() - index as usize,
+            replacement: None,
+          });
+        }
+      }
+    }
+    for value in object.values() {
+      expressions(value, spans);
+    }
+  } else if let Value::Array(values) = value {
+    for value in values {
+      expressions(value, spans);
+    }
+  }
+}
+
+fn attributes(
+  node: &Node,
+  source: &str,
+  spans: &mut Vec<Span>,
+  tags: &mut Vec<(usize, usize)>,
+  initializers: &mut Vec<usize>,
+) {
+  if matches!(node, Node::MdxJsxFlowElement(_) | Node::MdxJsxTextElement(_)) {
+    let position = node.position().unwrap();
+    let bytes = source.as_bytes();
+    let mut i = position.start.offset;
+    while i < position.end.offset {
+      if let Some(end) = spans
+        .iter()
+        .filter(|span| span.start <= i && i < span.end)
+        .map(|span| span.end)
+        .max()
+      {
+        i = end;
+      } else if bytes[i] == b'>' {
+        tags.push((position.start.offset, i + 1));
+        break;
+      } else if matches!(bytes[i], b'\'' | b'"') {
+        let start = i;
+        let quote = bytes[i];
+        i += 1;
+        while i < position.end.offset && bytes[i] != quote {
+          i += 1;
+        }
+        i += 1;
+        spans.push(Span {
+          start,
+          end: i,
+          replacement: None,
+        });
+      } else {
+        if bytes[i] == b'=' {
+          initializers.push(i);
+        }
+        i += 1;
+      }
+    }
+  }
+  for child in node.children().into_iter().flatten() {
+    attributes(child, source, spans, tags, initializers);
+  }
+}
+
+/// Assignment markers proven to be in MDX opening tags, outside code and literals.
+pub fn attribute_initializers(tree: &Node, source: &str) -> Vec<usize> {
+  let mut spans = Vec::new();
+  expressions(&serde_json::to_value(tree).unwrap(), &mut spans);
+  let mut initializers = Vec::new();
+  attributes(tree, source, &mut spans, &mut Vec::new(), &mut initializers);
+  initializers
 }

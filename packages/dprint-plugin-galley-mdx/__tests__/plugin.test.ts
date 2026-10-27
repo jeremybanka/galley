@@ -18,6 +18,7 @@ import ignoreFile from "#fixtures/mdx-plugin/ignore-file.mdx" with { type: "text
 import invalid from "#fixtures/mdx-plugin/invalid.mdx" with { type: "text" }
 import mixed from "#fixtures/mdx-plugin/mixed.mdx" with { type: "text" }
 import nested from "#fixtures/mdx-plugin/nested.mdx" with { type: "text" }
+import expressionSpacing from "#fixtures/mdx-plugin/expression-spacing.mdx" with { type: "text" }
 import whitespace from "#fixtures/mdx-plugin/whitespace.mdx" with { type: "text" }
 import significantWhitespace from "#fixtures/mdx-plugin/whitespace-significant.mdx" with { type: "text" }
 import plain from "#fixtures/mdx-plugin/plain.mdx" with { type: "text" }
@@ -146,6 +147,31 @@ describe("MDX WebAssembly plugin", () => {
 			newLineKind: "crlf",
 		})
 		expect(windows).not.toMatch(/(?<!\r)\n|(?:\r\n){3}|[ \t]+(?=\r?$)/m)
+		expect(format(windows, { newLineKind: "crlf" })).toBe(windows)
+	})
+
+	test("collapses expression padding, parentheses, and prop separators", async () => {
+		const result = format(expressionSpacing)
+		expect(result).toContain("Before {1 + 2} after.")
+		expect(result).toContain("\n{1}\n")
+		expect(result).toContain("\n{2 + 3}\n")
+		expect(result).toContain('<Card width={160} title="keep   spaces" />')
+		expect(result).toContain("width={160}\n")
+		expect(result).toContain("height={90}\n")
+		expect(result).toContain("[Label {1 + 2} end](./guide)")
+		expect(result).toContain("{/* comment */}")
+		expect(result).toContain('"keep = { these   spaces }"')
+		expect(result).toContain('title="keep = { literal   spaces }" width={160}')
+		expect(result).toContain("`keep = { inline   code }`")
+		expect(result).toContain("```text\n<Card   width = { 160 } />\n```")
+		expect(result).not.toMatch(/\n[ \t]*\n[ \t]*(?:width|height|\/>)/)
+		expect(format(result)).toBe(result)
+		await expect(compile(result)).resolves.toBeDefined()
+		const windows = format(expressionSpacing.replaceAll("\n", "\r\n"), {
+			newLineKind: "crlf",
+		})
+		expect(windows).toContain("\r\n{1}\r\n")
+		expect(windows).not.toMatch(/(?<!\r)\n/)
 		expect(format(windows, { newLineKind: "crlf" })).toBe(windows)
 	})
 

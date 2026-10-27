@@ -52,7 +52,7 @@ to the locally built plugin.
   dialect, not part of standard MDX.
 - Excess blank lines collapse to one blank line, including around MDX blocks.
   Repeated spaces and tabs in prose and between JSX attributes collapse to a
-  single space. Trailing spaces are removed, and documents end with one newline.
+  single space. Padding around prop assignment markers is removed; blank lines between props collapse to a single line break. Multiline and parenthesized expressions lose excess boundary padding. Trailing spaces are removed, and documents end with one newline.
   Two-space Markdown hard breaks become backslash hard breaks.
 - Quoted attribute values, code/string contents, YAML/TOML frontmatter, ignored
   regions, and whitespace-sensitive HTML elements (`pre`, `code`, `textarea`,

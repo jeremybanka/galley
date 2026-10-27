@@ -1,15 +1,26 @@
 import * as vscode from "vscode"
 import { LanguageClient, TransportKind } from "vscode-languageclient/node"
 import type { EditorPreview } from "../editor/preview.ts"
-import { componentAt, previewSummary, retainPreviews } from "./preview-model.ts"
+import {
+	componentAt,
+	previewSummary,
+	retainPreviews,
+	reconcilePreviews,
+	type TrackedPreview,
+} from "./preview-model.ts"
 
-type Snapshot = EditorPreview & { version: number; stale?: boolean }
+type Snapshot = Omit<EditorPreview, "components"> & {
+	components: TrackedPreview[]
+	version: number
+	stale?: boolean
+}
 let client: LanguageClient | undefined
 
 export async function activate(context: vscode.ExtensionContext) {
 	if (!vscode.workspace.isTrusted) return
 	const output = vscode.window.createOutputChannel("galley.md", { log: true })
 	const snapshots = new Map<string, Snapshot>()
+	let nextPreviewId = 0
 	const failures = new Map<string, string>()
 	const diagnostics =
 		vscode.languages.createDiagnosticCollection("galley-preview")
@@ -38,7 +49,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		status.tooltip =
 			failure ??
 			(snapshot?.stale
-				? "Showing unchanged regions from the previous evaluation. Save or refresh to evaluate again."
+				? "Showing output from the previous evaluation. Save or refresh to evaluate again."
 				: "Galley TypeScript MDX. Preview errors appear in Problems.")
 		status.show()
 	}
@@ -78,11 +89,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	const selector = { language: "galley", scheme: "file" }
 	const previewsEnabled = () =>
 		vscode.workspace.getConfiguration("galley").get("preview.enabled", true)
-	const previewUri = (uri: string, start: number) =>
+	const previewUri = (uri: string, id: number) =>
 		vscode.Uri.from({
 			scheme: "galley-output",
 			path: "/Generated.md",
-			query: JSON.stringify({ uri, start }),
+			query: JSON.stringify({ uri, id }),
 		})
 	function current(document: vscode.TextDocument) {
 		const snapshot = snapshots.get(document.uri.toString())
@@ -102,7 +113,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						after: {
 							contentText:
 								previewSummary(component.markdown) +
-								(snapshot?.stale
+								(snapshot?.stale || component.stale
 									? " · previous preview"
 									: snapshot?.errors.length
 										? " · partial document"
@@ -124,7 +135,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		failures.delete(uri)
 		diagnostics.delete(vscode.Uri.parse(uri))
 		for (const component of snapshot?.components ?? [])
-			previewChanges.fire(previewUri(uri, component.start))
+			previewChanges.fire(previewUri(uri, component.id))
 		decorate()
 		changes.fire()
 		updateStatus()
@@ -142,21 +153,27 @@ export async function activate(context: vscode.ExtensionContext) {
 		const cancellation = new vscode.CancellationTokenSource()
 		pending.set(uri, cancellation)
 		try {
-			const snapshot = await client.sendRequest<Snapshot>(
-				"galley/preview",
-				{ uri },
-				cancellation.token,
-			)
+			const response = await client.sendRequest<
+				EditorPreview & { version: number }
+			>("galley/preview", { uri }, cancellation.token)
 			if (
 				cancellation.token.isCancellationRequested ||
-				snapshot.version !== document.version ||
+				response.version !== document.version ||
 				document.isClosed
 			)
 				return
-			snapshot.components = snapshot.components.filter(
-				({ file }) => file === document.uri.fsPath,
-			)
 			const previous = snapshots.get(uri)
+			const snapshot: Snapshot = {
+				...response,
+				components: reconcilePreviews(
+					previous?.components ?? [],
+					response.components.filter(
+						({ file }) => file === document.uri.fsPath,
+					),
+					response.errors,
+					() => nextPreviewId++,
+				),
+			}
 			snapshots.set(uri, snapshot)
 			failures.delete(uri)
 			report(document, snapshot.errors)
@@ -165,7 +182,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				...(previous?.components ?? []),
 				...snapshot.components,
 			])
-				previewChanges.fire(previewUri(uri, component.start))
+				previewChanges.fire(previewUri(uri, component.id))
 			decorate()
 			changes.fire()
 		} catch (error) {
@@ -176,7 +193,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				if (previous) {
 					previous.stale = true
 					for (const component of previous.components)
-						previewChanges.fire(previewUri(uri, component.start))
+						previewChanges.fire(previewUri(uri, component.id))
 				}
 				report(document, [
 					{ file: document.uri.fsPath, start: 0, end: 1, message },
@@ -230,15 +247,13 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.workspace.registerTextDocumentContentProvider("galley-output", {
 			onDidChange: previewChanges.event,
 			provideTextDocumentContent(uri) {
-				const query = JSON.parse(uri.query) as { uri: string; start: number }
+				const query = JSON.parse(uri.query) as { uri: string; id: number }
 				const snapshot = snapshots.get(query.uri)
-				const component = snapshot?.components.find(
-					({ start }) => start === query.start,
-				)
+				const component = snapshot?.components.find(({ id }) => id === query.id)
 				if (!component)
 					return "Preview is out of date. Refresh component output.\n"
 				return (
-					(snapshot?.stale
+					(snapshot?.stale || component.stale
 						? "<!-- Previous evaluation. Save or refresh to update. -->\n\n"
 						: snapshot?.errors.length
 							? "<!-- Partial document: see preview errors in Problems. -->\n\n"
@@ -254,9 +269,9 @@ export async function activate(context: vscode.ExtensionContext) {
 				)
 				if (!component) return
 				const hover = new vscode.MarkdownString("**Generated Markdown**\n\n")
-				if (current(document)?.stale)
+				if (current(document)?.stale || component.stale)
 					hover.appendMarkdown(
-						"Previous evaluation; dependencies may have changed. Save or refresh to update.\n\n",
+						"Previous evaluation; source or dependencies may have changed. Save or refresh to update.\n\n",
 					)
 				hover.appendCodeblock(component.markdown, "markdown")
 				return new vscode.Hover(
@@ -281,7 +296,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							{
 								title: "Peek Generated Markdown",
 								command: "galley.peekOutput",
-								arguments: [document.uri, component.start],
+								arguments: [document.uri, component.id],
 							},
 						),
 				)
@@ -289,7 +304,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 		vscode.commands.registerCommand(
 			"galley.peekOutput",
-			async (uri?: vscode.Uri, start?: number) => {
+			async (uri?: vscode.Uri, id?: number) => {
 				const editor = vscode.window.activeTextEditor
 				const document = uri
 					? await vscode.workspace.openTextDocument(uri)
@@ -297,14 +312,14 @@ export async function activate(context: vscode.ExtensionContext) {
 				if (!document) return
 				const snapshot = current(document)
 				const component =
-					start === undefined
+					id === undefined
 						? componentAt(
 								snapshot?.components ?? [],
 								document.offsetAt(
 									editor?.selection.active ?? new vscode.Position(0, 0),
 								),
 							)
-						: snapshot?.components.find((item) => item.start === start)
+						: snapshot?.components.find((item) => item.id === id)
 				if (!component) return
 				await vscode.commands.executeCommand(
 					"editor.action.peekLocations",
@@ -312,7 +327,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					document.positionAt(component.end),
 					[
 						new vscode.Location(
-							previewUri(document.uri.toString(), component.start),
+							previewUri(document.uri.toString(), component.id),
 							new vscode.Position(0, 0),
 						),
 					],
@@ -340,17 +355,21 @@ export async function activate(context: vscode.ExtensionContext) {
 			failures.delete(uri)
 			diagnostics.delete(document.uri)
 			const previous = snapshots.get(uri)
+			let anchorsChanged = false
 			if (previous) {
 				const oldComponents = previous.components
 				previous.components = retainPreviews(oldComponents, contentChanges)
+				// VS Code tracks lens positions through edits. Stable IDs keep their
+				// commands valid; only removed anchors need an explicit invalidation.
+				anchorsChanged = oldComponents.length !== previous.components.length
 				previous.version = document.version
 				previous.stale = true
 				previous.errors = []
 				for (const component of [...oldComponents, ...previous.components])
-					previewChanges.fire(previewUri(uri, component.start))
+					previewChanges.fire(previewUri(uri, component.id))
 			}
 			decorate()
-			changes.fire()
+			if (anchorsChanged) changes.fire()
 			updateStatus()
 		}),
 		vscode.workspace.onDidCloseTextDocument((document) => {

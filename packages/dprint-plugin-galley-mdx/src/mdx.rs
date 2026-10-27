@@ -15,7 +15,9 @@ pub fn format_mdx(
   mut format_code: impl FnMut(&str, &str, u32) -> Result<Option<String>, FormatError>,
 ) -> Result<Option<String>, FormatError> {
   let options = parse_options();
-  let tree = markdown::to_mdast(source, &options).map_err(|error| FormatError::Parse(error.to_string()))?;
+  let original_source = source;
+  let (parsed_source, tree) = parse_source(source, &options)?;
+  let source = parsed_source.as_str();
   let children = tree.children().expect("MDX document has a root");
   if children
     .iter()
@@ -24,7 +26,16 @@ pub fn format_mdx(
     return Ok(None);
   }
 
-  let original_source = source;
+  // A tokenizer workaround must never rewrite ignored input.
+  if source != original_source
+    && children.iter().any(|node| {
+      is_directive(node, &config.ignore_directive)
+        || is_directive(node, &config.ignore_start_directive)
+        || is_directive(node, &config.ignore_end_directive)
+    })
+  {
+    return Ok(None);
+  }
   let original_tree = tree;
   let normalized = crate::mdx_whitespace::normalize(source, &original_tree, config);
   let source = normalized.as_str();
@@ -225,11 +236,12 @@ fn parse_options() -> markdown::ParseOptions {
 
 fn format_islands(node: &Node, source: &str, width: u32) -> Result<String, FormatError> {
   // Stops describe the source slices collected by Markdown's tokenizer, including
-  // offsets after list/blockquote prefixes. Only replace contiguous code islands.
+  // offsets after list/blockquote prefixes. Replace contiguous code islands and whitespace-only indentation gaps.
   fn collect(
     value: &Value,
     source: &str,
     width: u32,
+    allow_indentation_gaps: bool,
     edits: &mut Vec<(usize, usize, String)>,
   ) -> Result<(), FormatError> {
     if let Value::Object(object) = value {
@@ -237,35 +249,33 @@ fn format_islands(node: &Node, source: &str, width: u32) -> Result<String, Forma
         (object.get("value"), object.get("_markdownRsStops"))
       {
         let kind = object.get("type").and_then(Value::as_str).unwrap_or("");
-        if let Some(start) = stops
-          .first()
-          .and_then(|v| v.get(1))
-          .and_then(Value::as_u64)
-          .map(|n| n as usize)
-        {
-          let end = start + code.len();
-          if source.get(start..end) == Some(code) {
-            let formatted = if kind == "mdxjsEsm" {
-              crate::typescript::format_module(code, width)?.trim_end().to_string()
-            } else {
-              crate::typescript::format_expression(code, kind == "mdxJsxExpressionAttribute", width)?
-            };
-            edits.push((start, end, formatted));
-          }
+        if let Some((start, end)) = code_range(code, stops, source, allow_indentation_gaps) {
+          let code = &source[start..end];
+          let formatted = if kind == "mdxjsEsm" {
+            crate::typescript::format_module(code, width)?.trim_end().to_string()
+          } else {
+            crate::typescript::format_expression(code, kind == "mdxJsxExpressionAttribute", width)?
+          };
+          edits.push((start, end, formatted));
         }
       }
+      let allow_indentation_gaps = allow_indentation_gaps
+        && !matches!(
+          object.get("type").and_then(Value::as_str),
+          Some("listItem" | "blockquote")
+        );
       for child in object.values() {
-        collect(child, source, width, edits)?;
+        collect(child, source, width, allow_indentation_gaps, edits)?;
       }
     } else if let Value::Array(children) = value {
       for child in children {
-        collect(child, source, width, edits)?;
+        collect(child, source, width, allow_indentation_gaps, edits)?;
       }
     }
     Ok(())
   }
   let mut edits = vec![];
-  collect(&serde_json::to_value(node).unwrap(), source, width, &mut edits)?;
+  collect(&serde_json::to_value(node).unwrap(), source, width, true, &mut edits)?;
   edits.sort_by_key(|edit| edit.0);
   let position = node.position().unwrap();
   let mut output = String::new();
@@ -277,4 +287,76 @@ fn format_islands(node: &Node, source: &str, width: u32) -> Result<String, Forma
   }
   output.push_str(&source[cursor..position.end.offset]);
   Ok(output)
+}
+
+// Markdown strips line indentation even from otherwise contiguous TS islands.
+// Include whitespace-only gaps, but never consume list or blockquote prefixes.
+fn code_range(code: &str, stops: &[Value], source: &str, allow_indentation_gaps: bool) -> Option<(usize, usize)> {
+  let mut stops = stops
+    .iter()
+    .map(|stop| Some((stop.get(0)?.as_u64()? as usize, stop.get(1)?.as_u64()? as usize)));
+  let (mut code_start, start) = stops.next()??;
+  if code_start != 0 {
+    return None;
+  }
+  let mut source_start = start;
+  for stop in stops {
+    let (code_end, next_source) = stop?;
+    let segment = code.get(code_start..code_end)?;
+    let source_end = source_start.checked_add(segment.len())?;
+    if source.get(source_start..source_end)? != segment {
+      return None;
+    }
+    let gap = source.get(source_end..next_source)?;
+    if !gap.is_empty() && (!allow_indentation_gaps || !gap.bytes().all(|byte| matches!(byte, b' ' | b'\t'))) {
+      return None;
+    }
+    code_start = code_end;
+    source_start = next_source;
+  }
+  let segment = code.get(code_start..)?;
+  let end = source_start.checked_add(segment.len())?;
+  (source.get(source_start..end)? == segment).then_some((start, end))
+}
+
+// markdown-rs 1.0 mishandles padding around JSX assignment markers: tags can
+// become prose, or multiline values fail to parse. Normalize candidate markers,
+// then let the AST prove which edits are actually inside MDX opening tags.
+// Restore every candidate in prose, code, strings, or quoted attribute values.
+fn parse_source(source: &str, options: &markdown::ParseOptions) -> Result<(String, Node), FormatError> {
+  let parse = |text: &str| markdown::to_mdast(text, options).map_err(|error| FormatError::Parse(error.to_string()));
+  let mut candidate = String::with_capacity(source.len());
+  let mut edits = Vec::new();
+  let mut cursor = 0;
+  for (index, _) in source.match_indices('=') {
+    let start = source[..index].trim_end_matches([' ', '\t']).len();
+    let end = source.len() - source[index + 1..].trim_start_matches([' ', '\t']).len();
+    if (start < index || end > index + 1) && matches!(source.as_bytes().get(end), Some(b'{' | b'"' | b'\'')) {
+      candidate.push_str(&source[cursor..start]);
+      edits.push((start, end, candidate.len()));
+      candidate.push('=');
+      cursor = end;
+    }
+  }
+  if edits.is_empty() {
+    return Ok((source.into(), parse(source)?));
+  }
+  candidate.push_str(&source[cursor..]);
+  let tree = match parse(&candidate) {
+    Ok(tree) => tree,
+    Err(_) => return Ok((source.into(), parse(source)?)),
+  };
+  let initializers = crate::mdx_whitespace::attribute_initializers(&tree, &candidate);
+  let mut output = String::with_capacity(source.len());
+  cursor = 0;
+  for (start, end, marker) in edits {
+    if initializers.contains(&marker) {
+      output.push_str(&source[cursor..start]);
+      output.push('=');
+      cursor = end;
+    }
+  }
+  output.push_str(&source[cursor..]);
+  let tree = parse(&output)?;
+  Ok((output, tree))
 }
