@@ -114,6 +114,30 @@ pub fn normalize(source: &str, tree: &Node, config: &Configuration) -> String {
   // Quoted JSX attributes are literal data, not inter-attribute whitespace.
   let mut tags = Vec::new();
   attributes(tree, source, &mut spans, &mut tags, &mut Vec::new());
+  for &(start, end) in &tags {
+    let tag = &source[start..end];
+    if let Some(body) = tag.strip_prefix('<').and_then(|tag| tag.strip_suffix("/>")) {
+      let name = body.trim();
+      if !name.is_empty() && !name.chars().any(char::is_whitespace) && !name.contains(['{', '=', '\'', '"']) {
+        // No props: all three spellings `<Name/>`, `<Name />`, and a wrapped
+        // closing marker have the same canonical layout, regardless of width.
+        spans.push(Span {
+          start,
+          end,
+          replacement: Some(format!("<{name} />")),
+        });
+      } else if !tag.contains(['\r', '\n']) {
+        // Inline props still need exactly one space before the closing marker.
+        let closing_start = end - 2;
+        let space_start = source[..closing_start].trim_end_matches([' ', '\t']).len();
+        spans.push(Span {
+          start: space_start,
+          end,
+          replacement: Some(" />".into()),
+        });
+      }
+    }
+  }
   spans.sort_by_key(|span| (span.start, std::cmp::Reverse(span.end)));
 
   let bytes = source.as_bytes();

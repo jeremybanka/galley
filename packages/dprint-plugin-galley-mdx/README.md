@@ -54,6 +54,7 @@ to the locally built plugin.
 - Code starts only at MDX's import/export and brace-expression boundaries. Bare
   top-level declarations remain prose. This TypeScript extension is Galley's
   dialect, not part of standard MDX.
+- Self-closing tags without props use `<Name />`, including when their closing marker was on another line. Inline tags with props use one space before `/>`. Literal contents and ignored regions retain their spelling.
 - Excess blank lines collapse to one blank line, including around MDX blocks.
   Repeated spaces and tabs in prose and between JSX attributes collapse to a
   single space. Padding around prop assignment markers is removed; blank lines between props collapse to a single line break. Multiline and parenthesized expressions lose excess boundary padding. Trailing spaces are removed, and documents end with one newline.

@@ -10,6 +10,8 @@ import { describe, expect, test } from "vite-plus/test"
 import layoutVariants from "#fixtures/mdx-plugin/layout-variants.mdx" with { type: "text" }
 import layoutCompact from "#fixtures/mdx-plugin/layout-compact.mdx" with { type: "text" }
 import layoutExpanded from "#fixtures/mdx-plugin/layout-expanded.mdx" with { type: "text" }
+import selfClosingVariants from "#fixtures/mdx-plugin/self-closing-variants.mdx" with { type: "text" }
+import selfClosingContexts from "#fixtures/mdx-plugin/self-closing-contexts.mdx" with { type: "text" }
 import attributes from "#fixtures/mdx-plugin/attributes.mdx" with { type: "text" }
 import boundary from "#fixtures/mdx-plugin/boundary.mdx" with { type: "text" }
 import crlf from "#fixtures/mdx-plugin/crlf.mdx" with { type: "text" }
@@ -224,6 +226,44 @@ describe("MDX WebAssembly plugin", () => {
 			expect(semantics(expanded)).toEqual(semantics(layoutExpanded))
 		},
 	)
+
+	test.each([8, 80, 120])(
+		"canonicalizes self-closing JSX at width %i",
+		(lineWidth) => {
+			const variants = selfClosingVariants.trim().split(/\n\n(?=<)/)
+			for (const source of variants) {
+				const result = format(source, { lineWidth })
+				expect(result).toBe("<TypeScript />\n")
+				expect(format(result, { lineWidth })).toBe(result)
+				expect(semantics(result)).toEqual(semantics(source))
+			}
+		},
+	)
+
+	test("normalizes self-closing tags in context while preserving literals and ignores", () => {
+		const result = format(selfClosingContexts)
+		for (const text of [
+			"<UI.Icon />",
+			"<svg:path />",
+			"<Outer><Inner /></Outer>",
+			"Before <TypeScript /> after.",
+			'<Card title="keep   spaces" width={160} />',
+		])
+			expect(result).toContain(text)
+		for (const text of [
+			"`<TypeScript/>`",
+			"```text\n<TypeScript/>\n```",
+			"{/* dprint-ignore */}\n<TypeScript\n/>",
+		])
+			expect(result).toContain(text)
+		expect(semantics(result)).toEqual(semantics(selfClosingContexts))
+		expect(format(result)).toBe(result)
+		const windows = format(selfClosingVariants.replaceAll("\n", "\r\n"), {
+			newLineKind: "crlf",
+		})
+		expect(windows).not.toMatch(/(?<!\r)\n|<TypeScript\r\n/)
+		expect(format(windows, { newLineKind: "crlf" })).toBe(windows)
+	})
 
 	test("supports MDX ignore comments", () => {
 		const result = format(ignore)
