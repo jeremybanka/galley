@@ -1,5 +1,16 @@
 # galley.md
 
+## 0.2.0
+
+### Minor Changes
+
+- 1d2107c: Support TypeScript in MDX code regions with a shared compiler/editor parser, TSX content mapping, and TypeScript highlighting; require explicit component props and use Html.Element for HTML attributes and custom tags.
+
+### Patch Changes
+
+- 1d2107c: Keep healthy MDX editor regions available around syntax and preview errors, report preview failures in Problems, and retain clearly marked previous output while editing.
+- 1d2107c: Collapse padding around multiline TypeScript expressions and JSX props, and keep peek actions and preview documents stable through source edits and failed evaluations.
+
 ## 0.1.7
 
 ### Patch Changes
