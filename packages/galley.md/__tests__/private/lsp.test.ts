@@ -189,10 +189,10 @@ test("typed MDX editor hover, rename, and diagnostics retain authored positions"
 		diagnostics.items.some((item) => item.message.includes("unknownProperty")),
 	).toBe(true)
 	expect(
-		diagnostics.items.every(
-			(item) => item.range.start.line >= typedDocument.split("\n").length - 1,
+		diagnostics.items.filter(
+			(item) => item.range.start.line < typedDocument.split("\n").length - 1,
 		),
-	).toBe(true)
+	).toEqual([])
 	await connection.sendRequest("shutdown")
 	await connection.sendNotification("exit")
 }, 20_000)

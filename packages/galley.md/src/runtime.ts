@@ -1,6 +1,7 @@
 import path from "node:path"
 
 import { toHtml } from "hast-util-to-html"
+import { phrasing as htmlPhrasing } from "hast-util-phrasing"
 import type { Nodes, Root, RootContent } from "mdast"
 import { toHast } from "mdast-util-to-hast"
 import remarkFrontmatter from "remark-frontmatter"
@@ -11,7 +12,12 @@ import { unified } from "unified"
 
 import type { PreviewFailure } from "./editor/recovery.ts"
 import { formatMarkdown } from "./format.ts"
-import { renderTableElement, tablePreview } from "./tables.ts"
+import {
+	cellContent,
+	inlineHtml,
+	renderTableElement,
+	tablePreview,
+} from "./tables.ts"
 import type {
 	ComponentPreview,
 	Content,
@@ -27,6 +33,7 @@ type RenderContext = DocumentContext & {
 	[previewErrors]?: PreviewFailure[]
 	[htmlMode]?: boolean
 	tableParent?: string | undefined
+	svg?: boolean
 }
 
 const markdownProcessor = unified()
@@ -58,10 +65,18 @@ function assertProps(name: string, props: object, allowed: readonly string[]) {
 }
 
 /** Include Markdown produced by another tool as Markdown nodes. */
-export function Markdown(props: { children: string }): Root {
-	assertProps("Markdown", props, ["children"])
-	const { children } = props
-	return markdownProcessor.parse(children)
+export const Markdown = Object.assign(
+	function Markdown(props: { children: string }): Root {
+		assertProps("Markdown", props, ["children"])
+		return markdownProcessor.parse(props.children)
+	},
+	{ Table: MarkdownTable },
+)
+
+/** Convert explicit rows and cells into a GFM pipe table. */
+function MarkdownTable(props: { children?: Content }): Element {
+	assertProps("Markdown.Table", props, ["children"])
+	return { kind: "galley:element", type: "galley-table", props }
 }
 
 /** Preserve children as an HTML comment in the generated Markdown. */
@@ -96,7 +111,7 @@ type HtmlAttribute =
 	| undefined
 	| (string | number)[]
 
-/** Explicit HTML/custom-element attributes, isolated from Markdown JSX props. */
+/** @deprecated Use native JSX tags and attributes instead. */
 function HtmlElement(props: {
 	tag: string
 	attributes?: Record<string, HtmlAttribute>
@@ -174,6 +189,22 @@ async function resolveContent(
 				element.type(element.props as never, context),
 				context,
 			)
+		}
+		if (element.type === "galley-table") {
+			if (context.tableParent)
+				throw new Error(
+					"Nested tables cannot be represented in a Markdown table.",
+				)
+			return (await renderTableElement(
+				{ ...element, type: "table" },
+				undefined,
+				(children, tableParent) =>
+					resolveContent(children, {
+						...context,
+						[htmlMode]: false,
+						tableParent,
+					}),
+			))!
 		}
 		if (element.type === "galley-html") {
 			const children = await resolveContent(element.props.children as Content, {
@@ -286,7 +317,7 @@ function blocks(nodes: RootContent[]): RootContent[] {
 		pending = []
 	}
 	for (const node of nodes) {
-		if (phrasing.has(node.type)) pending.push(node)
+		if (phrasing.has(node.type) || inlineHtml.has(node)) pending.push(node)
 		else {
 			flush()
 			output.push(node)
@@ -300,7 +331,7 @@ async function intrinsic(
 	element: Element,
 	context: RenderContext,
 ): Promise<RootContent[]> {
-	if (!context[htmlMode]) {
+	if (context.tableParent) {
 		const table = await renderTableElement(
 			element,
 			context.tableParent,
@@ -308,95 +339,75 @@ async function intrinsic(
 				resolveContent(children, { ...context, tableParent }),
 		)
 		if (table) return table
-		assertProps(
-			`<${String(element.type)}>`,
-			element.props,
-			element.type === "a" ? ["children", "href"] : ["children"],
+	}
+	const tagName = String(element.type)
+	if (!/^[a-zA-Z][a-zA-Z0-9:.-]*$/.test(tagName))
+		throw new Error(`Invalid HTML tag: ${tagName}`)
+	const svg = tagName === "svg" || (context.svg && tagName !== "foreignObject")
+	const children = await resolveContent(element.props.children as Content, {
+		...context,
+		[htmlMode]: true,
+		svg: Boolean(svg),
+	})
+	const properties: Record<string, HtmlAttribute> = {}
+	for (const [name, value] of Object.entries(element.props)) {
+		if (name === "children" || name === "key") continue
+		if (
+			/^on/i.test(name) ||
+			name === "ref" ||
+			name === "dangerouslySetInnerHTML"
 		)
-	}
-	const children = await resolveContent(
-		element.props.children as Content,
-		context,
-	)
-	if (context[htmlMode]) {
-		const properties: Record<
-			string,
-			string | number | boolean | null | undefined | (string | number)[]
-		> = {}
-		for (const [name, value] of Object.entries(element.props)) {
-			if (name === "children" || name === "key") continue
-			if (
-				value === null ||
-				value === undefined ||
-				typeof value === "string" ||
-				typeof value === "number" ||
-				typeof value === "boolean" ||
-				(Array.isArray(value) &&
-					value.every(
-						(item: unknown) =>
-							typeof item === "string" || typeof item === "number",
-					))
+			throw new Error(
+				`HTML property ${name} is not supported in static output.`,
 			)
-				properties[name] =
-					typeof value === "boolean" && /^(aria|data)(-|[A-Z])/.test(name)
-						? String(value)
-						: value
-			else
-				throw new Error(
-					`HTML attribute ${name} must be a string, number, boolean, or array of strings or numbers.`,
-				)
-		}
-		return [
+		if (
+			value === null ||
+			value === undefined ||
+			typeof value === "string" ||
+			typeof value === "number" ||
+			typeof value === "boolean" ||
+			(Array.isArray(value) &&
+				value.every(
+					(item: unknown) =>
+						typeof item === "string" || typeof item === "number",
+				))
+		)
+			properties[name] =
+				typeof value === "boolean" && /^(aria|data)(-|[A-Z])/.test(name)
+					? String(value)
+					: value
+		else
+			throw new Error(
+				`HTML attribute ${name} must be a string, number, boolean, or array of strings or numbers.`,
+			)
+	}
+	const phrasingElement = htmlPhrasing({
+		type: "element",
+		tagName,
+		properties,
+		children: [],
+	})
+	if (context.tableParent) {
+		if (!phrasingElement || tagName === "br")
+			throw new Error(
+				`Markdown.Table cells support inline content only; found <${tagName}>.`,
+			)
+		cellContent(children)
+	}
+	const node: RootContent = {
+		type: "html",
+		value: toHtml(
 			{
-				type: "html",
-				value: toHtml(
-					{
-						type: "element",
-						tagName: String(element.type),
-						properties,
-						children: [{ type: "raw", value: htmlContent(children) }],
-					},
-					{ allowDangerousHtml: true },
-				),
+				type: "element",
+				tagName,
+				properties,
+				children: [{ type: "raw", value: htmlContent(children) }],
 			},
-		]
+			{ allowDangerousHtml: true, space: svg ? "svg" : "html" },
+		),
 	}
-	const tags: Record<string, string> = {
-		p: "paragraph",
-		strong: "strong",
-		em: "emphasis",
-		del: "delete",
-		blockquote: "blockquote",
-	}
-	const type = tags[String(element.type)]
-	if (type)
-		return [
-			{
-				type,
-				children: type === "blockquote" ? blocks(children) : children,
-			} as RootContent,
-		]
-	if (/^h[1-6]$/.test(String(element.type)))
-		return [
-			{
-				type: "heading",
-				depth: Number(String(element.type)[1]),
-				children,
-			} as RootContent,
-		]
-	if (element.type === "a")
-		return [
-			{
-				type: "link",
-				url: typeof element.props.href === "string" ? element.props.href : "",
-				children,
-			} as RootContent,
-		]
-	if (element.type === "br") return [{ type: "break" }]
-	if (element.type === "hr") return [{ type: "thematicBreak" }]
-	throw new Error(
-		`Unsupported Markdown element <${String(element.type)}>. Wrap markup in <Html>, use Markdown syntax, or return a Markdown node from a component.`,
-	)
+	if (phrasingElement) inlineHtml.add(node)
+	return [node]
 }
 
 function htmlContent(children: RootContent[]): string {

@@ -1,4 +1,4 @@
 | Name | Status | Size | Note |
 | :--- | :---: | ---: | --- |
-| [galley](https://example.com) | **Ready** | 12 | a\|b |
-| Other | *Pending* | 0 | |
+| <a href="https://example.com">galley</a> | **Ready** | 12 | a\|b |
+| Other | <em>Pending</em> | 0 | |

@@ -107,7 +107,7 @@ describe("galley documents", () => {
 		})
 		const result = await previewMarkdown(input)
 		expect(result.markdown).toBe(
-			"<!-- Generated from README.mdx. -->\n\nBefore <!-- inline note --> after.\n\n<!-- First line\nSecond line -->\n\n<div><!-- Inside **HTML** --></div>\n",
+			"<!-- Generated from README.mdx. -->\n\nBefore <!-- inline note --> after.\n\n<!-- First line\nSecond line -->\n\n<div><!-- Inside <strong>HTML</strong> --></div>\n",
 		)
 		const comment = result.components.find(
 			(component) =>
@@ -155,11 +155,13 @@ describe("galley documents", () => {
 		expect(output).toContain(
 			'<label for="name" class="label wide" style="color: red">Name</label>',
 		)
-		expect(output).toContain("\n\nMarkdown **still works**.\n")
+		expect(output).toContain(
+			"\n\n<p>Markdown <strong>still works</strong>.</p>\n",
+		)
 		expect(output).not.toContain("<Html>")
 	})
 
-	test("distinguishes markup tables inside Html from native Markdown tables", async () => {
+	test("distinguishes HTML tables from explicit Markdown tables", async () => {
 		const { input } = await fixture({
 			"README.mdx": htmlTables,
 		})
@@ -221,7 +223,7 @@ describe("galley documents", () => {
 		)
 	})
 
-	test("aligns native table columns in the generated Markdown", async () => {
+	test("aligns Markdown.Table columns in the generated Markdown", async () => {
 		const { input } = await fixture({ "README.mdx": alignedTable })
 		expect(await compileMarkdown(input)).toBe(alignedTableExpected)
 	})
@@ -255,8 +257,8 @@ describe("galley documents", () => {
 				}),
 			),
 		)
-		expect(result.components).toHaveLength(3)
-		expect(result.components[1]?.markdown).toContain("a\\|b")
+		expect(result.components).toHaveLength(4)
+		expect(result.components[1]?.markdown).toContain("a&#124;b")
 	})
 
 	test.each([
@@ -281,8 +283,8 @@ describe("galley documents", () => {
 		[tableFooter, "Unsupported table element <tfoot>"],
 		[tableColumnGroup, "Unsupported table element <colgroup>"],
 		[tableColumn, "Unsupported table element <col>"],
-		[tableClass, 'Unsupported attribute "className" on <table>'],
-		[tableStyle, 'Unsupported attribute "style" on <table>'],
+		[tableClass, 'Unsupported property "className" on Markdown.Table'],
+		[tableStyle, 'Unsupported property "style" on Markdown.Table'],
 		[tableColumnSpan, 'Unsupported attribute "colSpan" on <th>'],
 		[tableRowSpan, 'Unsupported attribute "rowSpan" on <th>'],
 		[rowAlignment, 'Unsupported attribute "align" on <tr>'],
@@ -290,10 +292,13 @@ describe("galley documents", () => {
 		[nullAlignment, "Invalid <th> alignment"],
 		[bodyAlignment, 'Unsupported attribute "align" on <td>'],
 		[nestedTable, "Nested tables cannot be represented"],
-		[hardBreakInCell, "Table cells support inline content only; found break"],
+		[
+			hardBreakInCell,
+			"Markdown.Table cells support inline content only; found <br>",
+		],
 		[
 			paragraphsInCell,
-			"Table cells support inline content only; found paragraph",
+			"Markdown.Table cells support inline content only; found <p>",
 		],
 		[listInCell, "Table cells support inline content only; found list"],
 	])("rejects unsupported table markup: %s", async (source, error) => {
@@ -305,7 +310,7 @@ describe("galley documents", () => {
 		[missingImport, "missing.ts"],
 		[unknownAttribute, "Unknown code import attribute: language"],
 		[invalidLanguage, "Code languages"],
-		[unsupportedElement, "Unsupported Markdown element <div>"],
+		[unsupportedElement, "HTML attribute style must be a string"],
 	])("reports invalid input: %s", async (document, error) => {
 		const { input } = await fixture({
 			"README.mdx": document,
@@ -321,6 +326,9 @@ test("built-in components reject extra properties hidden in spreads", async () =
 	expect(() => Code({ source: "x", ...extra })).toThrow("misspelled")
 	expect(() => Markdown({ children: "text", ...extra })).toThrow("misspelled")
 	expect(() => Html({ children: "text", ...extra })).toThrow("misspelled")
+	expect(() => Markdown.Table({ children: "text", ...extra })).toThrow(
+		"misspelled",
+	)
 	expect(() => Html.Element({ tag: "div", ...extra })).toThrow("misspelled")
 	await expect(
 		Comment(

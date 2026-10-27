@@ -1,4 +1,4 @@
-import { Html, Code } from 'galley.md'
+import { Code } from 'galley.md'
 import type { Content } from 'galley.md' with { 'resolution-mode': 'import' }
 import Source from './example.ts' with { type: 'code', lang: 'ts' }
 import Text from './example.ts' with { type: 'text' }
@@ -12,7 +12,7 @@ export const Label = ({ value }: { value: string }): Content => <strong>{value}<
 
 # Typed MDX
 
-<Html.Element tag="img" attributes={{ ...size, alt: Text as string }} />
+<img {...size} alt={Text as string} />
 
 <Label value={`${size.width satisfies number}px`} />
 

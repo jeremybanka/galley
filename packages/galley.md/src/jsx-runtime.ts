@@ -1,3 +1,4 @@
+import type { JSX as ReactJSX } from "react"
 import type { Component, Content, Element } from "./types.ts"
 
 export const Fragment = "galley-fragment"
@@ -22,29 +23,58 @@ export namespace JSX {
 	export interface ElementChildrenAttribute {
 		children: unknown
 	}
-	export interface IntrinsicElements {
-		p: Children
-		h1: Children
-		h2: Children
-		h3: Children
-		h4: Children
-		h5: Children
-		h6: Children
-		strong: Children
-		em: Children
-		del: Children
-		blockquote: Children
-		a: Children & { href: string }
-		br: Record<string, never>
-		hr: Record<string, never>
-		table: Children
-		thead: Children
-		tbody: Children
-		tr: Children
-		th: Children & { align?: "left" | "center" | "right" }
-		td: Children
-		"galley-fragment": Children
+	export interface IntrinsicElements extends NativeElements {
+		[tag: `${string}-${string}`]: StaticAttributes<
+			ReactJSX.IntrinsicElements["div"]
+		>
 	}
 }
 
-type Children = { children?: Content; key?: string | number }
+type HtmlAttribute =
+	| string
+	| number
+	| boolean
+	| null
+	| undefined
+	| readonly (string | number)[]
+type OmittedAttribute =
+	| `on${string}`
+	| "children"
+	| "key"
+	| "ref"
+	| "style"
+	| "dangerouslySetInnerHTML"
+	| "suppressContentEditableWarning"
+	| "suppressHydrationWarning"
+type SerializableAttributes<Props> = {
+	[Key in keyof Props as Key extends OmittedAttribute ? never : Key]: Extract<
+		Props[Key],
+		HtmlAttribute
+	>
+}
+type HtmlNames<Props> = {
+	[
+		Key in keyof SerializableAttributes<Props> as Key extends string
+			? Key extends "className"
+				? "class"
+				: Key extends "htmlFor"
+					? "for"
+					: Lowercase<Key>
+			: never
+	]: SerializableAttributes<Props>[Key]
+}
+type StaticAttributes<Props> = SerializableAttributes<Props> &
+	HtmlNames<Props> & {
+		children?: Content
+		key?: string | number
+		style?: string
+		/** Legacy alignment remains useful in README renderers. */
+		align?: "left" | "center" | "right" | "justify" | "char"
+		[attribute: `data-${string}`]: HtmlAttribute
+	}
+
+type NativeElements = {
+	[Tag in keyof ReactJSX.IntrinsicElements]: StaticAttributes<
+		ReactJSX.IntrinsicElements[Tag]
+	>
+}
