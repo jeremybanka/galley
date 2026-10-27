@@ -1,1 +1,3 @@
-export function Greeting() { return 'before' }
+export function Greeting() {
+	return "before"
+}

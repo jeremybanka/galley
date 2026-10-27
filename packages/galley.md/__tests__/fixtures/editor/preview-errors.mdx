@@ -1,14 +1,20 @@
-import { Code } from 'galley.md'
+import { Code } from "galley.md";
 
-export const Broken = (): never => { throw new Error('component failed') }
+export const Broken = (): never => {
+  throw new Error("component failed");
+};
 
 <Code source="before" />
 
 <Broken />
 
-{(() => { throw new Error('expression failed') })()}
+{(() => {
+  throw new Error("expression failed");
+})()}
 
-Inline {(() => { throw new Error('inline failed') })()} survives.
+Inline {(() => {
+  throw new Error("inline failed");
+})()} survives.
 
 <Missing />
 
@@ -16,4 +22,4 @@ Inline {(() => { throw new Error('inline failed') })()} survives.
 
 <Code source="after" />
 
-export const a: number = 3
+export const a: number = 3;

@@ -42,9 +42,23 @@ Test examples live in `packages/galley.md/__tests__/fixtures/`. Import their sou
 import example from "#fixtures/compiler/html-branding.mdx" with { type: "text" }
 ```
 
-The test-only Vite plugin uses esbuild's native import-attribute handling to read these files without compiling or executing them. TypeScript resolves `#fixtures/*` to a string declaration. Tests copy the strings into temporary projects so relative imports, source changes, and file-system checks still run against isolated files. Fixture dependencies use the same text imports.
+The test-only Vite plugin uses esbuild's native import-attribute handling to read these files without compiling or executing them. Modules importing fixtures bypass Vitest's persistent transform cache so fixture-only edits cannot reuse stale inlined contents. TypeScript resolves `#fixtures/*` to a string declaration. Tests copy the strings into temporary projects so relative imports, source changes, and file-system checks still run against isolated files. Fixture dependencies use the same text imports.
 
-Fixtures preserve their exact bytes, including leading blank lines, missing final newlines, and intentionally invalid syntax. Formatting, linting, and direct type checking exclude the fixture directory; spelling checks still apply. Keep expected errors and focused output assertions in the test files. Larger expected Markdown documents can live alongside their input fixtures.
+Ordinary fixtures participate in `fmt`, `check:fmt`, and VS Code formatting on save. Keep format-sensitive cases excluded in `dprint.json`; adding a fixture does not automatically exempt it. The current exceptions, relative to `packages/galley.md/__tests__/fixtures/`, are:
+
+| Fixture                                                            | Why formatting is excluded                                                                                              |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| `mdx-plugin/**`                                                    | Deliberately unformatted input, ignore directives, invalid syntax, whitespace, and CRLF cases for the formatter itself. |
+| `**/*.expected.md`                                                 | Expected output must remain an independent assertion, not be rewritten by the formatter.                                |
+| `compiler/embedded-examples.mdx`                                   | Verifies exact preservation of embedded code whitespace.                                                                |
+| `compiler/markdown-formatting.mdx`                                 | Unformatted input verifies that compilation and previews apply Markdown formatting.                                     |
+| `frontmatter/invalid-yaml.mdx`, `frontmatter/duplicate-output.mdx` | Malformed metadata and duplicate keys must remain invalid.                                                              |
+| `frontmatter/multiline.mdx`                                        | Literal YAML scalar trailing blank lines carry meaning.                                                                 |
+| `editor/incomplete-import.mdx`, `editor/recovery.mdx`              | Incomplete and broken MDX exercise editor recovery.                                                                     |
+| `editor/highlighting.mdx`, `editor/typed.mdx`                      | Deliberate blank lines inside TypeScript test parser and highlighting boundaries.                                       |
+| `editor/typed-formatting.mdx`                                      | Unformatted TypeScript MDX is checked before and after formatting.                                                      |
+
+Keep runtime/type-error fixtures formatted when their syntax is valid. Compose fixture fragments with explicit separators in the test harness; do not rely on leading blank lines that formatters remove. Editor assertions should locate positions in fixture text rather than freeze incidental line numbers or quote styles. All fixtures remain excluded from linting and direct project type checking because they run in temporary test projects; spelling checks still apply. Keep expected errors and focused output assertions in the test files. Larger expected Markdown documents can live alongside their input fixtures.
 
 Keep the user guide's `dprint-ignore` comments before MDX examples. The Markdown plugin treats embedded MDX as Markdown and can rewrite JSX expressions as literal HTML attribute strings. The rest of the guide remains formatted normally.
 

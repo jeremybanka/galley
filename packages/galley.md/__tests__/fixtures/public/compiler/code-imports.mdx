@@ -1,9 +1,11 @@
-import TypeScript from './code-source.ts' with { type: 'code', lang: 'ts' }
-import Plain from './code-source.ts' with { type: 'code', lang: 'text' }
-import Again from './code-source.ts' with { lang: 'ts', type: 'code' }
-import Inferred from './code-source.ts' with { type: 'code' }
+import TypeScript from "./code-source.ts" with { type: "code", lang: "ts" };
+import Plain from "./code-source.ts" with { type: "code", lang: "text" };
+import Again from "./code-source.ts" with { lang: "ts", type: "code" };
+import Inferred from "./code-source.ts" with { type: "code" };
 
-{TypeScript === Again && TypeScript !== Plain && TypeScript !== Inferred ? 'identity passed' : 'identity failed'}
+{TypeScript === Again && TypeScript !== Plain && TypeScript !== Inferred
+    ? "identity passed"
+    : "identity failed"}
 
 <TypeScript />
 

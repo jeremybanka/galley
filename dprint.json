@@ -7,7 +7,11 @@
 		"**/*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc,md,mdx,css,astro,toml,yml,yaml}"
 	],
 	"excludes": [
-		"**/__tests__/fixtures/**",
+		"packages/galley.md/__tests__/fixtures/**/*.expected.md",
+		"packages/galley.md/__tests__/fixtures/mdx-plugin/**",
+		"packages/galley.md/__tests__/fixtures/compiler/{embedded-examples,markdown-formatting}.mdx",
+		"packages/galley.md/__tests__/fixtures/frontmatter/{invalid-yaml,duplicate-output,multiline}.mdx",
+		"packages/galley.md/__tests__/fixtures/editor/{highlighting,incomplete-import,recovery,typed,typed-formatting}.mdx",
 		"**/metafile-*",
 		"**/*.cache.json",
 		"**/*.gen.ts",
@@ -33,24 +37,36 @@
 		"packages/dprint-plugin-galley-mdx/source/**"
 	],
 	"oxc": {
-		"associations": ["**/*.{ts,tsx,js,jsx,mjs,cjs}"],
+		"associations": [
+			"**/*.{ts,tsx,js,jsx,mjs,cjs}"
+		],
 		"semicolons": "asNeeded",
 		"trailingCommas": "all"
 	},
 	"json": {
-		"associations": ["**/*.{json,jsonc}"]
+		"associations": [
+			"**/*.{json,jsonc}"
+		]
 	},
 	"markdown": {
-		"associations": ["**/*.md"]
+		"associations": [
+			"**/*.md"
+		]
 	},
 	"malva": {
-		"associations": ["**/*.css"]
+		"associations": [
+			"**/*.css"
+		]
 	},
 	"toml": {
-		"associations": ["**/*.toml"]
+		"associations": [
+			"**/*.toml"
+		]
 	},
 	"yaml": {
-		"associations": ["**/*.{yml,yaml}"]
+		"associations": [
+			"**/*.{yml,yaml}"
+		]
 	},
 	"plugins": [
 		"./node_modules/@dprint/oxc/plugin.wasm",
@@ -62,6 +78,8 @@
 		"./packages/dprint-plugin-galley-mdx/plugin.wasm"
 	],
 	"mdx": {
-		"associations": ["**/*.mdx"]
+		"associations": [
+			"**/*.mdx"
+		]
 	}
 }

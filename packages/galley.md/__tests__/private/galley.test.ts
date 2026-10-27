@@ -11,7 +11,7 @@ import {
 	runGalley,
 } from "../../src/index.ts"
 
-import markdownStructure from "#fixtures/public/compiler/markdown-structure.mdx" with { type: "text" }
+import markdownStructure from "#fixtures/compiler/markdown-formatting.mdx" with { type: "text" }
 import markdownStructureExpected from "#fixtures/compiler/markdown-structure.expected.md" with { type: "text" }
 import embeddedExamples from "#fixtures/compiler/embedded-examples.mdx" with { type: "text" }
 import alignedTable from "#fixtures/public/compiler/aligned-table.mdx" with { type: "text" }

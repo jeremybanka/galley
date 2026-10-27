@@ -128,6 +128,21 @@ async function fixture(source: string) {
 	return { directory, input: path.join(directory, "README.mdx") }
 }
 
+function positionOf(source: string, text: string, offset = 0) {
+	const index = source.indexOf(text)
+	expect(index, `Missing fixture text: ${text}`).toBeGreaterThanOrEqual(0)
+	const prefix = source.slice(0, index + offset)
+	return {
+		line: prefix.split("\n").length - 1,
+		character: prefix.length - prefix.lastIndexOf("\n") - 1,
+	}
+}
+
+function diagnosticLocation(source: string, text: string, offset = 0) {
+	const { line, character } = positionOf(source, text, offset)
+	return `README.mdx(${line + 1},${character + 1})`
+}
+
 test("composes UTF-16 source maps and keeps attributed imports distinct from ordinary imports", async () => {
 	const source = mappedImports
 	await openProject({
@@ -145,7 +160,7 @@ test("composes UTF-16 source maps and keeps attributed imports distinct from ord
 			({ messageText }) => !messageText.startsWith("Cannot read"),
 		),
 	).toEqual([])
-	expect(result.text).toContain("import { value } from './example.ts'")
+	expect(result.text).toMatch(/import \{ value \} from (["'])\.\/example\.ts\1/)
 	expect(result.text).toContain('import("galley.md").Component')
 	expect(result.text).toContain("as unknown as string")
 	for (const [v, vl, o, ol, kind] of result.mappings ?? []) {
@@ -183,7 +198,7 @@ test("reports unsupported attributes at their original spans and supports plugin
 			result.diagnostics![0]!.start,
 			result.diagnostics![0]!.start + result.diagnostics![0]!.length,
 		),
-	).toBe("'bad'")
+	).toMatch(/^(["'])bad\1$/)
 	expect(result.diagnostics![2]!.messageText).toContain("language")
 	closeProject({ projectHandle: "custom" })
 })
@@ -217,16 +232,20 @@ test("TypeScript 7.1 checks real attributed imports and maps errors back to MDX"
 			directory,
 		])
 	await expect(check()).resolves.toMatchObject({ stdout: "" })
-	await fs.appendFile(input, invalidUsages)
+	await fs.appendFile(input, `\n${invalidUsages}`)
 	await expect(check()).rejects.toMatchObject({
-		stdout: expect.stringMatching(/README\.mdx\(9,/),
+		stdout: expect.stringContaining(
+			diagnosticLocation(`${checkedImports}\n${invalidUsages}`, "<Text", 1),
+		),
 	})
 	try {
 		await check()
 	} catch (error) {
 		const output = (error as { stdout: string }).stdout
 		expect(output).toContain("toFixed")
-		expect(output).toContain("README.mdx(13,")
+		expect(output).toContain(
+			diagnosticLocation(`${checkedImports}\n${invalidUsages}`, "invalid="),
+		)
 		expect(output).not.toContain("no default export")
 	}
 }, 20_000)
@@ -253,9 +272,11 @@ test.each([undefined, "react"])(
 				directory,
 			])
 		await expect(check()).resolves.toMatchObject({ stdout: "" })
-		await fs.appendFile(input, invalidUsages)
+		await fs.appendFile(input, `\n${invalidUsages}`)
 		await expect(check()).rejects.toMatchObject({
-			stdout: expect.stringMatching(/README\.mdx\(9,/),
+			stdout: expect.stringContaining(
+				diagnosticLocation(`${checkedImports}\n${invalidUsages}`, "<Text", 1),
+			),
 		})
 	},
 	20_000,
@@ -274,10 +295,13 @@ test("TypeScript checks native tables and HTML table attributes in MDX and TSX",
 			directory,
 		])
 	await fs.writeFile(path.join(directory, "table.tsx"), checkedTableComponent)
-	await fs.appendFile(input, tableUsage)
+	await fs.appendFile(input, `\n${tableUsage}`)
 	await expect(check()).resolves.toMatchObject({ stdout: "" })
-	await fs.appendFile(input, htmlTableUsage)
-	await fs.appendFile(path.join(directory, "table.tsx"), htmlTableComponent)
+	await fs.appendFile(input, `\n${htmlTableUsage}`)
+	await fs.appendFile(
+		path.join(directory, "table.tsx"),
+		`\n${htmlTableComponent}`,
+	)
 	await expect(check()).resolves.toMatchObject({ stdout: "" })
 }, 20_000)
 
@@ -404,7 +428,7 @@ test("LSP avoids duplicate document registrations for dynamic-capable clients", 
 	})
 	const hover = await connection.sendRequest("textDocument/hover", {
 		textDocument: { uri },
-		position: { line: 0, character: 10 },
+		position: positionOf(codeImportDocument, "Code"),
 	})
 	expect(JSON.stringify(hover)).toContain("Code component")
 	const diagnostics = await connection.sendRequest<{ items: unknown[] }>(
@@ -433,24 +457,31 @@ test("LSP serves attribute completion, definitions, real TypeScript hover, and i
 	})
 	const hover = await connection.sendRequest("textDocument/hover", {
 		textDocument: { uri },
-		position: { line: 5, character: 2 },
+		position: positionOf(source, "{value}", 2),
 	})
 	expect(JSON.stringify(hover)).toContain("123")
 	const locations = await connection.sendRequest<{ uri: string }[]>(
 		"textDocument/definition",
-		{ textDocument: { uri }, position: { line: 1, character: 25 } },
+		{
+			textDocument: { uri },
+			position: positionOf(
+				source,
+				"import Code",
+				source.slice(source.indexOf("import Code")).indexOf("./example.ts") + 2,
+			),
+		},
 	)
 	expect(locations[0]?.uri).toBe(
 		pathToFileURL(path.join(directory, "example.ts")).href,
 	)
 	const usage = await connection.sendRequest<{ uri: string }[]>(
 		"textDocument/definition",
-		{ textDocument: { uri }, position: { line: 3, character: 2 } },
+		{ textDocument: { uri }, position: positionOf(source, "<Code", 2) },
 	)
 	expect(usage[0]?.uri).toBe(locations[0]?.uri)
 	const rename = await connection.sendRequest("textDocument/rename", {
 		textDocument: { uri },
-		position: { line: 3, character: 2 },
+		position: positionOf(source, "<Code", 2),
 		newName: "Example",
 	})
 	expect(JSON.stringify(rename)).toContain('"newText":"Example"')
@@ -468,7 +499,7 @@ test("LSP serves attribute completion, definitions, real TypeScript hover, and i
 		items: { label: string }[]
 	}>("textDocument/completion", {
 		textDocument: { uri },
-		position: { line: 0, character: 46 },
+		position: positionOf(incompleteImport, "co", 2),
 	})
 	expect(completion.items.map(({ label }) => label)).toContain("code")
 	await connection.sendRequest("shutdown")
@@ -508,7 +539,7 @@ test("inferred projects receive the TypeScript mapper without a tsconfig", async
 	})
 	const hover = await connection.sendRequest("textDocument/hover", {
 		textDocument: { uri },
-		position: { line: 2, character: 2 },
+		position: positionOf(source, "<Code", 2),
 	})
 	expect(JSON.stringify(hover)).toContain("Component")
 	const diagnostics = await connection.sendRequest<{ items: unknown[] }>(
@@ -545,7 +576,9 @@ test("Markdown links retain embedded expressions and source maps without breakin
 			directory,
 		]),
 	).rejects.toMatchObject({
-		stdout: expect.stringContaining("README.mdx(5,10)"),
+		stdout: expect.stringContaining(
+			diagnosticLocation(source.replace("toUpperCase", "toFixed"), "toFixed"),
+		),
 	})
 }, 20_000)
 
@@ -566,7 +599,7 @@ test("typed MDX compiles, typechecks, and maps TypeScript and strict-prop errors
 	expect(preview.markdown).toContain('width="160"')
 	expect(preview.markdown).toContain("**160px**")
 	expect(preview.markdown).toContain("export const value")
-	await fs.appendFile(input, typedInvalid)
+	await fs.appendFile(input, `\n${typedInvalid}`)
 	await expect(check()).rejects.toMatchObject({
 		stdout: expect.stringContaining("README.mdx"),
 	})
@@ -649,7 +682,7 @@ test("typed MDX editor hover, rename, and diagnostics retain authored positions"
 	expect(JSON.stringify(rename)).toContain('"newText":"dimensions"')
 	await connection.sendNotification("textDocument/didChange", {
 		textDocument: { uri, version: 2 },
-		contentChanges: [{ text: typedDocument + typedInvalid }],
+		contentChanges: [{ text: `${typedDocument}\n${typedInvalid}` }],
 	})
 	const diagnostics = await connection.sendRequest<{
 		items: { message: string; range: { start: { line: number } } }[]
@@ -687,7 +720,12 @@ test("typed projection preserves exported document props and re-exported layouts
 		documentProps.replace("props.title", "props.missing"),
 	)
 	await expect(check()).rejects.toMatchObject({
-		stdout: expect.stringContaining("README.mdx(3,"),
+		stdout: expect.stringContaining(
+			diagnosticLocation(
+				documentProps.replace("props.title", "props.missing"),
+				"missing",
+			),
+		),
 	})
 }, 20_000)
 
