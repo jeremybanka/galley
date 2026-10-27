@@ -68,7 +68,7 @@ The workspace associates `.mdx` files with the **galley.md** language. Install t
 
 Workspace settings enable dprint formatting on save and recommend the dprint extension. Run `pnpm build:mdx` after installing dependencies to provide its local Wasm plugin. The formatter uses `dprint.json`, including its fixture exclusions. Incremental file caching is disabled because rebuilding the local Wasm plugin can change its output without changing its package version; formatting and checks must use the current plugin. Rebuild and reinstall the VSIX after changing editor or parser code, then reload the VS Code window to load the new bundle.
 
-For the initial `dprint-plugin-mdx@0.0.0` npm publication, run `pnpm build`, then `pnpm --filter dprint-plugin-mdx pack --pack-destination ../../artifacts`. Inspect `artifacts/dprint-plugin-mdx-0.0.0.tgz`, then publish that exact archive with `npm publish ./artifacts/dprint-plugin-mdx-0.0.0.tgz --access public`. This publishes only the formatter. Do not run `release:version` for this initial publication; it applies pending changesets and advances versions. Subsequent releases use the Changesets workflow.
+For the initial `dprint-plugin-mdx@0.0.0` npm publication, run `pnpm build`, then `pnpm --filter dprint-plugin-mdx pack --pack-destination artifacts`. Inspect `artifacts/dprint-plugin-mdx-0.0.0.tgz`, then publish that exact archive with `npm publish ./artifacts/dprint-plugin-mdx-0.0.0.tgz --access public`. This publishes only the formatter. Do not run `release:version` for this initial publication; it applies pending changesets and advances versions. Subsequent releases use the Changesets workflow.
 
 ## Maintaining the dprint MDX plugin
 

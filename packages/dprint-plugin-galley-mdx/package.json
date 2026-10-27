@@ -27,6 +27,7 @@
 		"LICENSE-MIT",
 		"THIRD_PARTY_NOTICES.md",
 		"README.md",
+		"CHANGELOG.md",
 		"src",
 		"Cargo.toml",
 		"source",
