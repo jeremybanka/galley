@@ -179,6 +179,7 @@ test("write and check handle missing and stale output without modifying the sour
 	expect(await fs.readFile(input, "utf8")).toBe(source)
 })
 
+// Six CLI processes share this budget, including startup on shared CI runners.
 test("CLI writes, checks, reports drift, accepts explicit output, and shows help without evaluation", async () => {
 	const { directory, input, output } = await fixture({
 		"README.mdx": cliDocument,
@@ -201,7 +202,7 @@ test("CLI writes, checks, reports drift, accepts explicit output, and shows help
 	await fs.writeFile(input, brokenDocument)
 	expect((await run("--help")).stdout).toContain("galley")
 	await expect(run("unknown")).rejects.toMatchObject({ code: 1 })
-})
+}, 20_000)
 
 test.each([
 	["unequal table rows", missingCells],
