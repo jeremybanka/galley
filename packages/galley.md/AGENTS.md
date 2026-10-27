@@ -11,7 +11,7 @@ Compile trusted MDX documents and executable components to checked-in Markdown.
 - Use `Comment` to preserve an HTML comment in generated Markdown. Its children render as Markdown with surrounding whitespace trimmed and cannot contain HTML comment delimiters. MDX comments (`{/* ... */}`) remain source-only.
 - Use `Html.Element` with `tag`, `attributes`, and `children` for HTML-specific markup and custom elements. `Html` remains a wrapper-free HTML boundary but cannot widen JSX types. Native Markdown tags and built-in components reject unknown props; declare explicit `Component<Props>` types for custom components.
 - Galley extends MDX with TypeScript in import/export blocks, brace expressions, props, and spreads. Use exported declarations; bare top-level declarations are prose. JSX inside expressions is TSX; direct MDX children remain Markdown. Compilation erases types, while the TypeScript 7.1 mapper checks original TSX. Standard MDX tools may reject this dialect.
-- Format authored MDX with `dprint-plugin-galley-mdx`, which bundles its own TypeScript formatter. Generated Markdown formatting remains built into Galley.
+- Format authored MDX with `dprint-plugin-mdx`, which bundles its own TypeScript formatter. Generated Markdown formatting remains built into Galley.
 - Use the component's second argument, `DocumentContext`, for paths relative to its containing document. Imported MDX documents get their own directory context.
 - Pass esbuild plugins through `compileMarkdown(input, { plugins })` or `runGalley`. Custom plugins run before built-in handlers and can consume arbitrary import attributes using esbuild's native module identity.
 - Ordinary document imports and components execute during compilation. Only compile documents and plugins you trust.

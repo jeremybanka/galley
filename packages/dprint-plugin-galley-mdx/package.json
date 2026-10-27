@@ -1,5 +1,5 @@
 {
-	"name": "dprint-plugin-galley-mdx",
+	"name": "dprint-plugin-mdx",
 	"version": "0.0.0",
 	"description": "MDX-safe Markdown formatting for dprint.",
 	"bugs": {

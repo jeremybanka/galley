@@ -62,13 +62,14 @@ impl SyncPluginHandler<Configuration> for MdxPluginHandler {
 
   fn plugin_info(&mut self) -> PluginInfo {
     let manifest: serde_json::Value = serde_json::from_str(include_str!("../package.json")).unwrap();
+    let name = manifest["name"].as_str().unwrap().to_string();
     let version = manifest["version"].as_str().unwrap().to_string();
     PluginInfo {
-      name: env!("CARGO_PKG_NAME").to_string(),
+      name: name.clone(),
       version: version.clone(),
       config_key: "mdx".to_string(),
       help_url: "https://github.com/jeremybanka/galley/tree/main/packages/dprint-plugin-galley-mdx".to_string(),
-      config_schema_url: format!("https://unpkg.com/dprint-plugin-galley-mdx@{}/schema.json", version),
+      config_schema_url: format!("https://unpkg.com/{}@{}/schema.json", name, version),
       update_url: None,
     }
   }

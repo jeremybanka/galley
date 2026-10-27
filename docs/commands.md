@@ -68,7 +68,7 @@ The workspace associates `.mdx` files with the **galley.md** language. Install t
 
 Workspace settings enable dprint formatting on save and recommend the dprint extension. Run `pnpm build:mdx` after installing dependencies to provide its local Wasm plugin. The formatter uses `dprint.json`, including its fixture exclusions. Incremental file caching is disabled because rebuilding the local Wasm plugin can change its output without changing its package version; formatting and checks must use the current plugin. Rebuild and reinstall the VSIX after changing editor or parser code, then reload the VS Code window to load the new bundle.
 
-For the initial `0.0.0` npm publication, run `pnpm build`, then `pnpm --filter galley.md publish`. `release:version` applies pending changesets and advances the version.
+For the initial `dprint-plugin-mdx@0.0.0` npm publication, run `pnpm build`, then `pnpm --filter dprint-plugin-mdx pack --pack-destination ../../artifacts`. Inspect `artifacts/dprint-plugin-mdx-0.0.0.tgz`, then publish that exact archive with `npm publish ./artifacts/dprint-plugin-mdx-0.0.0.tgz --access public`. This publishes only the formatter. Do not run `release:version` for this initial publication; it applies pending changesets and advances versions. Subsequent releases use the Changesets workflow.
 
 ## Maintaining the dprint MDX plugin
 
@@ -80,4 +80,4 @@ The build generates `plugin.wasm`, a checksum manifest, `DEPENDENCY_NOTICES.txt`
 
 The MDX adapter uses markdown-rs with TypeScript parsing callbacks in `src/typescript.rs`. The bundled official dprint TypeScript formatter shares its SWC parser through deno_ast. Keep parser versions aligned with the formatter and run the shared TypeScript fixtures through compilation, typechecking, WASM formatting, and editor highlighting when upgrading. The supplemental MIT notices for capacity_builder_macros and deno_error_macro come from their sibling crate licenses; dprint-swc-ext comes from its 0.26.1 repository tag.
 
-Changesets owns the plugin's npm version. The Wasm metadata reads the included `package.json`; the private, unpublished Rust crate version is not a second release counter. Before publishing, build the workspace and inspect `pnpm --filter dprint-plugin-galley-mdx pack` for the Wasm, manifest, sources, and license notices.
+The npm package is `dprint-plugin-mdx`; its source directory and private Rust crate retain the internal name `dprint-plugin-galley-mdx`. Changesets owns the plugin's npm version. The Wasm metadata reads the included `package.json`; the private, unpublished Rust crate version is not a second release counter. Before publishing, build the workspace and inspect `pnpm --filter dprint-plugin-mdx pack` for the Wasm, manifest, sources, and license notices.

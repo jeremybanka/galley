@@ -97,7 +97,7 @@ export const Label = ({ value }: { value: string }): Content => <strong>{value}<
 
 Compilation erases types; it does not typecheck them. The TypeScript 7.1 content mapper below checks the original source as TSX and maps diagnostics and editor actions back to MDX. An exported `Props` type or interface declares a document's props. Move reusable logic into `.ts` or `.tsx` files.
 
-To format authored `.mdx`, use the separate [dprint-plugin-galley-mdx](../dprint-plugin-galley-mdx/README.md) plugin. It owns its TypeScript formatter dependency and needs no peer language plugin. Embedded TypeScript uses a consistent wrapping policy based on line width, with formatting stabilized before returning the result. This is separate from Galley's built-in formatting of generated `.md` output.
+To format authored `.mdx`, use the separate [dprint-plugin-mdx](../dprint-plugin-galley-mdx/README.md) plugin. It owns its TypeScript formatter dependency and needs no peer language plugin. Embedded TypeScript uses a consistent wrapping policy based on line width, with formatting stabilized before returning the result. This is separate from Galley's built-in formatting of generated `.md` output.
 
 ## Components
 

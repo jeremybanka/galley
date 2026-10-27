@@ -1,4 +1,4 @@
-# dprint-plugin-galley-mdx
+# dprint-plugin-mdx
 
 An independent MDX formatter for dprint, based on the official
 [Markdown plugin 0.28.0](https://github.com/dprint/dprint-plugin-markdown/tree/0.28.0)
@@ -12,10 +12,10 @@ It formats ordinary Markdown and embedded code while preserving MDX syntax and l
 
 ## Install
 
-Once published, install the plugin alongside dprint:
+Install the plugin alongside dprint:
 
 ```sh
-pnpm add -D dprint dprint-plugin-galley-mdx
+pnpm add -D dprint dprint-plugin-mdx
 ```
 
 Add the WebAssembly plugin to `dprint.json`:
@@ -23,7 +23,7 @@ Add the WebAssembly plugin to `dprint.json`:
 ```json
 {
 	"lineWidth": 80,
-	"plugins": ["./node_modules/dprint-plugin-galley-mdx/plugin.wasm"],
+	"plugins": ["./node_modules/dprint-plugin-mdx/plugin.wasm"],
 	"mdx": {
 		"textWrap": "maintain"
 	}

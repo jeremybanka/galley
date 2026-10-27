@@ -14,7 +14,7 @@
 		"release:publish": "pnpm build && changeset publish",
 		"release:version": "changeset version",
 		"staged": "vp staged",
-		"test": "pnpm --filter dprint-plugin-galley-mdx test && pnpm --filter galley.md test",
+		"test": "pnpm --filter dprint-plugin-mdx test && pnpm --filter galley.md test",
 		"test:watch": "vp run -r --parallel --no-cache test:watch",
 		"workflows:update": "./scripts/update-workflows.node.ts",
 		"test:public": "pnpm --filter galley.md run test:public",
