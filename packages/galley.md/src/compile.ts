@@ -12,6 +12,8 @@ import type { PluggableList } from "unified"
 
 import { markdownNodes } from "./markdown-nodes.ts"
 import { consumeFrontmatter } from "./frontmatter.ts"
+import { recoverDocument, type PreviewFailure } from "./editor/recovery.ts"
+import { previewNodes } from "./editor/preview-nodes.ts"
 import { eraseTypes } from "./editor/erase-types.ts"
 import { mdxParserOptions } from "./editor/document.ts"
 import { renderMarkdown } from "./runtime.ts"
@@ -38,10 +40,27 @@ export function previewMarkdown(
 	return compileDocument(input, options, true)
 }
 
+/** Recover editor previews without weakening the compile/write API. */
+export async function previewEditorMarkdown(input: string, source: string) {
+	const recovered = recoverDocument(source)
+	const errors: PreviewFailure[] = recovered.errors.map((error) => ({
+		...error,
+		file: path.resolve(input),
+	}))
+	const result = await compileDocument(
+		input,
+		{ source: recovered.source },
+		true,
+		errors,
+	)
+	return { ...result, errors }
+}
+
 async function compileDocument(
 	input: string,
 	options: PreviewOptions,
 	capture: boolean,
+	errors?: PreviewFailure[],
 ): Promise<DocumentPreview> {
 	const inputPath = path.resolve(input)
 	const dependencies = new Set<string>([inputPath])
@@ -99,7 +118,7 @@ async function compileDocument(
 					remarkGfm,
 					remarkFrontmatter,
 					consumeFrontmatter,
-					[markdownNodes, { previews: capture }],
+					[markdownNodes, { previews: capture, recover: errors !== undefined }],
 				]
 				if (args.path.endsWith(".mdx"))
 					remarkPlugins.unshift([remarkMdx, mdxParserOptions], eraseTypes)
@@ -118,6 +137,7 @@ async function compileDocument(
 								jsx: true,
 								jsxImportSource: "galley.md",
 								remarkPlugins,
+								recmaPlugins: errors ? [previewNodes] : [],
 							},
 						),
 					),
@@ -191,6 +211,7 @@ async function compileDocument(
 		{ kind: "galley:element", type: document.default, props: {} },
 		{ path: inputPath, directory: path.dirname(inputPath) },
 		components,
+		errors,
 	)
 	return { markdown, components, dependencies: [...dependencies] }
 }

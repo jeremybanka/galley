@@ -2,26 +2,27 @@
 
 Run commands from the repository root. The publishable packages live in `packages/galley.md` and `packages/dprint-plugin-galley-mdx`; the root package is private. `mise.toml` selects Node, pnpm, and Rust, including Clippy, rustfmt, and the `wasm32-unknown-unknown` target. Run `mise install` before installing dependencies.
 
-| Command            | Purpose                                                           |
-| ------------------ | ----------------------------------------------------------------- |
-| `build`            | Build Galley and the dprint MDX WebAssembly plugin.               |
-| `build:mdx`        | Build only the MDX plugin, dependency notices, and source bundle. |
-| `check:rust`       | Run Clippy over the Rust library and regression tests.            |
-| `fmt`              | Apply formatting.                                                 |
-| `check`            | Run formatting, spelling, lint, and TypeScript checks.            |
-| `check:fmt`        | Validate formatting.                                              |
-| `check:spelling`   | Validate spelling.                                                |
-| `check:vp`         | Run lint and TypeScript checks through Vite Plus.                 |
-| `test`             | Run the test suite once.                                          |
-| `test:public`      | Run the current consumer contracts against source once.           |
-| `test:private`     | Run implementation and detailed regression tests once.            |
-| `test:breakage`    | Replay the latest release's consumer contracts against source.    |
-| `test:watch`       | Watch the test suite.                                             |
-| `change`           | Author release notes.                                             |
-| `release:version`  | Prepare versions and release metadata.                            |
-| `release:publish`  | Build and publish the npm package.                                |
-| `staged`           | Format and check staged files.                                    |
-| `workflows:update` | Update pinned workflow tooling references.                        |
+| Command            | Purpose                                                              |
+| ------------------ | -------------------------------------------------------------------- |
+| `build`            | Build Galley and the dprint MDX WebAssembly plugin.                  |
+| `build:mdx`        | Build only the MDX plugin, dependency notices, and source bundle.    |
+| `check:rust`       | Run Clippy over the Rust library and regression tests.               |
+| `fmt`              | Apply formatting.                                                    |
+| `check`            | Run formatting, spelling, lint, and TypeScript checks.               |
+| `check:fmt`        | Validate formatting.                                                 |
+| `check:spelling`   | Validate spelling.                                                   |
+| `check:mdx`        | Check the configured project with TypeScript 7.1 and its MDX mapper. |
+| `check:vp`         | Run lint and TypeScript checks through Vite Plus.                    |
+| `test`             | Run the test suite once.                                             |
+| `test:public`      | Run the current consumer contracts against source once.              |
+| `test:private`     | Run implementation and detailed regression tests once.               |
+| `test:breakage`    | Replay the latest release's consumer contracts against source.       |
+| `test:watch`       | Watch the test suite.                                                |
+| `change`           | Author release notes.                                                |
+| `release:version`  | Prepare versions and release metadata.                               |
+| `release:publish`  | Build and publish the npm package.                                   |
+| `staged`           | Format and check staged files.                                       |
+| `workflows:update` | Update pinned workflow tooling references.                           |
 
 Galley's `prepare` script builds source installations. Published npm packages include the built files.
 
@@ -49,7 +50,9 @@ Keep the user guide's `dprint-ignore` comments before MDX examples. The Markdown
 
 To build a VSIX after `pnpm build`, run `node packages/galley.md/dist/cli.mjs vsix build artifacts/editor`. To install it, run `node packages/galley.md/dist/cli.mjs vsix [editor]`.
 
-The workspace associates `.mdx` files with the **galley.md** language. Install the Galley extension using the command above so fixtures use Galley's JSX runtime and import handling in the editor. Fixtures remain excluded from direct project type checking.
+The workspace associates `.mdx` files with the **galley.md** language. Install the Galley extension using the command above so fixtures use Galley's JSX runtime and import handling in the editor. The root `tsconfig.json` registers the Galley content mapper and includes authored MDX; `pnpm check:mdx` enables external mapper execution. Fixtures remain excluded from direct project type checking. Declaration packaging uses `tsconfig.build.json` with no content mappers, since it builds only TypeScript and must not execute the mapper being packaged.
+
+Workspace settings enable dprint formatting on save and recommend the dprint extension. Run `pnpm build:mdx` after installing dependencies to provide its local Wasm plugin. The formatter uses `dprint.json`, including its fixture exclusions. Rebuild and reinstall the VSIX after changing editor or parser code, then reload the VS Code window to load the new bundle.
 
 For the initial `0.0.0` npm publication, run `pnpm build`, then `pnpm --filter galley.md publish`. `release:version` applies pending changesets and advances the version.
 

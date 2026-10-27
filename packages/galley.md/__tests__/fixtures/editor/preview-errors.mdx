@@ -1,0 +1,19 @@
+import { Code } from 'galley.md'
+
+export const Broken = (): never => { throw new Error('component failed') }
+
+<Code source="before" />
+
+<Broken />
+
+{(() => { throw new Error('expression failed') })()}
+
+Inline {(() => { throw new Error('inline failed') })()} survives.
+
+<Missing />
+
+<Missing.Child />
+
+<Code source="after" />
+
+export const a: number = 3

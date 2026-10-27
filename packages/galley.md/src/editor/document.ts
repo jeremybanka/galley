@@ -5,6 +5,7 @@ import remarkMdx, { type Options as MdxOptions } from "remark-mdx"
 import remarkParse from "remark-parse"
 import { unified } from "unified"
 
+import { recoverDocument } from "./recovery.ts"
 import { typescriptParser } from "./typescript.ts"
 
 export const mdxParserOptions: MdxOptions = {
@@ -39,26 +40,7 @@ export type DocumentImport = Span & {
 }
 
 export function parseEditorDocument(source: string): Root {
-	let tree: Root
-	try {
-		tree = parseDocument(source)
-	} catch (error) {
-		// A half-written JSX element must not invalidate earlier complete imports.
-		let end = source.length
-		let recovered: Root | undefined
-		for (let attempt = 0; attempt < 32 && end > 0; attempt++) {
-			end = source.lastIndexOf("\n", end - 1)
-			try {
-				recovered = parseDocument(source.slice(0, Math.max(0, end)))
-				break
-			} catch {
-				/* Try the preceding complete line. */
-			}
-		}
-		if (!recovered) throw error
-		tree = recovered
-	}
-	return tree
+	return recoverDocument(source).tree
 }
 
 export function documentImports(source: string): DocumentImport[] {

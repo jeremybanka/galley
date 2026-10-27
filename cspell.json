@@ -53,6 +53,7 @@
 		"smartstring",
 		"thiserror",
 		"reparsed",
-		"shiki"
+		"shiki",
+		"recma"
 	]
 }

@@ -17,7 +17,10 @@ import {
 	closeProject,
 	transform,
 } from "../../src/mapper/transform.ts"
-import { previewSummary } from "../../src/vscode/preview-model.ts"
+import {
+	previewSummary,
+	retainPreviews,
+} from "../../src/vscode/preview-model.ts"
 
 import { createFromBuffer } from "@dprint/formatter"
 import { parseDocument } from "../../src/editor/document.ts"
@@ -25,6 +28,8 @@ import layoutDocument from "#fixtures/editor/layout.mdx" with { type: "text" }
 import layoutComponent from "#fixtures/editor/layout.tsx" with { type: "text" }
 import documentProps from "#fixtures/editor/document-props.mdx" with { type: "text" }
 import typedFormatting from "#fixtures/editor/typed-formatting.mdx" with { type: "text" }
+import recoveryDocument from "#fixtures/editor/recovery.mdx" with { type: "text" }
+import previewErrors from "#fixtures/editor/preview-errors.mdx" with { type: "text" }
 import typedDocument from "#fixtures/editor/typed.mdx" with { type: "text" }
 import typedInvalid from "#fixtures/editor/typed-invalid.mdx" with { type: "text" }
 import checkedComments from "#fixtures/editor/checked-comments.mdx" with { type: "text" }
@@ -550,6 +555,7 @@ test("typed MDX compiles, typechecks, and maps TypeScript and strict-prop errors
 		execute(process.execPath, [
 			path.join(root, "node_modules/typescript/bin/tsc"),
 			"--runExternalCode",
+			"--declaration",
 			"--pretty",
 			"false",
 			"-p",
@@ -684,3 +690,81 @@ test("typed projection preserves exported document props and re-exported layouts
 		stdout: expect.stringContaining("README.mdx(3,"),
 	})
 }, 20_000)
+
+test("syntax errors retain checking and previews before and after the broken region", async () => {
+	const { directory, input } = await fixture(recoveryDocument)
+	const connection = await lsp(directory, true)
+	const uri = pathToFileURL(input).href
+	await connection.sendNotification("textDocument/didOpen", {
+		textDocument: {
+			uri,
+			languageId: "galley",
+			version: 1,
+			text: recoveryDocument,
+		},
+	})
+	for (const name of ["{before}", "{after.toFixed()}"]) {
+		const prefix = recoveryDocument.slice(0, recoveryDocument.indexOf(name) + 2)
+		const position = {
+			line: prefix.split("\n").length - 1,
+			character: prefix.length - prefix.lastIndexOf("\n") - 1,
+		}
+		const hover = await connection.sendRequest("textDocument/hover", {
+			textDocument: { uri },
+			position,
+		})
+		expect(hover).not.toBeNull()
+	}
+	const diagnostics = await connection.sendRequest<{ items: unknown[] }>(
+		"textDocument/diagnostic",
+		{ textDocument: { uri } },
+	)
+	expect(diagnostics.items.length).toBeGreaterThan(0)
+	const preview = await connection.sendRequest<
+		Awaited<ReturnType<typeof evaluatePreview>>
+	>("galley/preview", { uri })
+	expect(preview.errors).toHaveLength(1)
+	expect(preview.components.map((item) => item.markdown)).toContain("before\n")
+	expect(preview.components.map((item) => item.markdown)).toContain("3\n")
+	expect(preview.markdown).toContain("fenced code must not execute")
+	await expect(previewMarkdown(input)).rejects.toThrow()
+	await connection.sendRequest("shutdown")
+	await connection.sendNotification("exit")
+}, 20_000)
+
+test("component and expression failures report source ranges without losing healthy previews", async () => {
+	const { input } = await fixture(previewErrors)
+	const result = await evaluatePreview(input, previewErrors)
+	expect(result.errors.map((item) => item.message)).toEqual(
+		expect.arrayContaining([
+			"component failed",
+			"expression failed",
+			"inline failed",
+			expect.stringContaining("Missing"),
+		]),
+	)
+	expect(result.errors).toHaveLength(5)
+	expect(result.components).toHaveLength(2)
+	expect(result.components[0]!.markdown).toContain("before")
+	expect(result.components[1]!.markdown).toContain("after")
+	for (const error of result.errors) {
+		expect(error.file).toBe(input)
+		expect(previewErrors.slice(error.start, error.end)).toMatch(
+			/Broken|throw|Missing/,
+		)
+	}
+	await expect(previewMarkdown(input)).rejects.toThrow()
+}, 20_000)
+
+test("editing preserves only unaffected preview ranges and accounts for UTF-16 insertions", () => {
+	const components = [
+		{ file: "doc.mdx", start: 0, end: 4, markdown: "before" },
+		{ file: "doc.mdx", start: 10, end: 14, markdown: "edited" },
+		{ file: "doc.mdx", start: 20, end: 24, markdown: "after" },
+	]
+	const result = retainPreviews(components, [
+		{ rangeOffset: 11, rangeLength: 1, text: "👻x" },
+	])
+	expect(result.map(({ markdown }) => markdown)).toEqual(["before", "after"])
+	expect(result[1]).toMatchObject({ start: 22, end: 26 })
+})

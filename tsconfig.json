@@ -11,8 +11,12 @@
 		"module": "NodeNext",
 		"moduleResolution": "NodeNext",
 		"paths": {
-			"#fixtures/*": ["./packages/galley.md/__tests__/fixture-text.d.ts"],
-			"galley.md": ["./packages/galley.md/src/index.ts"]
+			"#fixtures/*": [
+				"./packages/galley.md/__tests__/fixture-text.d.ts"
+			],
+			"galley.md": [
+				"./packages/galley.md/src/index.ts"
+			]
 		},
 		"noEmit": true,
 		"noUncheckedIndexedAccess": true,
@@ -22,11 +26,25 @@
 		"target": "ES2024",
 		"types": [
 			"node"
-		]
+		],
+		"jsx": "react-jsx",
+		"jsxImportSource": "galley.md"
 	},
 	"include": [
 		"**/*.ts",
+		"**/*.tsx",
+		"**/*.mdx",
 		"*.d.ts"
 	],
-	"exclude": ["packages/*/__tests__/fixtures"]
+	"exclude": [
+		"packages/*/__tests__/fixtures"
+	],
+	"contentMappers": [
+		{
+			"package": "galley.md",
+			"extensions": [
+				".mdx"
+			]
+		}
+	]
 }

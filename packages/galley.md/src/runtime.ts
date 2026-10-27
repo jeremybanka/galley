@@ -9,6 +9,7 @@ import remarkParse from "remark-parse"
 import remarkStringify from "remark-stringify"
 import { unified } from "unified"
 
+import type { PreviewFailure } from "./editor/recovery.ts"
 import { formatMarkdown } from "./format.ts"
 import { renderTableElement, tablePreview } from "./tables.ts"
 import type {
@@ -19,9 +20,11 @@ import type {
 } from "./types.ts"
 
 const previewSink = Symbol("galley:previews")
+const previewErrors = Symbol("galley:preview-errors")
 const htmlMode = Symbol("galley:html")
 type RenderContext = DocumentContext & {
 	[previewSink]?: ComponentPreview[]
+	[previewErrors]?: PreviewFailure[]
 	[htmlMode]?: boolean
 	tableParent?: string | undefined
 }
@@ -137,10 +140,12 @@ export async function renderMarkdown(
 	content: Content,
 	context: DocumentContext,
 	previews?: ComponentPreview[],
+	errors?: PreviewFailure[],
 ): Promise<string> {
 	const nodes = await resolveContent(content, {
 		...context,
 		...(previews ? { [previewSink]: previews } : {}),
+		...(errors ? { [previewErrors]: errors } : {}),
 	})
 	const root: Root = { type: "root", children: blocks(nodes) }
 	return stringifyMarkdown(root)
@@ -178,22 +183,36 @@ async function resolveContent(
 			return [{ type: "html", value: htmlContent(children) }]
 		}
 		if (element.type === "galley-preview") {
-			const children = await resolveContent(
-				element.props.children as Content,
-				context,
-			)
-			context[previewSink]?.push({
-				file: String(element.props.file),
-				start: Number(element.props.start),
-				end: Number(element.props.end),
-				markdown: context[htmlMode]
-					? htmlContent(children)
-					: stringifyMarkdown({
-							type: "root",
-							children: blocks(tablePreview(children, context.tableParent)),
-						}),
-			})
-			return children
+			try {
+				const children = await resolveContent(
+					(context[previewErrors] &&
+					typeof element.props.children === "function"
+						? element.props.children()
+						: element.props.children) as Content,
+					context,
+				)
+				context[previewSink]?.push({
+					file: String(element.props.file),
+					start: Number(element.props.start),
+					end: Number(element.props.end),
+					markdown: context[htmlMode]
+						? htmlContent(children)
+						: stringifyMarkdown({
+								type: "root",
+								children: blocks(tablePreview(children, context.tableParent)),
+							}),
+				})
+				return children
+			} catch (error) {
+				if (!context[previewErrors]) throw error
+				context[previewErrors].push({
+					file: String(element.props.file),
+					start: Number(element.props.start),
+					end: Number(element.props.end),
+					message: error instanceof Error ? error.message : String(error),
+				})
+				return []
+			}
 		}
 		if (
 			element.type === "galley-fragment" ||

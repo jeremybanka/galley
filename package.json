@@ -21,7 +21,8 @@
 		"test:private": "pnpm --filter galley.md run test:private",
 		"test:breakage": "vp run -r --no-cache test:breakage",
 		"check:rust": "mise exec -- cargo clippy --locked --all-targets -- -D warnings",
-		"build:mdx": "node scripts/build-mdx-plugin.node.ts"
+		"build:mdx": "node scripts/build-mdx-plugin.node.ts",
+		"check:mdx": "tsc --runExternalCode --project tsconfig.json"
 	},
 	"devDependencies": {
 		"@changesets/cli": "3.0.3",

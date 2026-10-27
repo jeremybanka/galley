@@ -1,7 +1,10 @@
 import { fork } from "node:child_process"
 import type { CancellationToken } from "vscode-jsonrpc"
+import type { PreviewFailure } from "./recovery.ts"
 import type { DocumentPreview } from "../types.ts"
 import { runtimeEntry } from "./paths.ts"
+
+export type EditorPreview = DocumentPreview & { errors: PreviewFailure[] }
 
 /** Keep user component output and failures out of the language-server process. */
 export function evaluatePreview(
@@ -9,7 +12,7 @@ export function evaluatePreview(
 	source: string,
 	token?: CancellationToken,
 	timeout = 15_000,
-): Promise<DocumentPreview> {
+): Promise<EditorPreview> {
 	return new Promise((resolve, reject) => {
 		const child = fork(
 			runtimeEntry("preview-worker", "editor/preview-worker"),
@@ -20,7 +23,7 @@ export function evaluatePreview(
 			},
 		)
 		let settled = false
-		const finish = (error?: Error, result?: DocumentPreview) => {
+		const finish = (error?: Error, result?: EditorPreview) => {
 			if (settled) return
 			settled = true
 			clearTimeout(timer)
@@ -44,7 +47,7 @@ export function evaluatePreview(
 		)
 		child.once(
 			"message",
-			(message: { result?: DocumentPreview; error?: string }) =>
+			(message: { result?: EditorPreview; error?: string }) =>
 				finish(
 					message.error ? new Error(message.error) : undefined,
 					message.result,

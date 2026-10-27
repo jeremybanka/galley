@@ -1,4 +1,4 @@
-import { parseDocument, parseEditorDocument } from "../editor/document.ts"
+import { recoverDocument } from "../editor/recovery.ts"
 import type { MappedOutput, SpanMapping } from "./protocol.ts"
 
 type Node = {
@@ -29,28 +29,15 @@ type Node = {
 
 /** Project only executable MDX islands. All mappings are UTF-16 source slices. */
 export function projectTypescript(source: string): MappedOutput {
-	let tree: Node
-	const diagnostics: NonNullable<MappedOutput["diagnostics"]> = []
-	try {
-		tree = parseDocument(source) as Node
-	} catch (error) {
-		const failure = error as {
-			message: string
-			place?: { offset?: number; start?: { offset?: number } }
-		}
-		const start = failure.place?.offset ?? failure.place?.start?.offset ?? 0
-		diagnostics.push({
+	const recovered = recoverDocument(source)
+	const tree = recovered.tree as Node
+	const diagnostics: NonNullable<MappedOutput["diagnostics"]> =
+		recovered.errors.map(({ start, end, message }) => ({
 			start,
-			length: Math.min(1, source.length - start),
+			length: end - start,
 			code: 95002,
-			messageText: failure.message,
-		})
-		try {
-			tree = parseEditorDocument(source) as Node
-		} catch {
-			tree = { type: "root", children: [] }
-		}
-	}
+			messageText: message,
+		}))
 	let text = "/** @jsxImportSource galley.md */\n"
 	const mappings: SpanMapping[] = []
 	function copy(start: number, end: number) {
@@ -118,7 +105,7 @@ export function projectTypescript(source: string): MappedOutput {
 		for (const child of node.children ?? []) modules(child)
 	}
 	modules(tree)
-	text += `export default function __GalleyDocument(props: ${hasProps ? "Props" : "Record<string, never>"}) {\nvoid props;\nreturn <>\n`
+	text += `export default function __GalleyDocument(props: ${hasProps ? "Props" : "Record<string, never>"}): import("galley.md").Content {\nvoid props;\nreturn <>\n`
 	function body(node: Node) {
 		const start = node.position?.start.offset
 		const end = node.position?.end.offset

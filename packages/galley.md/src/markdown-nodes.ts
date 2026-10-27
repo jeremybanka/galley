@@ -8,7 +8,9 @@ type Node = {
 }
 
 /** Preserve Markdown structure before MDX's HTML-oriented transform runs. */
-export function markdownNodes(options: { previews?: boolean } = {}) {
+export function markdownNodes(
+	options: { previews?: boolean; recover?: boolean } = {},
+) {
 	return (tree: Root, file: { path: string }) => {
 		function wrap(node: Node): Node {
 			if (node.type.startsWith("mdx")) {
@@ -21,11 +23,13 @@ export function markdownNodes(options: { previews?: boolean } = {}) {
 					node.position &&
 					((/^mdxJsx(?:Flow|Text)Element$/.test(node.type) &&
 						/^[A-Z]|\./.test(String(node.name))) ||
-						node.type === "mdxFlowExpression")
+						node.type === "mdxFlowExpression" ||
+						(options.recover && node.type === "mdxTextExpression"))
 				) {
 					element = {
 						type:
-							node.type === "mdxJsxTextElement"
+							node.type === "mdxJsxTextElement" ||
+							node.type === "mdxTextExpression"
 								? "mdxJsxTextElement"
 								: "mdxJsxFlowElement",
 						name: "galley-preview",

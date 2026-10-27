@@ -1,0 +1,20 @@
+import Source from './example.ts' with { type: 'code', lang: 'ts' }
+
+export const before: string = 'before'
+
+{before}
+
+{(() => }
+
+<Source />
+
+export const after: number = 3
+
+{after.toFixed()}
+
+```tsx
+export const mustNotExecute = (() => {
+
+  throw new Error('fenced code must not execute')
+})()
+```
