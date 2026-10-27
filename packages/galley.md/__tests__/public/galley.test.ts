@@ -57,7 +57,7 @@ test("preserves Markdown structure including references, footnotes, tasks, and t
 	)
 })
 
-test("compiles native tables with column alignment, inline Markdown, and escaped cells", async () => {
+test("compiles Markdown.Table with column alignment, inline Markdown, and escaped cells", async () => {
 	const { input } = await fixture({
 		"README.mdx": alignedTable,
 	})
@@ -105,7 +105,7 @@ test("supports async components, props, TSX, and nested document directories", a
 	})
 	expect(parseMarkdown(await compileMarkdown(input))).toEqual(
 		parseMarkdown(
-			`## Nested\n\nHello **Ada** from ${path.join(directory, "nested")}\n`,
+			`## Nested\n\n<p>Hello <strong>Ada</strong> from ${path.join(directory, "nested")}</p>\n`,
 		),
 	)
 })

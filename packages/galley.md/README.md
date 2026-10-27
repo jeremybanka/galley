@@ -84,13 +84,13 @@ Galley extends MDX's existing code regions with TypeScript and TSX. This is a Ga
 
 <!-- dprint-ignore -->
 ```mdx
-import { Html, type Content } from "galley.md"
+import type { Content } from "galley.md"
 
 export type Size = { width: number }
 export const size = { width: 160 } satisfies Size
 export const Label = ({ value }: { value: string }): Content => <strong>{value}</strong>
 
-<Html.Element tag="img" attributes={{ ...size, alt: "Logo" }} />
+<img {...size} alt="Logo" />
 
 <Label value={`${size.width as number}px`} />
 ```
@@ -139,17 +139,19 @@ This emits `<!-- Generated from README.mdx. Run pnpm readme:write to update. -->
 
 The second argument is a `DocumentContext` with absolute `path` and `directory` fields for the containing document. Use this directory to resolve local inputs. Imported `.mdx` documents get their own context; `.md` imports are parsed as ordinary Markdown.
 
-For TSX components, set `jsx` to `react-jsx` and `jsxImportSource` to `galley.md` in TypeScript configuration. React is not required. Outside an `Html` boundary, supported intrinsic JSX elements are `p`, `h1` through `h6`, `strong`, `em`, `del`, `blockquote`, `a`, `br`, `hr`, `table`, `thead`, `tbody`, `tr`, `th`, and `td`. They produce Markdown nodes. Use `Html.Element` for HTML-specific tags and attributes.
+For TSX components, set `jsx` to `react-jsx` and `jsxImportSource` to `galley.md` in TypeScript configuration. No React runtime is required. Native JSX emits HTML: `<h1>Title</h1>` remains an HTML heading, while `# Title` remains a Markdown heading. HTML and SVG attributes have explicit types, adapted from the maintained React JSX definitions for static output. Galley components retain their own explicit props.
 
 ## Tables
 
-Use native table tags to generate a Markdown table. No imports are required. Set `align="left"`, `"center"`, or `"right"` on a header cell to align its entire column; omit it for default alignment.
+Use `Markdown.Table` to generate a GFM pipe table. Ordinary `<table>` produces HTML, including layout attributes, captions, and merged cells. Set `align="left"`, `"center"`, or `"right"` on a Markdown table's header cell to align its entire column; omit it for default alignment.
 
 <!-- dprint-ignore -->
 ```mdx
+import { Markdown } from "galley.md"
+
 export const packages = [{ name: "galley.md", size: "12 kB" }]
 
-<table>
+<Markdown.Table>
   <thead>
     <tr><th>Package</th><th align="right">Size</th></tr>
   </thead>
@@ -158,7 +160,7 @@ export const packages = [{ name: "galley.md", size: "12 kB" }]
       <tr><td>{pkg.name}</td><td>{pkg.size}</td></tr>
     ))}
   </tbody>
-</table>
+</Markdown.Table>
 ```
 
 This produces:
@@ -169,33 +171,44 @@ This produces:
 | galley.md | 12 kB |
 ```
 
-The first row must contain only `th` cells, and every subsequent row must contain only `td` cells. Every row must have the same number of cells; use `<td />` for an empty cell. A table may contain just its header. The `thead` and `tbody` wrappers are optional: rows can be direct children of `table`. When present, `thead` must contain exactly one header row and `tbody` may contain only body rows.
+`Markdown.Table` accepts only `children`. Its first row must contain only `th` cells, and subsequent rows must contain only `td` cells. Every row must have the same number of cells; use `<td />` for an empty cell. A table may contain just its header. The `thead` and `tbody` wrappers are optional: rows can be direct children of `Markdown.Table`. When present, `thead` must contain exactly one header row and `tbody` may contain only body rows.
 
-Arrays, fragments, and async components can generate sections, rows, cells, or inline cell content. Cells support text, numbers, links, emphasis, and other Markdown inline content. Strings are escaped automatically, including pipe characters. A single paragraph is accepted, and soft line breaks become spaces.
+Arrays, fragments, and async components can generate sections, rows, cells, or inline cell content. Cells support text, numbers, Markdown inline content, and inline HTML. JSX such as `<a title="Details" href="/docs">Docs</a>` retains its HTML and attributes; Markdown links stay Markdown links. Strings are escaped automatically, including pipe characters. Pipes and line endings in inline HTML are encoded as HTML entities so they cannot split the table. A single Markdown paragraph is accepted, and soft line breaks in text become spaces.
 
-Native table attributes are checked by TypeScript and during rendering, including properties introduced through spreads. Unsupported structures and attributes produce errors. Tables do not support merged cells (`colSpan` or `rowSpan`), captions, footers (`tfoot`), `col` or `colgroup`, CSS classes or styles, or attributes other than header `align` and JSX `key`. Put alignment on `th`, not `td` or `tr`. Lists, code blocks, multiple paragraphs, nested tables, raw HTML, and hard line breaks inside cells cannot be represented by this Markdown table API.
+Pipe tables cannot represent merged cells (`colSpan` or `rowSpan`), captions, footers (`tfoot`), `col` or `colgroup`, CSS classes or styles on table structure, or attributes other than header `align` and JSX `key`. Put alignment on `th`, not `td` or `tr`. Lists, code blocks, multiple paragraphs, nested tables, block HTML, and hard line breaks inside cells are errors. These conversion constraints are checked during rendering, including properties introduced through spreads. TypeScript checks native HTML attributes independently of the enclosing component, so it cannot enforce Markdown table conversion constraints. Use an ordinary `<table>` for unrestricted HTML table structure.
 
 ## HTML
 
-Use `Html.Element` for HTML-specific tags, attributes, custom elements, and layout tables. Its props are `tag`, optional `attributes`, and optional `children`; the attribute dictionary is the explicit HTML escape hatch:
+Write ordinary JSX for HTML, SVG, custom elements, and layout tables. An `Html` wrapper is not required:
 
 <!-- dprint-ignore -->
 ```mdx
-import { Html } from "galley.md"
-
-<Html.Element tag="div" attributes={{ align: "center" }}>
-  <Html.Element tag="img" attributes={{ src: "logo.png", alt: "My package", width: 160 }} />
+<div align="center">
+  <img src="logo.png" alt="My package" width={160} />
   <h1>My package</h1>
-</Html.Element>
+</div>
 
-<Html.Element tag="custom-badge" attributes={{ "data-label": "example" }} />
+<custom-badge data-label="example" />
 ```
 
-`Html.Element` renders its descendants as HTML. `Html` remains a wrapper-free HTML boundary for components and Markdown nodes. Text and attribute values are escaped. Attributes accept strings, numbers, booleans, and arrays of strings or numbers; null and undefined omit the attribute. HTML names such as `class` and `colspan` work, as do JSX names such as `className`, `htmlFor`, and `colSpan`. Use a CSS string for `style`; event-handler functions and style objects are unsupported.
+Markdown inside an HTML element is rendered to HTML as part of that element. Markdown outside it remains Markdown. This follows MDX's distinction between Markdown children in direct JSX and TSX children inside expressions. Galley produces static documentation; it does not provide React hooks, browser events, or hydration.
 
-Wrapping JSX in `Html` does not change its TypeScript prop types. Migrate HTML-only lowercase tags and attributes to `Html.Element`. Existing untyped markup inside `Html` still renders, but there is no catch-all JSX tag or property signature. Native Markdown tags accept their documented props, and `Component` without a type argument accepts no props. Built-in components reject unknown properties at runtime, including spreads. TypeScript's structural typing can still allow extra properties in spreads passed to user-defined components; validate those components when exact runtime props matter.
+Text and attribute values are escaped. Null and undefined omit an attribute. HTML names such as `class` and `colspan` work, as do JSX names such as `className`, `htmlFor`, and `colSpan`. Use a CSS string for `style`. Browser event handlers, refs, `dangerouslySetInnerHTML`, and style objects are unsupported. Custom elements with hyphenated names accept global HTML attributes and `data-*`; applications can augment `JSX.IntrinsicElements` in `galley.md/jsx-runtime` with additional typed custom attributes.
 
-Strings passed to either HTML component are text. Use `Markdown` for strings containing generated Markdown. Existing raw HTML in Markdown nodes is preserved; these components do not sanitize it.
+Unknown native props are type errors. `Component` without a type argument accepts no props. Built-in Galley components reject unknown properties at runtime, including spreads. TypeScript's structural typing can still allow extra properties in spreads; validate user-defined components when exact runtime props matter.
+
+`Html` remains available to turn Markdown nodes or component output into HTML without adding a wrapper element. `Html.Element` remains supported for compatibility but is deprecated; use native tags and attributes instead. Strings are text; use `Markdown` to parse strings containing generated Markdown. Raw HTML in Markdown nodes is preserved, not sanitized.
+
+## Migrating from 0.2
+
+Version 0.3 changes the default JSX output from Markdown conversion to native HTML. Markdown source syntax and `Markdown({ children: source })` retain their behavior.
+
+- Replace a Markdown-producing `<table>…</table>` with `<Markdown.Table>…</Markdown.Table>` and import `Markdown`. Keep its row/cell structure. Layout tables remain ordinary `<table>` elements.
+- Replace `<Html.Element tag="img" attributes={{ src, width: 160 }} />` with `<img src={src} width={160} />`. Remove `Html` wrappers that only surrounded native markup; keep them when deliberately converting Markdown nodes to HTML.
+- JSX headings, links, emphasis, and paragraphs now remain HTML. For Markdown output, author Markdown syntax, use `Markdown`, or return Markdown nodes from a component.
+- Inline JSX in pipe table cells also remains HTML. Table structure and alignment restrictions still apply inside `Markdown.Table`.
+
+Regenerate checked-in Markdown and review the output changes. The compiler, CLI, TypeScript mapper, and editor previews use the same rendering policy.
 
 ## Tonnage
 

@@ -151,7 +151,7 @@ test("typed MDX compiles, typechecks, and maps TypeScript and strict-prop errors
 	await expect(check()).resolves.toMatchObject({ stdout: "" })
 	const preview = await previewMarkdown(input)
 	expect(preview.markdown).toContain('width="160"')
-	expect(preview.markdown).toContain("**160px**")
+	expect(preview.markdown).toContain("<strong>160px</strong>")
 	expect(preview.markdown).toContain("export const value")
 	await fs.appendFile(input, `\n${typedInvalid}`)
 	await expect(check()).rejects.toMatchObject({
@@ -164,8 +164,8 @@ test("typed MDX compiles, typechecks, and maps TypeScript and strict-prop errors
 		for (const fragment of [
 			"number",
 			"unknownProperty",
-			"justify",
-			"custom-badge",
+			"diagonal",
+			"invalid",
 			"missing",
 		])
 			expect(output).toContain(fragment)
@@ -218,7 +218,9 @@ test("typed projection preserves exported document props and re-exported layouts
 			directory,
 		])
 	await expect(check()).resolves.toMatchObject({ stdout: "" })
-	expect((await previewMarkdown(input)).markdown).toContain("> # Typed layout")
+	expect((await previewMarkdown(input)).markdown).toContain(
+		"<blockquote><h1>Typed layout</h1></blockquote>",
+	)
 	await fs.writeFile(input, documentProps)
 	await expect(check()).resolves.toMatchObject({ stdout: "" })
 	await fs.writeFile(

@@ -1,0 +1,30 @@
+import { Markdown } from "galley.md";
+import { Branding } from "./native-markup.tsx";
+
+# Markdown heading
+
+Markdown **emphasis** and an inline <span title="label">HTML <strong>label</strong></span> stay together.
+
+<Branding />
+
+<section className="note">
+
+## Nested Markdown
+
+Some **bold** text.
+
+</section>
+
+<table className="layout"><caption>Layout</caption><tr><td colSpan={2}>Merged</td></tr></table>
+
+<Markdown.Table>
+  <tr><th>Name</th><th align="right">Count</th></tr>
+  <tr><td>**Widgets**</td><td>{2}</td></tr>
+  <tr><td><a href="https://example.com/?a=1&b=2" title="link">Parts</a></td><td>{3}</td></tr>
+</Markdown.Table>
+
+<svg viewBox="0 0 10 10"><circle cx={5} cy={5} r={4} strokeWidth={2} /></svg>
+
+<svg><foreignObject width={10} height={10}><div className="embedded">HTML</div></foreignObject></svg>
+
+After **Markdown**.

@@ -9,6 +9,8 @@ import type {
 
 import type { Content, Element } from "./types.ts"
 
+export const inlineHtml = new WeakSet<RootContent>()
+
 const tags = new Set(["table", "thead", "tbody", "tr", "th", "td"])
 const unsupported = new Set(["caption", "colgroup", "col", "tfoot"])
 const headers = new WeakSet<TableRow>()
@@ -33,17 +35,27 @@ function structure(nodes: RootContent[]): RootContent[] {
 	)
 }
 
-function cellContent(nodes: RootContent[]): PhrasingContent[] {
+export function cellContent(nodes: RootContent[]): PhrasingContent[] {
 	// MDX wraps prose inside flow elements in a paragraph.
 	if (nodes.length === 1 && nodes[0]?.type === "paragraph")
 		nodes = nodes[0].children
 	return nodes.map((node) => {
-		if (!inline.has(node.type))
+		if (!inline.has(node.type) && !inlineHtml.has(node))
 			throw new Error(
-				`Table cells support inline content only; found ${node.type}. Lists, nested tables, HTML, and hard line breaks cannot be represented in a Markdown table.`,
+				`Table cells support inline content only; found ${node.type}. Lists, nested tables, block HTML, and hard line breaks cannot be represented in a Markdown table.`,
 			)
 		if (node.type === "text" || node.type === "inlineCode")
 			return { ...node, value: node.value.replace(/\r\n|[\r\n]/g, " ") }
+		if (node.type === "html")
+			return {
+				...node,
+				// HTML is serialized verbatim by remark. Entities keep pipes and
+				// line endings from becoming Markdown table syntax.
+				value: node.value
+					.replace(/\|/g, "&#124;")
+					.replace(/\r/g, "&#13;")
+					.replace(/\n/g, "&#10;"),
+			}
 		if ("children" in node)
 			return {
 				...node,
