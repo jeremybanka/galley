@@ -6,7 +6,7 @@ with [markdown-rs](https://github.com/wooorm/markdown-rs) for MDX boundaries
 and the official [TypeScript formatter](https://github.com/dprint/dprint-plugin-typescript)
 for embedded TypeScript/TSX.
 
-It formats ordinary Markdown and embedded code while preserving MDX semantics. For example,
+It formats ordinary Markdown and embedded code while preserving MDX syntax and literal values. For example,
 `<svg width={160} />` retains a numeric expression prop; it never becomes
 `<svg width="{160}" />`.
 
@@ -50,19 +50,23 @@ to the locally built plugin.
 - Code starts only at MDX's import/export and brace-expression boundaries. Bare
   top-level declarations remain prose. This TypeScript extension is Galley's
   dialect, not part of standard MDX.
-- JSX tag layout, direct Markdown children, YAML/TOML frontmatter, and separators
-  around MDX blocks retain their source layout. Noncontiguous code slices inside
-  Markdown list/quote prefixes are preserved to avoid damaging those prefixes.
+- Excess blank lines collapse to one blank line, including around MDX blocks.
+  Repeated spaces and tabs in prose and between JSX attributes collapse to a
+  single space. Trailing spaces are removed, and documents end with one newline.
+  Two-space Markdown hard breaks become backslash hard breaks.
+- Quoted attribute values, code/string contents, YAML/TOML frontmatter, ignored
+  regions, and whitespace-sensitive HTML elements (`pre`, `code`, `textarea`,
+  `script`, and `style`) retain their whitespace. Markdown indentation and JSX
+  structure are preserved. Noncontiguous code slices inside Markdown list/quote
+  prefixes remain unchanged to avoid damaging those prefixes.
 - GitHub-flavored Markdown is supported, including tables and task lists.
 - Fenced code can be formatted by other plugins registered with the dprint host.
   Set `codeBlock.skipFormat` to `true` to preserve it instead. Executable MDX expressions use the bundled formatter.
 - The complete result is reparsed as MDX. If Markdown formatting would produce
   invalid MDX or change its syntax tree, the original document is returned.
-  Source positions, soft line wrapping, and intentionally formatted fenced code
+  Source positions, normalized prose whitespace, and intentionally formatted fenced code
   contents are excluded; embedded TypeScript is compared in canonical formatter form. This conservative check can leave
   some otherwise formattable documents unchanged.
-- Separators next to preserved blocks retain their original line endings and
-  blank lines. Markdown configuration applies to the Markdown portions.
 - Invalid MDX produces an error. Range formatting currently returns the original
   text; use whole-document formatting.
 

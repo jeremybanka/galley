@@ -20,6 +20,7 @@ mod format_text;
 mod generation;
 mod html;
 mod mdx;
+mod mdx_whitespace;
 mod parser;
 mod typescript;
 

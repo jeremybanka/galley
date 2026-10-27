@@ -18,6 +18,8 @@ import ignoreFile from "#fixtures/mdx-plugin/ignore-file.mdx" with { type: "text
 import invalid from "#fixtures/mdx-plugin/invalid.mdx" with { type: "text" }
 import mixed from "#fixtures/mdx-plugin/mixed.mdx" with { type: "text" }
 import nested from "#fixtures/mdx-plugin/nested.mdx" with { type: "text" }
+import whitespace from "#fixtures/mdx-plugin/whitespace.mdx" with { type: "text" }
+import significantWhitespace from "#fixtures/mdx-plugin/whitespace-significant.mdx" with { type: "text" }
 import plain from "#fixtures/mdx-plugin/plain.mdx" with { type: "text" }
 
 const bytes = readFileSync(new URL("../plugin.wasm", import.meta.url))
@@ -118,9 +120,60 @@ describe("MDX WebAssembly plugin", () => {
 		const result = format(mixed)
 		expect(result).toContain("# Hello 世界\n")
 		expect(result).toContain("- **Markdown** outside JSX")
-		expect(result).toContain("#   Keep this Markdown inside JSX")
+		expect(result).toContain("# Keep this Markdown inside JSX")
 		expect(result).toContain('import Card from "./card.js";')
 		expect(result).toContain('title: "MDX: {safe}"')
+	})
+
+	test("collapses blank lines, repeated spaces, and trailing spaces around MDX", async () => {
+		const result = format(whitespace)
+		expect(result).not.toBe(whitespace)
+		expect(result).toContain("# Spacing\n\nWords with spaces and ")
+		expect(result).toContain('<Card title="keep  these  spaces" width={160} />')
+		expect(result).toContain("Inline <Card />\n")
+		expect(result).toContain("Some Markdown text.\n\n</Card>\n\n{1 + 2}\n")
+		expect(result).not.toMatch(/\n{3}|[ \t]+$/m)
+		expect(result.startsWith("import ")).toBe(true)
+		expect(result.endsWith("\n\n")).toBe(false)
+		for (const suffix of [" \t", "\n\n \t"]) {
+			const padded = format(whitespace + suffix)
+			expect(padded).toBe(result)
+			expect(format(padded)).toBe(padded)
+		}
+		expect(format(result)).toBe(result)
+		await expect(compile(result)).resolves.toBeDefined()
+		const windows = format(whitespace.replaceAll("\n", "\r\n"), {
+			newLineKind: "crlf",
+		})
+		expect(windows).not.toMatch(/(?<!\r)\n|(?:\r\n){3}|[ \t]+(?=\r?$)/m)
+		expect(format(windows, { newLineKind: "crlf" })).toBe(windows)
+	})
+
+	test("preserves literal and ignored whitespace and keeps hard breaks without trailing spaces", () => {
+		const result = format(significantWhitespace)
+		for (const text of [
+			"`keep   inline  code`",
+			'"keep   string  spaces"',
+			"```text\nkeep   code   \n\n\nkeep blank lines\n```",
+			"<pre>\nkeep   preformatted   \n\n\ntext\n</pre>",
+			'data-multiline="keep   \n\n  literal spaces"',
+			'title="keep   attribute   "',
+			"`keep   template   `",
+			'Keep    ignored   \n\n\n<Widget    title="untouched" />',
+			"Keep    this   \n",
+			"- First item.\n\n  Second paragraph.",
+			'[the guide](./guide "keep   link title")',
+			'![keep   alt](./image.png "keep   image title")',
+		])
+			expect(result).toContain(text)
+		expect(result).toContain("Two-space break.\\\nNext line.")
+		expect(result).toContain("Escaped break.\\\nNext line.")
+		expect(result).toContain("> Quoted words.")
+		const breaks = (source: string) =>
+			JSON.stringify(semantics(source)).match(/"type":"break"/g)?.length
+		expect(breaks(result)).toBe(2)
+		expect(breaks(result)).toBe(breaks(significantWhitespace))
+		expect(format(result)).toBe(result)
 	})
 
 	test("supports MDX ignore comments", () => {

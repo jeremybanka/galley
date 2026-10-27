@@ -8,7 +8,7 @@ use crate::configuration::Configuration;
 use crate::FormatError;
 
 /// Format Markdown around MDX syntax. Never send JSX or JavaScript to the HTML parser.
-/// Blocks containing MDX (including their Markdown children) are preserved verbatim.
+/// Embedded code is formatted separately; literal contents and ignored regions are preserved.
 pub fn format_mdx(
   source: &str,
   config: &Configuration,
@@ -24,6 +24,14 @@ pub fn format_mdx(
     return Ok(None);
   }
 
+  let original_source = source;
+  let original_tree = tree;
+  let normalized = crate::mdx_whitespace::normalize(source, &original_tree, config);
+  let source = normalized.as_str();
+  let Ok(tree) = markdown::to_mdast(source, &options) else {
+    return Ok(None);
+  };
+  let children = tree.children().expect("MDX document has a root");
   let mut output = String::with_capacity(source.len());
   let mut cursor = 0;
   let mut ignore_next = false;
@@ -56,7 +64,7 @@ pub fn format_mdx(
   }
   append_markdown(&mut output, &source[cursor..], config, &mut format_code)?;
 
-  if output == source {
+  if output == original_source {
     return Ok(None);
   }
   // Markdown and MDX have different grammars. A formatter can, for example,
@@ -65,7 +73,7 @@ pub fn format_mdx(
   let Ok(formatted_tree) = markdown::to_mdast(&output, &options) else {
     return Ok(None);
   };
-  if semantic_tree(&tree) != semantic_tree(&formatted_tree) {
+  if semantic_tree(&original_tree) != semantic_tree(&formatted_tree) {
     return Ok(None);
   }
   Ok(Some(output))
@@ -84,7 +92,7 @@ fn protected(node: &Node) -> bool {
   ) || node.children().is_some_and(|children| children.iter().any(protected))
 }
 
-fn is_directive(node: &Node, directive: &str) -> bool {
+pub(super) fn is_directive(node: &Node, directive: &str) -> bool {
   let Node::MdxFlowExpression(expression) = node else {
     return false;
   };
@@ -146,11 +154,47 @@ fn semantic_tree(node: &Node) -> Value {
         }
         if object.get("type").and_then(Value::as_str) == Some("text") {
           if let Some(Value::String(text)) = object.get_mut("value") {
-            *text = text.replace("\r\n", "\n").replace('\n', " ");
+            let mut result = String::new();
+            let mut space = false;
+            for ch in text.chars() {
+              if matches!(ch, ' ' | '\t' | '\r' | '\n') {
+                if !space {
+                  result.push(' ');
+                }
+                space = true;
+              } else {
+                result.push(ch);
+                space = false;
+              }
+            }
+            *text = result;
           }
         }
         for value in object.values_mut() {
           normalize(value);
+        }
+        if matches!(
+          object.get("type").and_then(Value::as_str),
+          Some("paragraph" | "heading" | "tableCell")
+        ) {
+          if let Some(Value::Array(children)) = object.get_mut("children") {
+            if let Some(first) = children
+              .first_mut()
+              .filter(|node| node.get("type").and_then(Value::as_str) == Some("text"))
+            {
+              if let Some(Value::String(text)) = first.get_mut("value") {
+                *text = text.trim_start_matches(' ').into();
+              }
+            }
+            if let Some(last) = children
+              .last_mut()
+              .filter(|node| node.get("type").and_then(Value::as_str) == Some("text"))
+            {
+              if let Some(Value::String(text)) = last.get_mut("value") {
+                *text = text.trim_end_matches(' ').into();
+              }
+            }
+          }
         }
       }
       Value::Array(values) => values.iter_mut().for_each(normalize),
