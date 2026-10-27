@@ -142,5 +142,7 @@ describe("MDX plugin integration", () => {
 		}
 		expect(result).toContain("# Attributes\n")
 		expect(result).toContain("width={160}")
-	})
+		// A fresh dprint cache compiles every configured Wasm plugin. Give the
+		// subprocess's 60-second timeout room to report its own failure.
+	}, 90_000)
 })
