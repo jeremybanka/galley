@@ -15,12 +15,14 @@ test("colors changed lines and highlights only the changed characters", () => {
 	const colored = formatCheckDiff("README.md", previous, current, true)
 	expect(stripVTControlCharacters(colored)).toBe("\n" + expected)
 	expect(colored).toContain(
-		"\u001b[31m-\u001b[41;30m→\u001b[49;31m-·Run·tests\u001b[0m",
+		"\u001b[31m-\u001b[39m\u001b[41m\u001b[30m→\u001b[39m\u001b[49m\u001b[31m-·Run·tests\u001b[39m",
 	)
 	expect(colored).toContain(
-		"\u001b[32m+\u001b[42;30m··\u001b[49;32m-·Run·tests\u001b[0m",
+		"\u001b[32m+\u001b[39m\u001b[42m\u001b[30m··\u001b[39m\u001b[49m\u001b[32m-·Run·tests\u001b[39m",
 	)
-	expect(colored).toContain("Ready.\u001b[41;30m·\u001b[49;31m")
+	expect(colored).toContain(
+		"Ready.\u001b[39m\u001b[41m\u001b[30m·\u001b[39m\u001b[49m",
+	)
 })
 
 test("preserves carriage-return changes and missing final newline markers", () => {

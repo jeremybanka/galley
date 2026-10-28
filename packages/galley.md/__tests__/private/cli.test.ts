@@ -93,7 +93,9 @@ test("check highlights whitespace in GitHub Actions even when stderr is piped", 
 	await expect(runCli(directory, "check")).rejects.toMatchObject({
 		code: 1,
 		stdout: "",
-		stderr: expect.stringContaining("\u001b[41;30m→\u001b[49;31m"),
+		stderr: expect.stringContaining(
+			"\u001b[41m\u001b[30m→\u001b[39m\u001b[49m",
+		),
 	})
 	vi.stubEnv("NO_COLOR", "1")
 	await expect(runCli(directory, "check")).rejects.toMatchObject({

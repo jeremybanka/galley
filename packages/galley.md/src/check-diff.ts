@@ -1,3 +1,4 @@
+import { styleText } from "node:util"
 import { diffChars, structuredPatch } from "diff"
 
 interface Line {
@@ -20,8 +21,25 @@ function visible(text: string): string {
 		.replaceAll("\u001b", "␛")
 }
 
-function paint(text: string, code: string, color: boolean): string {
-	return color ? `\u001b[${code}m${text}\u001b[0m` : text
+function styleParts(value: string, removed: boolean, changed: boolean): string {
+	// Style each span independently: Node 22 does not restore nested styles.
+	// diffColors already applies our stderr and GitHub Actions color policy.
+	return value
+		.split("\n")
+		.map((part) =>
+			part
+				? styleText(
+						changed
+							? [removed ? "bgRed" : "bgGreen", "black"]
+							: removed
+								? "red"
+								: "green",
+						visible(part),
+						{ validateStream: false },
+					)
+				: "",
+		)
+		.join("\n")
 }
 
 // Compare whole replacement blocks so wrapping changes do not shift line pairs.
@@ -38,19 +56,10 @@ function highlight(oldLines: Line[], newLines: Line[]): [string[], string[]] {
 	const oldParts: string[] = []
 	const newParts: string[] = []
 	for (const change of changes) {
-		const changed = change.added || change.removed
-		const value = change.value
-			.split("\n")
-			.map((part) => {
-				const text = visible(part)
-				if (!changed || !text) return text
-				const foreground = change.removed ? "31" : "32"
-				const background = change.removed ? "41" : "42"
-				return `\u001b[${background};30m${text}\u001b[49;${foreground}m`
-			})
-			.join("\n")
-		if (!change.added) oldParts.push(value)
-		if (!change.removed) newParts.push(value)
+		if (!change.added)
+			oldParts.push(styleParts(change.value, true, change.removed))
+		if (!change.removed)
+			newParts.push(styleParts(change.value, false, change.added))
 	}
 	return [oldParts.join("").split("\n"), newParts.join("").split("\n")]
 }
@@ -100,14 +109,13 @@ export function formatCheckDiff(
 			const oldColumn = line.kind === "+" ? "" : String(oldNumber++)
 			const newColumn = line.kind === "-" ? "" : String(newNumber++)
 			const columns = `${oldColumn.padStart(width)} ${newColumn.padStart(width)}│`
-			const content = line.kind + text
-			output.push(
-				columns +
-					(line.kind === " "
-						? content
-						: paint(content, line.kind === "-" ? "31" : "32", color)) +
-					"\n",
-			)
+			const sign =
+				line.kind === " " || !color
+					? line.kind
+					: styleText(line.kind === "-" ? "red" : "green", line.kind, {
+							validateStream: false,
+						})
+			output.push(columns + sign + text + "\n")
 			if (line.noNewline)
 				output.push(
 					`${" ".repeat(width * 2 + 1)}│\\ No newline at end of file\n`,
