@@ -21,7 +21,7 @@ import Example from "./examples/basic.ts" with { type: "code", lang: "ts" }
 <Example />
 ```
 
-Run `galley write` to generate `README.md`. Run `galley check` in CI to exit nonzero when the output is missing or stale. Check never writes the output. Both commands evaluate the document anew.
+Run `galley write` to generate `README.md`. Run `galley check` in CI to exit nonzero when the output is missing or stale. Failed checks print a unified diff to stderr: `-` lines show existing content and `+` lines show freshly generated content, with surrounding context and line numbers. Missing output is shown as a new file from `/dev/null`. Check never writes the output. Both commands evaluate the document anew.
 
 Run `galley`, `galley -h`, `galley --help`, or `galley help` for command usage. The help option is registered only on the root command.
 

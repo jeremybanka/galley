@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import fs from "node:fs/promises"
 import path from "node:path"
 
 import {
@@ -11,6 +12,7 @@ import {
 	noOptions,
 	optional,
 } from "comline"
+import { createTwoFilesPatch } from "diff"
 
 import { runGalley } from "./run.ts"
 
@@ -89,6 +91,26 @@ async function main() {
 	const relative = path.relative(process.cwd(), result.outputPath)
 	if (mode === "check" && result.changed) {
 		process.stderr.write(`${relative} is out of date. Run galley write.\n`)
+		let previous: string | undefined
+		try {
+			previous = await fs.readFile(result.outputPath, "utf8")
+		} catch (error) {
+			if (
+				!(error instanceof Error && "code" in error && error.code === "ENOENT")
+			)
+				throw error
+		}
+		process.stderr.write(
+			createTwoFilesPatch(
+				previous === undefined ? "/dev/null" : relative,
+				relative,
+				previous ?? "",
+				result.markdown,
+				"existing",
+				"generated",
+				{ context: 3 },
+			),
+		)
 		process.exitCode = 1
 	} else
 		process.stdout.write(
