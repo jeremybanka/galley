@@ -8,6 +8,7 @@
 		"**/*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc,md,mdx,css,astro,toml,yml,yaml}"
 	],
 	"excludes": [
+		"packages/galley.md/__tests__/fixtures/cli/whitespace-stale.md",
 		"packages/galley.md/__tests__/fixtures/**/*.expected.md",
 		"packages/galley.md/__tests__/fixtures/mdx-plugin/**",
 		"packages/galley.md/__tests__/fixtures/compiler/{embedded-examples,markdown-formatting}.mdx",

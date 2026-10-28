@@ -64,6 +64,7 @@
 		"@types/react": "19.3.0",
 		"@vscode/vsce": "4.0.0",
 		"comline": "0.9.3",
+		"diff": "9.0.0",
 		"esbuild": "0.28.2",
 		"hast-util-phrasing": "3.0.1",
 		"hast-util-to-html": "9.0.5",

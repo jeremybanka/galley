@@ -59,6 +59,7 @@ Ordinary fixtures participate in `fmt`, `check:fmt`, and VS Code formatting on s
 | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
 | `mdx-plugin/**`                                                    | Deliberately unformatted input, ignore directives, invalid syntax, whitespace, and CRLF cases for the formatter itself. |
 | `**/*.expected.md`                                                 | Expected output must remain an independent assertion, not be rewritten by the formatter.                                |
+| `cli/whitespace-stale.md`                                          | Deliberate tab indentation and trailing spaces verify visible whitespace in check diagnostics.                          |
 | `compiler/embedded-examples.mdx`                                   | Verifies exact preservation of embedded code whitespace.                                                                |
 | `compiler/markdown-formatting.mdx`                                 | Unformatted input verifies that compilation and previews apply Markdown formatting.                                     |
 | `frontmatter/invalid-yaml.mdx`, `frontmatter/duplicate-output.mdx` | Malformed metadata and duplicate keys must remain invalid.                                                              |

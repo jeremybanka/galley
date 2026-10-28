@@ -21,7 +21,9 @@ import Example from "./examples/basic.ts" with { type: "code", lang: "ts" }
 <Example />
 ```
 
-Run `galley write` to generate `README.md`. Run `galley check` in CI to exit nonzero when the output is missing or stale. Check never writes the output. Both commands evaluate the document anew.
+Run `galley write` to generate `README.md`. Run `galley check` in CI to exit nonzero when the output is missing or stale. Failed checks print a diff to stderr with existing and generated line-number columns and three lines of surrounding context. `-` lines show existing content; `+` lines show freshly generated content. Spaces appear as `·`, tabs as `→`, and carriage returns as `␍`, making indentation and trailing whitespace changes visible. Missing output is labeled `(missing)` and shown as additions; missing final newlines are marked explicitly. Check never writes the output. Both commands evaluate the document anew.
+
+Terminals and GitHub Actions logs use red/green changed lines and background highlights on changed characters. Redirected output elsewhere keeps the same line numbers and whitespace markers without color. Set `NO_COLOR=1` or `FORCE_COLOR=0` to disable colors, or `FORCE_COLOR=1` to enable them; a nonempty `NO_COLOR` takes precedence. Very large replacements may highlight whole changed lines instead of individual characters.
 
 Run `galley`, `galley -h`, `galley --help`, or `galley help` for command usage. The help option is registered only on the root command.
 
