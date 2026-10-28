@@ -1,6 +1,6 @@
 {
 	"name": "galley.md",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"description": "Compile MDX components and source imports into plain Markdown.",
 	"homepage": "https://github.com/jeremybanka/galley#readme",
 	"bugs": {
