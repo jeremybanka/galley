@@ -12,8 +12,8 @@ import {
 	noOptions,
 	optional,
 } from "comline"
-import { createTwoFilesPatch } from "diff"
 
+import { diffColors, formatCheckDiff } from "./check-diff.ts"
 import { runGalley } from "./run.ts"
 
 const manuals = {
@@ -101,14 +101,11 @@ async function main() {
 				throw error
 		}
 		process.stderr.write(
-			createTwoFilesPatch(
-				previous === undefined ? "/dev/null" : relative,
+			formatCheckDiff(
 				relative,
-				previous ?? "",
+				previous,
 				result.markdown,
-				"existing",
-				"generated",
-				{ context: 3 },
+				diffColors(process.env, process.stderr.isTTY === true),
 			),
 		)
 		process.exitCode = 1
