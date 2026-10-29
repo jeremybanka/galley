@@ -316,7 +316,7 @@ importers:
     devDependencies:
       '@breakage/changesets':
         specifier: 0.1.0
-        version: 0.1.0(breakage@0.10.0)
+        version: 0.1.0(breakage@0.10.1)
       '@types/node':
         specifier: 26.6.5
         version: 26.6.5
@@ -324,8 +324,8 @@ importers:
         specifier: 1.140.0
         version: 1.140.0
       breakage:
-        specifier: 0.10.0
-        version: 0.10.0
+        specifier: 0.10.1
+        version: 0.10.1
       shiki:
         specifier: 4.5.0
         version: 4.5.0
@@ -1006,6 +1006,9 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
+
+  '@isaacs/nonrecursive-glob-match@1.0.2':
+    resolution: {integrity: sha512-GJPHIgPPtFl+nLhFHyF0zZoFcOFLsZWbHFFzo+Zr+PWDXJbl9hHxb2w+9SiF2fHmLgKaXIpUzQo3SbBBZ9WObw==}
 
   '@jridgewell/resolve-uri@3.1.2':
     resolution: {integrity: sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==}
@@ -1926,8 +1929,8 @@ packages:
     resolution: {integrity: sha512-YovQ3rzhaLMIrDjNDMkNS01tea93qhEhG5xy8f6+R0l+dw3Ki+5sCoIoI942iuLZTHWogWktgwVDhU09iNEimQ==}
     engines: {node: 20 || >=22}
 
-  breakage@0.10.0:
-    resolution: {integrity: sha512-NdrlShsiuiOadVTkD1EPscKxOgnX0/3vBMHww1Jm2YNATYXCpF+vySY/W3vZ/G020brOd3ZPbySt9tEcjJS9/A==}
+  breakage@0.10.1:
+    resolution: {integrity: sha512-cxs6/gBeMl0K/Tt5MVBKn27dajk79hKREGm7Kg4WsTn67phAZD+523n+qyVi5GfhFjLteil6GCGGpal/5Yo7GA==}
     hasBin: true
 
   buffer-crc32@0.2.13:
@@ -2694,6 +2697,10 @@ packages:
     resolution: {integrity: sha512-vpLQEs+VLCr1nU0BXS07maYoFwlDAH0gngQuuttxIwutDFEMHq2blX+8vpgxDdK3J1PwjCJiep77OitTZ4Ll1A==}
     engines: {node: 18 || 20 || >=22}
 
+  minimatch@11.0.2:
+    resolution: {integrity: sha512-pWTgz5CN3tjqyZNSK2tePlSmu9IwM41q8yn8Usdqqwe9TIHh+9dEpLLjF4uApsfPEAZY71qtSiA2B2APEr+1Yw==}
+    engines: {node: 18 || 20 || >=22}
+
   mrmime@2.0.1:
     resolution: {integrity: sha512-Y3wQdFg2Va6etvQ5I82yUhGdsKrcYox6p7FfL1LbK2J4V01F9TGlepTIhnK24t7koZibmg82KGglhA1XK5IsLQ==}
     engines: {node: '>=10'}
@@ -3305,14 +3312,14 @@ snapshots:
 
   '@blazediff/core@1.10.0': {}
 
-  '@breakage/changesets@0.1.0(breakage@0.10.0)':
+  '@breakage/changesets@0.1.0(breakage@0.10.1)':
     dependencies:
       '@changesets/assemble-release-plan': 7.0.0
       '@changesets/config': 4.0.1
       '@changesets/pre': 3.0.0
       '@changesets/read': 1.0.1
       '@manypkg/get-packages': 3.1.0
-      breakage: 0.10.0
+      breakage: 0.10.1
 
   '@changesets/apply-release-plan@8.1.1':
     dependencies:
@@ -3796,6 +3803,8 @@ snapshots:
 
   '@esbuild/win32-x64@0.28.2':
     optional: true
+
+  '@isaacs/nonrecursive-glob-match@1.0.2': {}
 
   '@jridgewell/resolve-uri@3.1.2': {}
 
@@ -4551,11 +4560,11 @@ snapshots:
     dependencies:
       balanced-match: 4.0.4
 
-  breakage@0.10.0:
+  breakage@0.10.1:
     dependencies:
       arktype: 2.2.9
       comline: 0.9.3(arktype@2.2.9)
-      minimatch: 10.2.6
+      minimatch: 11.0.2
       semver: 7.8.5
       simple-git: 4.0.2
       takua: 0.2.3
@@ -5676,6 +5685,11 @@ snapshots:
 
   minimatch@10.2.6:
     dependencies:
+      brace-expansion: 5.0.12
+
+  minimatch@11.0.2:
+    dependencies:
+      '@isaacs/nonrecursive-glob-match': 1.0.2
       brace-expansion: 5.0.12
 
   mrmime@2.0.1: {}
