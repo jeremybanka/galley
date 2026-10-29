@@ -84,7 +84,7 @@
 	},
 	"devDependencies": {
 		"@breakage/changesets": "0.1.0",
-		"@types/node": "26.6.5",
+		"@types/node": "26.6.6",
 		"@types/vscode": "1.140.0",
 		"breakage": "0.10.1",
 		"shiki": "4.5.0"
