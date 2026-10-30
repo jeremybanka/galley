@@ -56,7 +56,7 @@
 		"test:breakage:prelude": "breakage prelude --out .breakage/baseline.json"
 	},
 	"dependencies": {
-		"@babel/parser": "8.0.8",
+		"@babel/parser": "8.0.10",
 		"@dprint/formatter": "0.6.0",
 		"@dprint/markdown": "0.28.2",
 		"@mdx-js/mdx": "3.1.1",
