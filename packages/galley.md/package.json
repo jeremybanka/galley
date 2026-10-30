@@ -74,7 +74,7 @@
 		"remark-mdx": "3.1.1",
 		"remark-parse": "11.0.0",
 		"remark-stringify": "11.0.0",
-		"typescript": "7.1.0-dev.20261028.1",
+		"typescript": "7.1.0-dev.20261029.1",
 		"unified": "11.0.5",
 		"vscode-jsonrpc": "10.0.0",
 		"vscode-languageclient": "11.0.0",
