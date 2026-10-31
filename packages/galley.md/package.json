@@ -67,7 +67,7 @@
 		"diff": "9.0.0",
 		"esbuild": "0.28.2",
 		"hast-util-phrasing": "3.0.1",
-		"hast-util-to-html": "9.0.5",
+		"hast-util-to-html": "9.0.6",
 		"mdast-util-to-hast": "13.2.1",
 		"remark-frontmatter": "5.0.0",
 		"remark-gfm": "4.0.1",
