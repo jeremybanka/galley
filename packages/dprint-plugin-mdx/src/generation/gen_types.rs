@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::rc::Rc;
 
+use dprint_core::formatting::Arena;
 use dprint_core::formatting::PrintItemPath;
 use dprint_core::formatting::PrintItems;
 use dprint_core::formatting::Signal;
@@ -179,7 +180,8 @@ pub enum MemoizedRcPathKind {
   FinishIndent(u32),
 }
 
-pub struct Context<'a> {
+pub struct Context<'a, 'arena> {
+  pub arena: &'arena Arena,
   pub file_text: &'a str,
   pub configuration: &'a Configuration,
   /// The normalized labels of the file's link reference definitions, which
@@ -236,7 +238,7 @@ pub struct Context<'a> {
   /// The range of the file the code blocks are formatted within, when only
   /// part of the file is being formatted.
   pub code_block_range: Option<std::ops::Range<usize>>,
-  memoized_rc_paths: HashMap<MemoizedRcPathKind, Option<PrintItemPath>>,
+  memoized_rc_paths: HashMap<MemoizedRcPathKind, Option<PrintItemPath<'arena>>>,
   /// How much each of the paths above indents by, keyed by address, so that
   /// they can be told apart from the paths that hold generated content and
   /// what they do to the indentation is known without stepping into them.
@@ -253,16 +255,18 @@ impl MemoizedRcPathKind {
   }
 }
 
-impl<'a> Context<'a> {
+impl<'a, 'arena> Context<'a, 'arena> {
   pub fn new(
+    arena: &'arena Arena,
     file_text: &'a str,
     configuration: &'a Configuration,
     labels: (HashSet<String>, HashSet<String>),
     format_code_block_text: impl for<'b> FnMut(&str, &'b str, u32) -> FormatResult + 'a,
     code_block_error: Rc<RefCell<Option<CodeBlockError>>>,
-  ) -> Context<'a> {
+  ) -> Context<'a, 'arena> {
     let (link_labels, footnote_labels) = labels;
     Context {
+      arena,
       file_text,
       configuration,
       link_labels,
@@ -297,11 +301,11 @@ impl<'a> Context<'a> {
     }
   }
 
-  pub fn get_memoized_rc_path(&mut self, kind: MemoizedRcPathKind) -> Option<PrintItemPath> {
+  pub fn get_memoized_rc_path(&mut self, kind: MemoizedRcPathKind) -> Option<PrintItemPath<'arena>> {
     if let Some(path) = self.memoized_rc_paths.get(&kind) {
       *path
     } else {
-      let mut items = PrintItems::new();
+      let mut items = PrintItems::new(self.arena);
       match kind {
         MemoizedRcPathKind::StartIndent(times) => {
           for _ in 0..times {
@@ -333,13 +337,13 @@ impl<'a> Context<'a> {
 
   /// Whether the path is one of the memoized paths handed out above, rather
   /// than a path holding generated content.
-  pub fn is_memoized_rc_path(&self, path: PrintItemPath) -> bool {
+  pub fn is_memoized_rc_path(&self, path: PrintItemPath<'arena>) -> bool {
     self.memoized_path_indent_delta(path).is_some()
   }
 
   /// How much the memoized path indents by, or `None` where the path holds
   /// generated content rather than indentation.
-  pub fn memoized_path_indent_delta(&self, path: PrintItemPath) -> Option<i32> {
+  pub fn memoized_path_indent_delta(&self, path: PrintItemPath<'arena>) -> Option<i32> {
     self.memoized_rc_path_indents.get(&(path as *const _ as usize)).copied()
   }
 
@@ -349,7 +353,7 @@ impl<'a> Context<'a> {
   pub fn mark_in_block_quotes<T>(
     &mut self,
     content_start: Option<usize>,
-    func: impl FnOnce(&mut Context, Vec<u32>) -> T,
+    func: impl FnOnce(&mut Context<'a, 'arena>, Vec<u32>) -> T,
   ) -> T {
     let original_is_in_list_count = self.is_in_list_count;
     self.is_in_list_count = 0;
@@ -363,7 +367,7 @@ impl<'a> Context<'a> {
     items
   }
 
-  pub fn mark_in_list<T>(&mut self, func: impl FnOnce(&mut Context) -> T) -> T {
+  pub fn mark_in_list<T>(&mut self, func: impl FnOnce(&mut Context<'a, 'arena>) -> T) -> T {
     self.is_in_list_count += 1;
     let items = func(self);
     self.is_in_list_count -= 1;
@@ -400,7 +404,7 @@ impl<'a> Context<'a> {
     )
   }
 
-  pub fn with_no_text_wrap<T>(&mut self, func: impl FnOnce(&mut Context) -> T) -> T {
+  pub fn with_no_text_wrap<T>(&mut self, func: impl FnOnce(&mut Context<'a, 'arena>) -> T) -> T {
     self.text_wrap_disabled_count += 1;
     let items = func(self);
     self.text_wrap_disabled_count -= 1;
@@ -408,7 +412,11 @@ impl<'a> Context<'a> {
   }
 
   /// Generates the content of the list item the marker belongs to.
-  pub fn mark_in_list_item<T>(&mut self, marker: ListItemMarker, func: impl FnOnce(&mut Context) -> T) -> T {
+  pub fn mark_in_list_item<T>(
+    &mut self,
+    marker: ListItemMarker,
+    func: impl FnOnce(&mut Context<'a, 'arena>) -> T,
+  ) -> T {
     let previous = std::mem::replace(&mut self.list_marker, marker);
     let result = func(self);
     self.list_marker = previous;
@@ -476,7 +484,7 @@ impl<'a> Context<'a> {
 
   /// Writes out the text decorations within with the characters they were
   /// written with, which the name of a reference depends on.
-  pub fn with_preserved_decorations<T>(&mut self, func: impl FnOnce(&mut Context) -> T) -> T {
+  pub fn with_preserved_decorations<T>(&mut self, func: impl FnOnce(&mut Context<'a, 'arena>) -> T) -> T {
     self.decorations_preserved_count += 1;
     let result = func(self);
     self.decorations_preserved_count -= 1;
@@ -485,7 +493,11 @@ impl<'a> Context<'a> {
 
   /// Runs within the content of a text decoration, so that the ones nested in
   /// it know where its own delimiters sit beside them.
-  pub fn with_enclosing_decoration<T>(&mut self, content: Option<Span>, func: impl FnOnce(&mut Context) -> T) -> T {
+  pub fn with_enclosing_decoration<T>(
+    &mut self,
+    content: Option<Span>,
+    func: impl FnOnce(&mut Context<'a, 'arena>) -> T,
+  ) -> T {
     let previous = std::mem::replace(&mut self.enclosing_decoration, content);
     let result = func(self);
     self.enclosing_decoration = previous;
@@ -494,7 +506,11 @@ impl<'a> Context<'a> {
 
   /// Generates the content of an atx heading, whose text at `start` ends with
   /// hashes that would otherwise close the heading.
-  pub fn with_escaped_closing_hashes<T>(&mut self, start: Option<usize>, func: impl FnOnce(&mut Context) -> T) -> T {
+  pub fn with_escaped_closing_hashes<T>(
+    &mut self,
+    start: Option<usize>,
+    func: impl FnOnce(&mut Context<'a, 'arena>) -> T,
+  ) -> T {
     let previous = std::mem::replace(&mut self.escaped_closing_hashes, start);
     let result = func(self);
     self.escaped_closing_hashes = previous;
@@ -509,7 +525,11 @@ impl<'a> Context<'a> {
 
   /// Generates the content of a paragraph, which `escapes` says has to be
   /// written with backslashes in order to be read back as one.
-  pub fn with_paragraph_escapes<T>(&mut self, escapes: ParagraphEscapes, func: impl FnOnce(&mut Context) -> T) -> T {
+  pub fn with_paragraph_escapes<T>(
+    &mut self,
+    escapes: ParagraphEscapes,
+    func: impl FnOnce(&mut Context<'a, 'arena>) -> T,
+  ) -> T {
     let previous_starts = std::mem::replace(&mut self.escaped_block_starts, escapes.block_starts);
     let previous_line_starts = std::mem::replace(&mut self.line_start_texts, escapes.line_starts);
     let previous_end = self.block_end.replace(escapes.end);
@@ -541,7 +561,11 @@ impl<'a> Context<'a> {
 
   /// Generates a run of nodes, `dropped` holding the line breaks within it and
   /// everything nested in it that aren't written out.
-  pub fn with_dropped_breaks<T>(&mut self, dropped: DroppedBreaks, func: impl FnOnce(&mut Context) -> T) -> T {
+  pub fn with_dropped_breaks<T>(
+    &mut self,
+    dropped: DroppedBreaks,
+    func: impl FnOnce(&mut Context<'a, 'arena>) -> T,
+  ) -> T {
     let previous = std::mem::replace(&mut self.dropped_breaks, dropped);
     let result = func(self);
     self.dropped_breaks = previous;
@@ -550,7 +574,11 @@ impl<'a> Context<'a> {
 
   /// Generates a run of nodes, `runs` holding the delimiter runs of the block
   /// they belong to -- or nothing, where the nodes are blocks of their own.
-  pub fn with_delimiter_runs<T>(&mut self, runs: Option<DelimiterRuns>, func: impl FnOnce(&mut Context) -> T) -> T {
+  pub fn with_delimiter_runs<T>(
+    &mut self,
+    runs: Option<DelimiterRuns>,
+    func: impl FnOnce(&mut Context<'a, 'arena>) -> T,
+  ) -> T {
     let previous = std::mem::replace(&mut self.delimiter_runs, runs);
     let result = func(self);
     self.delimiter_runs = previous;
