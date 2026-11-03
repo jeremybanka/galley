@@ -81,8 +81,9 @@ pub(crate) fn format_text_inner(
   // generated, so the error is carried out of the generation and raised here
   let code_block_error = Rc::new(RefCell::new(None));
   let text = dprint_core::formatting::format(
-    || {
+    |arena| {
       let mut context = Context::new(
+        arena,
         markdown_text,
         config,
         labels,
@@ -116,9 +117,12 @@ pub fn trace_file(
     ParseFileResult::SourceFile(file) => file,
   };
   let labels = take_labels(&mut source_file);
+  let arena = dprint_core::formatting::Arena::new();
   dprint_core::formatting::trace_printing(
-    || {
+    {
+      let arena = &arena;
       let mut context = Context::new(
+        arena,
         markdown_text,
         config,
         labels,
