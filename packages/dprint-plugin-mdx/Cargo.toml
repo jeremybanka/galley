@@ -33,7 +33,7 @@ harness = false
 
 [dependencies]
 deno_ast = { version = "=0.53.3", features = ["view"] }
-dprint-core = { version = "=0.75.0", features = ["formatting"] }
+dprint-core = { version = "=0.75.2", features = ["formatting"] }
 dprint-core-macros = "=0.1.0"
 dprint-plugin-typescript = "=0.96.1"
 markdown = { version = "=1.0.0", features = ["serde"] }
