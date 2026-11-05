@@ -1,5 +1,11 @@
 # dprint-plugin-mdx
 
+## 0.1.1
+
+### Patch Changes
+
+- 293fcc7: Upgrade dprint-core to 0.75.0 and migrate print generation and tracing to its arena-based API.
+
 ## 0.1.0
 
 ### Minor Changes
