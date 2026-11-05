@@ -40,10 +40,16 @@
 	],
 	"oxc": {
 		"associations": [
-			"**/*.{ts,tsx,js,jsx,mjs,cjs}"
+			"**/*.{ts,tsx,js,jsx,mjs,cjs,yml,yaml}"
 		],
 		"semicolons": "asNeeded",
-		"trailingCommas": "all"
+		"trailingCommas": "all",
+		"overrides": [
+			{
+				"files": "**/*.{yml,yaml}",
+				"quoteStyle": "single"
+			}
+		]
 	},
 	"json": {
 		"associations": [
@@ -65,18 +71,12 @@
 			"**/*.toml"
 		]
 	},
-	"yaml": {
-		"associations": [
-			"**/*.{yml,yaml}"
-		]
-	},
 	"plugins": [
 		"./node_modules/@dprint/oxc/plugin.wasm",
 		"./node_modules/@dprint/json/plugin.wasm",
 		"./node_modules/@dprint/markdown/plugin.wasm",
 		"./node_modules/dprint-plugin-malva/plugin.wasm",
 		"./node_modules/@dprint/toml/plugin.wasm",
-		"./node_modules/dprint-plugin-yaml/plugin.wasm",
 		"./packages/dprint-plugin-mdx/plugin.wasm"
 	],
 	"mdx": {

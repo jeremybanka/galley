@@ -2,10 +2,10 @@ name: Renovate
 
 on:
   schedule:
-    - cron: "0 * * * *"
+    - cron: '0 * * * *'
   workflow_dispatch:
   push:
-    branches: ["main"]
+    branches: ['main']
 
 permissions:
   contents: read
@@ -40,12 +40,11 @@ jobs:
       - uses: renovatebot/github-action@1c0cf989c02653fba0efe7ca5772338860ca71dc # v46.3.12
         env:
           LOG_LEVEL: debug
-          RENOVATE_ALLOW_SCRIPTS: "true"
+          RENOVATE_ALLOW_SCRIPTS: 'true'
           RENOVATE_ALLOW_PLUGINS: true
           RENOVATE_ALLOWED_COMMANDS: >-
             ["^pnpm dlx --package=vite-plus@[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)? vp migrate --no-interactive$",
-            "^pnpm install --no-frozen-lockfile --ignore-scripts$",
-            "^mise trust mise[.]toml && mise install --yes && mise exec -- pnpm fmt$"]
+            "^pnpm install --no-frozen-lockfile --ignore-scripts$"]
           RENOVATE_REPOSITORIES: ${{ github.repository_owner }}/${{ github.event.repository.name }}
         with:
           configurationFile: renovate.json

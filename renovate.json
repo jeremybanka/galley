@@ -52,15 +52,14 @@
 			"skipArtifactsUpdate": true,
 			"postUpgradeTasks": {
 				"commands": [
-					"{{#if (includes (lookupArray upgrades 'depName') 'vite-plus')}}pnpm dlx --package=vite-plus@{{#each upgrades}}{{#if (equals depName 'vite-plus')}}{{{newVersion}}}{{/if}}{{/each}} vp migrate --no-interactive{{else}}pnpm install --no-frozen-lockfile --ignore-scripts{{/if}}",
-					"mise trust mise.toml && mise install --yes && mise exec -- pnpm fmt"
+					"{{#if (includes (lookupArray upgrades 'depName') 'vite-plus')}}pnpm dlx --package=vite-plus@{{#each upgrades}}{{#if (equals depName 'vite-plus')}}{{{newVersion}}}{{/if}}{{/each}} vp migrate --no-interactive{{else}}pnpm install --no-frozen-lockfile --ignore-scripts{{/if}}"
 				],
 				"executionMode": "branch",
 				"fileFilters": ["**/*"],
-				"installTools": { "node": {}, "pnpm": {}, "mise": {} }
+				"installTools": { "node": {}, "pnpm": {} }
 			},
 			"prBodyNotes": [
-				"Vite Plus upgrades run the selected release's official `vp migrate --no-interactive` before installing new project dependencies, then install the mise-pinned tools and run `pnpm fmt`, including its MDX plugin build. Review the generated source/configuration changes and any manual migration findings in the Renovate logs."
+				"Vite Plus upgrades run the selected release's official `vp migrate --no-interactive` before installing new project dependencies. Review the generated source/configuration changes and any manual migration findings in the Renovate logs."
 			]
 		},
 		{

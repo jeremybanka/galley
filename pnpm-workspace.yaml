@@ -2,7 +2,7 @@ packages:
   - packages/*
 
 allowBuilds:
-  "@vscode/vsce-sign": false
+  '@vscode/vsce-sign': false
   dprint: true
   esbuild: true
 
@@ -15,26 +15,26 @@ peerDependencyRules:
     - vite
   allowedVersions:
     typescript: ^5.0.0 || ^6.0.0 || ^7.0.0
-    vite: "*"
+    vite: '*'
 catalog:
   vite: npm:@voidzero-dev/vite-plus-core@1.5.0
   vite-plus: 1.5.0
 overrides:
-  vite@*: "catalog:"
+  vite@*: 'catalog:'
 minimumReleaseAgeExclude:
   # Consumed jeremybanka packages are exempt at every version.
   # Keep aligned with the npm rule in renovate.json.
   - breakage
-  - "@breakage/changesets"
+  - '@breakage/changesets'
   - comline
   - treetrunks
   - vite-plus
-  - "@voidzero-dev/*"
+  - '@voidzero-dev/*'
   - oxlint
-  - "@oxlint/*"
+  - '@oxlint/*'
   - oxlint-tsgolint
-  - "@oxlint-tsgolint/*"
+  - '@oxlint-tsgolint/*'
   - oxfmt
-  - "@oxfmt/*"
+  - '@oxfmt/*'
   - vitest
-  - "@vitest/*"
+  - '@vitest/*'
