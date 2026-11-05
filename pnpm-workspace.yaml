@@ -15,12 +15,12 @@ peerDependencyRules:
     - vite
   allowedVersions:
     typescript: ^5.0.0 || ^6.0.0 || ^7.0.0
-    vite: "*"
+    vite: '*'
 catalog:
-  vite: npm:@voidzero-dev/vite-plus-core@1.4.0
-  vite-plus: 1.4.0
+  vite: npm:@voidzero-dev/vite-plus-core@1.5.0
+  vite-plus: 1.5.0
 overrides:
-  vite@*: "catalog:"
+  vite@*: 'catalog:'
 minimumReleaseAgeExclude:
   # Consumed jeremybanka packages are exempt at every version.
   # Keep aligned with the npm rule in renovate.json.
