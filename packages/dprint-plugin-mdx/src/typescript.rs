@@ -174,9 +174,10 @@ pub fn format_module(source: &str, width: u32) -> Result<String, FormatError> {
     let next = dprint_plugin_typescript::format_text(dprint_plugin_typescript::FormatTextOptions {
       path: std::path::Path::new("galley.tsx"),
       extension: None,
-      text: current.clone(),
+      text: current.as_str().into(),
       config: &config,
       external_formatter: None,
+      arena_pool: None,
     })
     .map_err(|error| FormatError::Parse(error.to_string()))?;
     match next {
