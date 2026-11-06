@@ -1,6 +1,9 @@
 import { defineConfig } from "vite-plus"
 
 export default defineConfig({
+	fmt: {
+		overrides: [{ files: ["**/*.{yml,yaml}"], options: { singleQuote: true } }],
+	},
 	lint: {
 		ignorePatterns: [
 			"**/dist/**",
