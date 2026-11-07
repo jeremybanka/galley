@@ -24,6 +24,10 @@
 	],
 	"packageRules": [
 		{
+			"groupName": "dprint",
+			"matchPackageNames": ["dprint", "@dprint/*", "/^dprint-plugin-/"]
+		},
+		{
 			"description": "Review compatibility supervisor upgrades separately",
 			"matchPackageNames": ["breakage", "@breakage/changesets"],
 			"automerge": false
