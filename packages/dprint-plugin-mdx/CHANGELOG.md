@@ -1,5 +1,11 @@
 # dprint-plugin-mdx
 
+## 0.1.2
+
+### Patch Changes
+
+- 31de768: Update the bundled TypeScript formatter to 0.97.1 and adapt to its shared text and formatting arena API.
+
 ## 0.1.1
 
 ### Patch Changes
