@@ -4,7 +4,7 @@ import { fileURLToPath, pathToFileURL } from "node:url"
 import { documentImports, importAttributes } from "../editor/document.ts"
 import { builtinImportTypes } from "../mapper/transform.ts"
 
-export function attributedImports(source: string) {
+function attributedImports(source: string) {
 	try {
 		return documentImports(source).filter((item) => item.attributes?.length)
 	} catch {

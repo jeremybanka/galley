@@ -25,7 +25,9 @@
 		"test:breakage": "vp run -r --no-cache test:breakage",
 		"check:rust": "mise exec -- cargo clippy --locked --all-targets -- -D warnings",
 		"build:mdx": "node scripts/build-mdx-plugin.node.ts",
-		"check:mdx": "tsc --runExternalCode --project tsconfig.json"
+		"check:mdx": "tsc --runExternalCode --project tsconfig.json",
+		"check:unused": "knip",
+		"check:unused:production": "knip --production"
 	},
 	"devDependencies": {
 		"@changesets/cli": "3.0.3",
@@ -38,8 +40,8 @@
 		"cspell": "10.4.1",
 		"dprint": "0.64.3",
 		"dprint-plugin-malva": "0.16.0",
-		"dprint-plugin-markup": "0.27.6",
 		"galley.md": "workspace:*",
+		"knip": "6.44.1",
 		"typescript": "7.1.0-dev.20261106.1",
 		"vite-plus": "catalog:"
 	},

@@ -95,3 +95,9 @@ The build generates `plugin.wasm`, a checksum manifest, `DEPENDENCY_NOTICES.txt`
 The MDX adapter uses markdown-rs with TypeScript parsing callbacks in `src/typescript.rs`. Boundary parsing uses deno_ast; the bundled official dprint TypeScript formatter owns a separate SWC parser as of 0.97. Keep their supported syntax aligned and run the shared TypeScript fixtures through compilation, typechecking, WASM formatting, and editor highlighting when upgrading either parser. The supplemental MIT notices for capacity_builder_macros and deno_error_macro come from their sibling crate licenses; dprint-swc-ext's license is identical in the 0.26.1 and 0.27.1 repository tags.
 
 The npm package is `dprint-plugin-mdx`; its source directory is `packages/dprint-plugin-mdx`, and its private Rust crate retains the internal name `dprint-plugin-galley-mdx`. Changesets owns the plugin's npm version. The Wasm metadata reads the included `package.json`; the private, unpublished Rust crate version is not a second release counter. Before publishing, build the workspace and inspect `pnpm --filter dprint-plugin-mdx pack` for the Wasm, manifest, sources, and license notices.
+
+## Unused code
+
+Run `pnpm run check:unused` to check workspace files, exports, types, and dependencies. Run `pnpm run check:unused:production` to check production entrypoints without tests, examples, or contributor scripts keeping source code reachable. Both commands participate in `check` and run sequentially in a dedicated Knip CI job alongside the other static checks. Findings fail the check; neither command deletes code.
+
+`knip.ts` preserves published entrypoint exports and accounts for executable configuration, workers, examples, and fixture projects. Review findings against public API and dynamically loaded inputs before removing code; source reachability does not measure final bundle size.

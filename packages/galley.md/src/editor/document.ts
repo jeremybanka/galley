@@ -24,7 +24,7 @@ export function parseDocument(source: string): Root {
 }
 
 type Span = { start: number; end: number }
-export type Attribute = Span & {
+type Attribute = Span & {
 	key: Span & { name?: string; value?: string }
 	value: Span & { value: string }
 }
@@ -39,7 +39,7 @@ export type DocumentImport = Span & {
 	attributes?: Attribute[]
 }
 
-export function parseEditorDocument(source: string): Root {
+function parseEditorDocument(source: string): Root {
 	return recoverDocument(source).tree
 }
 
