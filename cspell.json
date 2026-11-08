@@ -13,6 +13,7 @@
 		"packages/dprint-plugin-mdx/licenses/**"
 	],
 	"words": [
+		"knip",
 		"eMudhra",
 		"comline",
 		"esbuild",
