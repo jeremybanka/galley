@@ -345,9 +345,9 @@ dependencies = [
 
 [[package]]
 name = "dprint-plugin-typescript"
-version = "0.98.0"
+version = "0.98.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c4850a58b09218a462d5597b94a8ae9be0ef5c8690b6c726ca8689a2d917a355"
+checksum = "210259c87689f8d9b26746e5760ca2e28083a486430c0c3fb958facf76fda2a4"
 dependencies = [
  "capacity_builder",
  "dprint-core",
