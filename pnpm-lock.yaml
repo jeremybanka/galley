@@ -318,8 +318,8 @@ importers:
         specifier: 26.6.6
         version: 26.6.6
       '@types/vscode':
-        specifier: 1.145.0
-        version: 1.145.0
+        specifier: 1.146.0
+        version: 1.146.0
       breakage:
         specifier: 0.10.2
         version: 0.10.2(zod@4.6.7)
@@ -1777,8 +1777,8 @@ packages:
   '@types/unist@3.0.3':
     resolution: {integrity: sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==}
 
-  '@types/vscode@1.145.0':
-    resolution: {integrity: sha512-mADZK4SF/j1n0+Qk4bH8NT1qTQGYDAsbhb5hStbzuB3hKP3mRH7xja5yUaIm7ExCh65Ff+C9XGwxcBvSlTCvkQ==}
+  '@types/vscode@1.146.0':
+    resolution: {integrity: sha512-OtU25faeM997QQsW+D07FN9cX06j+EEI4aQaPw/UO3HWlCM39N1W7fG8ewhdZKluut31KffyMsmDzJzgMu6t8Q==}
 
   '@typescript/typescript-darwin-arm64@7.1.0-dev.20261111.1':
     resolution: {integrity: sha512-JSndMjPkbtfCA3TSDKTg1TCrsVYeadNZrFN6AQu2Ljhwn+NQe3CQmmBIpoY7ECmA/g6R1Q2INnjKcuCoFL5kKw==}
@@ -4633,7 +4633,7 @@ snapshots:
 
   '@types/unist@3.0.3': {}
 
-  '@types/vscode@1.145.0': {}
+  '@types/vscode@1.146.0': {}
 
   '@typescript/typescript-darwin-arm64@7.1.0-dev.20261111.1':
     optional: true
