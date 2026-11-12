@@ -1,5 +1,11 @@
 # dprint-plugin-mdx
 
+## 0.1.3
+
+### Patch Changes
+
+- 214833f: Upgrade the MDX formatter to dprint-core 0.77.0 and adapt its Wasm plugin metadata to the updated API.
+
 ## 0.1.2
 
 ### Patch Changes

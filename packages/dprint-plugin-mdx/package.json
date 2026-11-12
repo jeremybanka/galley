@@ -1,6 +1,6 @@
 {
 	"name": "dprint-plugin-mdx",
-	"version": "0.1.2",
+	"version": "0.1.3",
 	"description": "MDX-safe Markdown formatting for dprint.",
 	"bugs": {
 		"url": "https://github.com/jeremybanka/galley/issues"
