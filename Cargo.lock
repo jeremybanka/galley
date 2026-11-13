@@ -290,20 +290,6 @@ dependencies = [
 
 [[package]]
 name = "dprint-core"
-version = "0.75.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41d1b3e059b1b7519ef780acfa054650c095c7a6550e48f5da3a6f3ade945f6b"
-dependencies = [
- "bumpalo",
- "hashbrown 0.15.5",
- "indexmap",
- "rustc-hash",
- "serde",
- "unicode-width",
-]
-
-[[package]]
-name = "dprint-core"
 version = "0.77.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0026ea2e92516580be23ad0616f8604f6949c4f5b2311fc5738d8a3d50f50a0e"
@@ -345,7 +331,7 @@ name = "dprint-plugin-galley-mdx"
 version = "0.0.0"
 dependencies = [
  "deno_ast",
- "dprint-core 0.77.0",
+ "dprint-core",
  "dprint-core-macros",
  "dprint-development",
  "dprint-plugin-typescript",
@@ -359,12 +345,12 @@ dependencies = [
 
 [[package]]
 name = "dprint-plugin-typescript"
-version = "0.99.2"
+version = "0.100.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e1981a6b3c460a69b49b1b554d48535f7bfd1df6f142b007976b22d751bd1dfd"
+checksum = "7c561bab20ac7d01a9fb224a723c61d17199c1d42510232e45f752941271bdaa"
 dependencies = [
  "capacity_builder",
- "dprint-core 0.75.2",
+ "dprint-core",
  "dprint-core-macros",
  "dprint-swc-ext 0.28.1",
  "globset",
