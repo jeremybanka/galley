@@ -34,6 +34,7 @@
 		"tree-shaken",
 		"treetrunks",
 		"tsgolint",
+		"tsrs",
 		"vite",
 		"viteplus",
 		"vitest",
