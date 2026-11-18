@@ -25,7 +25,7 @@
 		"test:breakage": "vp run -r --no-cache test:breakage",
 		"check:rust": "mise exec -- cargo clippy --locked --all-targets -- -D warnings",
 		"build:mdx": "node scripts/build-mdx-plugin.node.ts",
-		"check:mdx": "tsc --runExternalCode --project tsconfig.json",
+		"check:mdx": "tsc --runExternalCode --project tsconfig.json && tsc --runExternalCode --project packages/galley.md/tsconfig.json",
 		"check:unused": "knip",
 		"check:unused:production": "knip --production"
 	},
