@@ -10,7 +10,6 @@ export default defineConfig({
 			"**/node_modules/**",
 			"**/__tests__/fixtures/**",
 		],
-		options: { typeAware: true, typeCheck: true },
 	},
 	staged: { "*": ["dprint fmt", "vp check --no-fmt --fix"] },
 })

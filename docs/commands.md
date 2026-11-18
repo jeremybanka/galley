@@ -12,7 +12,7 @@ Run commands from the repository root. The publishable packages live in `package
 | `check:fmt`        | Validate formatting.                                                  |
 | `check:spelling`   | Validate spelling.                                                    |
 | `check:mdx`        | Check the configured project with TypeScript 7.1 and its MDX mapper.  |
-| `check:vp`         | Run lint and TypeScript checks through Vite Plus.                     |
+| `check:vp`         | Run Vite Plus linting.                                                |
 | `test`             | Run the test suite once.                                              |
 | `test:rust`        | Run the native Rust regression suite once.                            |
 | `test:wasm`        | Run formatter integration tests against an already-built Wasm plugin. |
@@ -28,6 +28,8 @@ Run commands from the repository root. The publishable packages live in `package
 | `workflows:update` | Update pinned workflow tooling references.                            |
 
 Galley's `prepare` script builds source installations. Published npm packages include the built files.
+
+Vite Plus 1.7's bundled type checker cannot run content mappers. Galley's `check:mdx` checks the workspace and package TypeScript projects with TypeScript 7.1 and the configured mapper.
 
 For Vite Plus upgrades, Renovate runs the target release's official `vp migrate --no-interactive` with the existing lockfile. Review manual migration findings and formatter compatibility in the upgrade PR. Keep the migration command in `renovate.json` synchronized with the allowed command in `.github/workflows/renovate.yml`.
 
