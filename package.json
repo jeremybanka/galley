@@ -42,7 +42,7 @@
 		"dprint-plugin-malva": "0.16.1",
 		"galley.md": "workspace:*",
 		"knip": "6.46.1",
-		"typescript": "7.1.0-dev.20261118.1",
+		"typescript": "7.1.0-dev.20261119.1",
 		"vite-plus": "catalog:"
 	},
 	"packageManager": "pnpm@12.21.0",
