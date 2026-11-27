@@ -61,7 +61,7 @@
 		"@dprint/markdown": "0.29.0",
 		"@mdx-js/mdx": "3.1.1",
 		"@types/mdast": "4.0.4",
-		"@types/react": "19.3.1",
+		"@types/react": "19.3.3",
 		"@vscode/vsce": "4.1.1",
 		"comline": "0.9.3",
 		"diff": "9.0.0",
