@@ -315,8 +315,8 @@ importers:
         specifier: 11.0.5
         version: 11.0.5
       vscode-jsonrpc:
-        specifier: 10.0.1
-        version: 10.0.1
+        specifier: 10.0.2
+        version: 10.0.2
       vscode-languageclient:
         specifier: 11.0.1
         version: 11.0.1
@@ -3439,6 +3439,10 @@ packages:
 
   vscode-jsonrpc@10.0.1:
     resolution: {integrity: sha512-fGdu32Sp4GeSQ2twML46WPMB6cFfIJ4Vdx1K5s/WPzUYdShVPCGKscYltn5hiNz748xKNJdBHgocAvuN48tLGw==}
+    engines: {node: '>=14.17.0'}
+
+  vscode-jsonrpc@10.0.2:
+    resolution: {integrity: sha512-U6K7wa1t8jTZf7eoHJLKSNdHE0oi9r/+/4TSXWPSLQ2FSQVMYLR5TvzQHrYjwW/lLjq0eTm+pi8vWz4jSV7o4w==}
     engines: {node: '>=14.17.0'}
 
   vscode-languageclient@11.0.1:
@@ -6738,6 +6742,8 @@ snapshots:
       - msw
 
   vscode-jsonrpc@10.0.1: {}
+
+  vscode-jsonrpc@10.0.2: {}
 
   vscode-languageclient@11.0.1:
     dependencies:
